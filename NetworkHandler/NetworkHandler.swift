@@ -35,6 +35,8 @@ enum NetworkError: Error {
 	case urlInvalid(urlString: String?)
 	case noStatusCodeResponse
 	case httpNon200StatusCode(code: Int, data: Data?)
+	/// generically labeled to account for other databases, like Realm
+	case databaseFailure(specifically: Error)
 }
 
 class NetworkHandler {
@@ -125,7 +127,7 @@ class NetworkHandler {
 				}
 
 				completion(.success(data))
-			}.resume()
+				}.resume()
 		}
 
 	}
@@ -156,7 +158,7 @@ class NetworkHandler {
 
 	private func printToConsole(_ string: String) {
 		if printErrorsToConsole {
-			NSLog(string)
+			print(string)
 		}
 	}
 }
