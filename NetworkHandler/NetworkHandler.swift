@@ -73,8 +73,37 @@ class NetworkHandler {
 		return JSONDecoder()
 	}()
 
-	func transferMahDatas(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) {
-		transferMahOptionalDatas(with: request) { (result: Result<Data?, NetworkError>) in
+	static let `default` = NetworkHandler()
+
+	/// Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
+	@discardableResult func transferMahCodableDatas<T: Decodable>(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<T, NetworkError>) -> Void) -> URLSessionDataTask {
+
+		let task = transferMahDatas(with: request) { [weak self] (result) in
+			guard let self = self else { return }
+			let decoder = self.netDecoder
+
+			var data = Data()
+			do {
+				data = try result.get()
+			} catch {
+				completion(.failure(error as? NetworkError ?? NetworkError.otherError(error: error)))
+				return
+			}
+
+			do {
+				let newType = try decoder.decode(T.self, from: data)
+				completion(.success(newType))
+			} catch {
+				self.printToConsole("Error decoding data: \(error)")
+				completion(.failure(.dataCodingError(specifically: error)))
+			}
+		}
+		return task
+	}
+
+	/// Preconfigured URLSession tasking to fetch and provide data.
+	@discardableResult func transferMahDatas(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> URLSessionDataTask {
+		let task = transferMahOptionalDatas(with: request) { (result: Result<Data?, NetworkError>) in
 			do {
 				let optData = try result.get()
 				guard let data = optData else {
@@ -87,9 +116,11 @@ class NetworkHandler {
 				completion(.failure(error as? NetworkError ?? NetworkError.otherError(error: error)))
 			}
 		}
+		return task
 	}
 
-	func transferMahOptionalDatas(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) {
+	/// Preconfigured URLSession tasking to fetch and provide optional data, primarily for when you don't actually care about the response.
+	@discardableResult func transferMahOptionalDatas(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask {
 		if mockMode {
 			DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) { [weak self] in
 				guard let self = self else { return }
@@ -101,8 +132,9 @@ class NetworkHandler {
 					completion(.failure(mockError))
 				}
 			}
+			return URLSessionDataTask.init()
 		} else {
-			session.dataTask(with: request) { [weak self] (data, response, error) in
+			let task = session.dataTask(with: request) { [weak self] (data, response, error) in
 				guard let self = self else { return }
 				if let response = response as? HTTPURLResponse {
 					if self.strict200CodeResponse && response.statusCode != 200 {
@@ -127,31 +159,9 @@ class NetworkHandler {
 				}
 
 				completion(.success(data))
-			}.resume()
-		}
-	}
-
-	func transferMahCodableDatas<T: Decodable>(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<T, NetworkError>) -> Void) {
-
-		self.transferMahDatas(with: request) { [weak self] (result) in
-			guard let self = self else { return }
-			let decoder = self.netDecoder
-
-			var data = Data()
-			do {
-				data = try result.get()
-			} catch {
-				completion(.failure(error as? NetworkError ?? NetworkError.otherError(error: error)))
-				return
 			}
-
-			do {
-				let newType = try decoder.decode(T.self, from: data)
-				completion(.success(newType))
-			} catch {
-				self.printToConsole("Error decoding data: \(error)")
-				completion(.failure(.dataCodingError(specifically: error)))
-			}
+			task.resume()
+			return task
 		}
 	}
 
