@@ -127,9 +127,8 @@ class NetworkHandler {
 				}
 
 				completion(.success(data))
-				}.resume()
+			}.resume()
 		}
-
 	}
 
 	func transferMahCodableDatas<T: Decodable>(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<T, NetworkError>) -> Void) {
