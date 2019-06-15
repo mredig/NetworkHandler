@@ -115,7 +115,7 @@ public class NetworkHandler {
 				let newType = try decoder.decode(T.self, from: data)
 				completion(.success(newType))
 			} catch {
-				self.printToConsole("Error decoding data: \(error)")
+				self.printToConsole("Error decoding data in \(#file) line: \(#line): \(error)")
 				completion(.failure(.dataCodingError(specifically: error)))
 			}
 		}
@@ -167,22 +167,22 @@ public class NetworkHandler {
 				guard let self = self else { return }
 				if let response = response as? HTTPURLResponse {
 					if self.strict200CodeResponse && response.statusCode != 200 {
-						self.printToConsole("Received a non 200 http response: \(response.statusCode)")
+						self.printToConsole("Received a non 200 http response: \(response.statusCode) in \(#file) line: \(#line)")
 						completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
 						return
 					} else if !self.strict200CodeResponse && !(200..<300).contains(response.statusCode) {
-						self.printToConsole("Received a non 200 http response: \(response.statusCode)")
+						self.printToConsole("Received a non 200 http response: \(response.statusCode) in \(#file) line: \(#line)")
 						completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
 						return
 					}
 				} else {
-					self.printToConsole("Did not receive a proper response code")
+					self.printToConsole("Did not receive a proper response code in \(#file) line: \(#line)")
 					completion(.failure(.noStatusCodeResponse))
 					return
 				}
 
 				if let error = error {
-					self.printToConsole("An error was encountered: \(error)")
+					self.printToConsole("An error was encountered: \(error) in \(#file) line: \(#line)")
 					completion(.failure(.otherError(error: error)))
 					return
 				}
