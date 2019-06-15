@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum HTTPMethods: String {
+public enum HTTPMethods: String {
 	case post = "POST"
 	case put = "PUT"
 	case delete = "DELETE"
@@ -18,7 +18,7 @@ enum HTTPMethods: String {
 	case options = "OPTIONS"
 }
 
-enum HTTPHeaderKeys: String {
+pubilc enum HTTPHeaderKeys: String {
 	case contentType = "Content-Type"
 	case auth = "Authorization"
 
@@ -27,7 +27,7 @@ enum HTTPHeaderKeys: String {
 	}
 }
 
-enum NetworkError: Error {
+public enum NetworkError: Error {
 	case otherError(error: Error)
 	case badData
 	case dataCodingError(specifically: Error)
@@ -39,30 +39,30 @@ enum NetworkError: Error {
 	case databaseFailure(specifically: Error)
 }
 
-class NetworkHandler {
+public class NetworkHandler {
 
 	// MARK: - Properties
-	var printErrorsToConsole = false
+	public var printErrorsToConsole = false
 	/**
 	When true, results are only considered successful when the response code is
 	*exactly* 200. False allows values anywhere in the 200-299 range to be
 	considered successful.
 	*/
-	var strict200CodeResponse = true
+	public var strict200CodeResponse = true
 	/**
 	The decoder used to decode JSON Codable data. You may edit its settings, just
 	be aware that its settings apply to all decoding, not just for a single use.
 	*/
-	lazy var netDecoder = {
+	public lazy var netDecoder = {
 		return JSONDecoder()
 	}()
 
 	/** If cache is used and there is a value in the cache for the requested
 	key, a dummy URLSessionDataTask will be returned */
-	let cache = NetworkCache()
+	public let cache = NetworkCache()
 
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
-	static let `default` = NetworkHandler()
+	public static let `default` = NetworkHandler()
 
 	// MARK: - Mocking Helpers
 	/**
@@ -77,27 +77,27 @@ class NetworkHandler {
 	wish to test, and set `mockSuccess` to determine whether you want to test
 	success or failure.
 	*/
-	var mockMode = false
+	public var mockMode = false
 	/**
 	Data to provide in the event you want your mock mode test to succeed
 	*/
-	var mockData: Data?
+	public var mockData: Data?
 	/**
 	Error to provide in the event you want your mock mode test to fail
 	*/
-	var mockError: NetworkError?
+	public var mockError: NetworkError?
 	/**
 	Determines if your mock mode test is successful or not - if successful, will
 	return data, if not, will return the error
 	*/
-	var mockSuccess = true
+	public var mockSuccess = true
 	/**
 	Amount of time the mock mode test will take before completing its closures
 	*/
-	var mockDelay: TimeInterval = 0.5
+	public var mockDelay: TimeInterval = 0.5
 
 	/// Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
-	@discardableResult func transferMahCodableDatas<T: Decodable>(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<T, NetworkError>) -> Void) -> URLSessionDataTask {
+	@discardableResult public func transferMahCodableDatas<T: Decodable>(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<T, NetworkError>) -> Void) -> URLSessionDataTask {
 
 		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] (result) in
 			guard let self = self else { return }
@@ -123,7 +123,7 @@ class NetworkHandler {
 	}
 
 	/// Preconfigured URLSession tasking to fetch and provide data.
-	@discardableResult func transferMahDatas(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> URLSessionDataTask {
+	@discardableResult public func transferMahDatas(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> URLSessionDataTask {
 		let task = transferMahOptionalDatas(with: request, usingCache: useCache, session: session) { (result: Result<Data?, NetworkError>) in
 			do {
 				let optData = try result.get()
@@ -142,7 +142,7 @@ class NetworkHandler {
 
 	/** Preconfigured URLSession tasking to fetch and provide optional data,
 	primarily for when you don't actually care about the response. */
-	@discardableResult func transferMahOptionalDatas(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask {
+	@discardableResult public func transferMahOptionalDatas(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask {
 		if mockMode {
 			DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) { [weak self] in
 				guard let self = self else { return }

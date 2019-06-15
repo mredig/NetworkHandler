@@ -84,10 +84,3 @@ extension UIAlertController {
 		}
 	}
 }
-
-
-extension URL {
-	var request: URLRequest {
-		return URLRequest(url: self)
-	}
-}
