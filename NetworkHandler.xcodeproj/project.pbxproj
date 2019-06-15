@@ -13,6 +13,7 @@
 		335D7D43229F4ACD005D5A20 /* NetworkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */; };
 		335D7D44229F4ACD005D5A20 /* UIAlertController+NetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */; };
 		335D7D46229F74A6005D5A20 /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = 335D7D45229F74A6005D5A20 /* Readme.md */; };
+		33FE1DB622B5773F00D64839 /* NetworkCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FE1DB522B5773F00D64839 /* NetworkCache.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +36,7 @@
 		335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkHandler.swift; sourceTree = "<group>"; };
 		335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIAlertController+NetError.swift"; sourceTree = "<group>"; };
 		335D7D45229F74A6005D5A20 /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
+		33FE1DB522B5773F00D64839 /* NetworkCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkCache.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +82,7 @@
 			children = (
 				335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */,
 				335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */,
+				33FE1DB522B5773F00D64839 /* NetworkCache.swift */,
 				335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */,
 				335D7D2B229F4ABA005D5A20 /* Info.plist */,
 			);
@@ -205,6 +208,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33FE1DB622B5773F00D64839 /* NetworkCache.swift in Sources */,
 				335D7D44229F4ACD005D5A20 /* UIAlertController+NetError.swift in Sources */,
 				335D7D43229F4ACD005D5A20 /* NetworkHandler.swift in Sources */,
 			);

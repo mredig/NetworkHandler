@@ -41,6 +41,30 @@ enum NetworkError: Error {
 
 class NetworkHandler {
 
+	// MARK: - Properties
+	var printErrorsToConsole = false
+	/**
+	When true, results are only considered successful when the response code is
+	*exactly* 200. False allows values anywhere in the 200-299 range to be
+	considered successful.
+	*/
+	var strict200CodeResponse = true
+	/**
+	The decoder used to decode JSON Codable data. You may edit its settings, just
+	be aware that its settings apply to all decoding, not just for a single use.
+	*/
+	lazy var netDecoder = {
+		return JSONDecoder()
+	}()
+
+	/** If cache is used and there is a value in the cache for the requested
+	key, a dummy URLSessionDataTask will be returned */
+	let cache = NetworkCache()
+
+	/// A default instance of NetworkHandler provided for convenience. Use is optional.
+	static let `default` = NetworkHandler()
+
+	// MARK: - Mocking Helpers
 	/**
 	Toggles the handler instance into mock mode or not. This must be set before
 	`transferMahDatas` or its variants are called. 	In mock mode, you can provide
@@ -72,29 +96,10 @@ class NetworkHandler {
 	*/
 	var mockDelay: TimeInterval = 0.5
 
-	var printErrorsToConsole = false
-
-	/**
-	When true, results are only considered successful when the response code is
-	*exactly* 200. False allows values anywhere in the 200-299 range to be
-	considered successful.
-	*/
-	var strict200CodeResponse = true
-	/**
-	The decoder used to decode JSON Codable data. You may edit its settings, just
-	be aware that its settings apply to all decoding, not just for a single use.
-	*/
-	lazy var netDecoder = {
-		return JSONDecoder()
-	}()
-
-	/// A default instance of NetworkHandler provided for convenience. Use is optional.
-	static let `default` = NetworkHandler()
-
 	/// Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
-	@discardableResult func transferMahCodableDatas<T: Decodable>(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<T, NetworkError>) -> Void) -> URLSessionDataTask {
+	@discardableResult func transferMahCodableDatas<T: Decodable>(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<T, NetworkError>) -> Void) -> URLSessionDataTask {
 
-		let task = transferMahDatas(with: request) { [weak self] (result) in
+		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] (result) in
 			guard let self = self else { return }
 			let decoder = self.netDecoder
 
@@ -118,8 +123,8 @@ class NetworkHandler {
 	}
 
 	/// Preconfigured URLSession tasking to fetch and provide data.
-	@discardableResult func transferMahDatas(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> URLSessionDataTask {
-		let task = transferMahOptionalDatas(with: request) { (result: Result<Data?, NetworkError>) in
+	@discardableResult func transferMahDatas(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> URLSessionDataTask {
+		let task = transferMahOptionalDatas(with: request, usingCache: useCache, session: session) { (result: Result<Data?, NetworkError>) in
 			do {
 				let optData = try result.get()
 				guard let data = optData else {
@@ -135,8 +140,9 @@ class NetworkHandler {
 		return task
 	}
 
-	/// Preconfigured URLSession tasking to fetch and provide optional data, primarily for when you don't actually care about the response.
-	@discardableResult func transferMahOptionalDatas(with request: URLRequest, session: URLSession = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask {
+	/** Preconfigured URLSession tasking to fetch and provide optional data,
+	primarily for when you don't actually care about the response. */
+	@discardableResult func transferMahOptionalDatas(with request: URLRequest, usingCache useCache: Bool = true, session: URLSession = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask {
 		if mockMode {
 			DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) { [weak self] in
 				guard let self = self else { return }
@@ -148,8 +154,20 @@ class NetworkHandler {
 					completion(.failure(mockError))
 				}
 			}
-			return URLSessionDataTask.init()
+			let task = URLSessionDataTask()
+			task.taskDescription = "Dummy"
+			return task
 		} else {
+			if useCache {
+				if let url = request.url, let data = cache[url] {
+					completion(.success(data))
+					printToConsole("Found and returned data in cache for '\(url)'.")
+					let task = URLSessionDataTask()
+					task.taskDescription = "Dummy"
+					return task
+				}
+			}
+
 			let task = session.dataTask(with: request) { [weak self] (data, response, error) in
 				guard let self = self else { return }
 				if let response = response as? HTTPURLResponse {
@@ -175,6 +193,9 @@ class NetworkHandler {
 				}
 
 				completion(.success(data))
+				if useCache, let url = request.url, let data = data {
+					self.cache[url] = data
+				}
 			}
 			task.resume()
 			return task
