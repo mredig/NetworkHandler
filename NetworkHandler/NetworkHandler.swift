@@ -18,7 +18,7 @@ public enum HTTPMethods: String {
 	case options = "OPTIONS"
 }
 
-pubilc enum HTTPHeaderKeys: String {
+public enum HTTPHeaderKeys: String {
 	case contentType = "Content-Type"
 	case auth = "Authorization"
 
