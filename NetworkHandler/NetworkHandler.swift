@@ -42,12 +42,16 @@ enum NetworkError: Error {
 class NetworkHandler {
 
 	/**
-	Toggles the handler instance into mock mode or not. This must be set before `transferMahDatas` or its variants are called.
-	In mock mode, you can provide test data to test your app in different scenarios providing different data and errors. Currently,
-	mock mode will complete with *either* an error or data, but not both (both is possible in the real world).
+	Toggles the handler instance into mock mode or not. This must be set before
+	`transferMahDatas` or its variants are called. 	In mock mode, you can provide
+	test data to test your app in different scenarios providing different data and
+	errors. Currently, 	mock mode will complete with *either* an error or data, but
+	not both (both is possible in the real world).
 
-	To use, set mock mode to trun, provide it with data (`mockData`) or an error (`mockError`), set `mockDelay` to emulate whatever
-	level of network latency you wish to test, and set `mockSuccess` to determine whether you want to test success or failure,
+		To use, set mock mode to trun, provide it with data (`mockData`) or an error
+	(`mockError`), set `mockDelay` to emulate whatever 	level of network latency you
+	wish to test, and set `mockSuccess` to determine whether you want to test
+	success or failure.
 	*/
 	var mockMode = false
 	/**
@@ -59,7 +63,8 @@ class NetworkHandler {
 	*/
 	var mockError: NetworkError?
 	/**
-	Determines if your mock mode test is successful or not - if successful, will return data, if not, will return the error
+	Determines if your mock mode test is successful or not - if successful, will
+	return data, if not, will return the error
 	*/
 	var mockSuccess = true
 	/**
@@ -68,11 +73,22 @@ class NetworkHandler {
 	var mockDelay: TimeInterval = 0.5
 
 	var printErrorsToConsole = false
+
+	/**
+	When true, results are only considered successful when the response code is
+	*exactly* 200. False allows values anywhere in the 200-299 range to be
+	considered successful.
+	*/
 	var strict200CodeResponse = true
+	/**
+	The decoder used to decode JSON Codable data. You may edit its settings, just
+	be aware that its settings apply to all decoding, not just for a single use.
+	*/
 	lazy var netDecoder = {
 		return JSONDecoder()
 	}()
 
+	/// A default instance of NetworkHandler provided for convenience. Use is optional.
 	static let `default` = NetworkHandler()
 
 	/// Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
