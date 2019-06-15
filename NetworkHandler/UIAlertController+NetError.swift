@@ -8,7 +8,7 @@
 
 import UIKit
 
-extension UIAlertController {
+public extension UIAlertController {
 	private struct Message: Decodable {
 		let message: String
 	}
