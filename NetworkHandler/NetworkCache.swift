@@ -11,8 +11,6 @@ import Foundation
 public class NetworkCache {
 	private let cache = NSCache<NSURL, NSData>()
 
-	var testDict = [String: String]() //delete this
-
 	public var countLimit: Int {
 		get {
 			return cache.countLimit
@@ -54,8 +52,6 @@ public class NetworkCache {
 	}
 
 	init() {
-		// https://stackoverflow.com/a/15200855 - only use if necessary after testing
-//		cache.totalCostLimit = Int(Double(ProcessInfo.processInfo.physicalMemory) * 0.4)
 		cache.name = "NetworkHandler: NetworkCache"
 	}
 
