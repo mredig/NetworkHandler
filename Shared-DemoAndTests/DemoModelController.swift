@@ -16,53 +16,65 @@ class DemoModelController {
 		get {
 			return _demoModels
 		}
-
 		set {
 			_demoModels = newValue.sorted { $0.title < $1.title }
 		}
 	}
 
-	func create(modelWithTitle title: String, andSubtitle subtitle: String, imageURL: URL) {
+	@discardableResult func create(modelWithTitle title: String, andSubtitle subtitle: String, imageURL: URL, completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel {
 		let model = DemoModel(title: title, subtitle: subtitle, imageURL: imageURL)
 		demoModels.append(model)
 		put(model: model) { (result: Result<DemoModel, NetworkError>) in
 			do {
 				_ = try result.get()
+				completion(nil)
 			} catch {
 				NSLog("There was an error creating the new model on the server: \(error)")
+				completion(error as? NetworkError ?? NetworkError.otherError(error: error))
 			}
 		}
+		return model
 	}
 
-	func update(model: DemoModel, withTitle title: String, subtitle: String, imageURL: URL) {
-		guard let index = demoModels.firstIndex(of: model) else { return }
+	@discardableResult func update(model: DemoModel, withTitle title: String, subtitle: String, imageURL: URL, completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel? {
+		guard let index = demoModels.firstIndex(of: model) else { return nil }
 		demoModels[index].title = title
 		demoModels[index].subtitle = subtitle
 		demoModels[index].imageURL = imageURL
-		put(model: model) { (result: Result<DemoModel, NetworkError>) in
+		let updatedModel = demoModels[index]
+		put(model: updatedModel) { (result: Result<DemoModel, NetworkError>) in
 			do {
 				_ = try result.get()
+				completion(nil)
 			} catch {
 				NSLog("There was an error updating the model on the server: \(error)")
+				completion(error as? NetworkError ?? NetworkError.otherError(error: error))
 			}
 		}
+		return updatedModel
 	}
 
-	func delete(model: DemoModel) {
+	func delete(model: DemoModel, completion: @escaping (NetworkError?) -> Void = { _ in }) {
 		guard let index = demoModels.firstIndex(of: model) else { return }
 		demoModels.remove(at: index)
 		deleteFromServer(model: model) { (result: Result<Data?, NetworkError>) in
 			do {
 				_ = try result.get()
+				completion(nil)
 			} catch {
 				NSLog("There was an error deleting the model on the server: \(error)")
+				completion(error as? NetworkError ?? NetworkError.otherError(error: error))
 			}
 		}
 	}
 
+	func clearLocalModelCache() {
+		demoModels.removeAll()
+	}
+
 	// MARK: - networking
 
-	let baseURL = URL(string: "https://networkhanderltestbase.firebaseio.com/DemoAndTests")!
+	let baseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
 
 	func fetchDemoModels(completion: @escaping (NetworkError?) -> Void = { _ in }) {
 		let getURL = baseURL.appendingPathExtension("json")
@@ -72,6 +84,9 @@ class DemoModelController {
 			do {
 				let results = try result.get()
 				self?.demoModels = Array(results.values)
+				completion(nil)
+			} catch NetworkError.dataWasNull {
+				self?.demoModels.removeAll()
 				completion(nil)
 			} catch {
 				NSLog("Error loading demo models: \(error)")
