@@ -97,7 +97,7 @@ public class NetworkHandler {
 	public var mockDelay: TimeInterval = 0.5
 
 	/// Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
-	@discardableResult public func transferMahCodableDatas<T: Decodable>(with request: URLRequest, usingCache useCache: Bool = false, session: URLSession = URLSession.shared, completion: @escaping (Result<T, NetworkError>) -> Void) -> URLSessionDataTask? {
+	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: URLRequest, usingCache useCache: Bool = false, session: URLSession = URLSession.shared, completion: @escaping (Result<DecodableType, NetworkError>) -> Void) -> URLSessionDataTask? {
 
 		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] (result) in
 			guard let self = self else { return }
@@ -112,7 +112,7 @@ public class NetworkHandler {
 			}
 
 			do {
-				let newType = try decoder.decode(T.self, from: data)
+				let newType = try decoder.decode(DecodableType.self, from: data)
 				completion(.success(newType))
 			} catch {
 				self.printToConsole("Error decoding data in \(#file) line: \(#line): \(error)")
