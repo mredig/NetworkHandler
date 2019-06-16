@@ -44,6 +44,8 @@ public extension UIAlertController {
 				message = "An invalid request was attempted. \(info)"
 			case .databaseFailure(let otherError):
 				message = "There was an error handling the local cache. Please screenshot and inform the developer: \(otherError)"
+			case .dataWasNull:
+				message = "There was no data returned from the server. This may or may not be expected."
 			}
 		} else {
 			message = "There was an unexpected error. Please screenshot this and inform the developer: \(error)"

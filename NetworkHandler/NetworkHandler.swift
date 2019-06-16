@@ -76,6 +76,27 @@ public enum NetworkError: Error {
 	or CoreData. Compatible with the UIAlertController extension included.
 	*/
 	case databaseFailure(specifically: Error)
+	/**
+	Some APIs (Firebase) will return a value of `null` when the request yields no
+	results. Sometimes this is okay, so in those cases, you can check for if this is
+	the case and proceed logically (for example, don't show the user an error and
+	instead just show a lack of data shown in the event of an empty list)
+
+	Note that the user presented alert associated with this error is NOT helpful,
+	so if this can be reasonably expected at all, you want to try to handle it
+	internally.
+
+	```
+	do {
+		let result = try results.get()
+	} catch NetworkError.dataWasNull {
+		// oh okay, no results... just empty the model controller array
+	} catch {
+		// Another error occured, handle it!
+	}
+	```
+	*/
+	case dataWasNull
 }
 
 public class NetworkHandler {
@@ -95,6 +116,9 @@ public class NetworkHandler {
 	public lazy var netDecoder = {
 		return JSONDecoder()
 	}()
+
+	/// When querying for Codable data, if the response received is `null` (typically in the event that a remote object doesn't exist - This ocurrs on firebase for example) consider it valid as an empty collection. Only works on types that conform to Sequence.
+	public var nullDataIsValid = false
 
 	/**
 	An instance of Network Cache to speed up subsequent requests. Usage is
@@ -182,6 +206,11 @@ public class NetworkHandler {
 				let newType = try decoder.decode(DecodableType.self, from: data)
 				completion(.success(newType))
 			} catch {
+				let nullData = "null".data(using: .utf8)!
+				if data == nullData {
+					completion(.failure(.dataWasNull))
+					return
+				}
 				self.printToConsole("Error decoding data in \(#file) line: \(#line): \(error)")
 				completion(.failure(.dataCodingError(specifically: error)))
 			}
