@@ -9,6 +9,7 @@
 import XCTest
 @testable import NetworkHandler
 
+/// Obviously dependent on network conditions
 class NetworkHandlerTests: XCTestCase {
 
 	var demoModelController: DemoModelController?
@@ -59,7 +60,8 @@ class NetworkHandlerTests: XCTestCase {
 		semaphore.wait()
 
 		XCTAssertTrue(demoModelController.demoModels.contains(updatedModel))
-		XCTAssert(demoModelController.demoModels.contains(startModel) == false) // for some reason XCTAssertFalse was failing, but it was definitely false
+		// for some reason XCTAssertFalse was failing, but it was definitely false
+		XCTAssert(demoModelController.demoModels.contains(startModel) == false)
 
 		// delete
 		let deleteCompletion = completion
@@ -73,4 +75,48 @@ class NetworkHandlerTests: XCTestCase {
 		XCTAssert(demoModelController.demoModels.contains(startModel) == false)
 	}
 
+	func testImageDownloadAndCache() {
+		let semaphore = DispatchSemaphore(value: 0)
+		let networkHandler = NetworkHandler()
+
+		var image: UIImage?
+		let networkStart = CFAbsoluteTimeGetCurrent()
+		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
+			do {
+				let imageData = try result.get()
+				image = UIImage(data: imageData)
+			} catch {
+				XCTFail("Failed getting image data: \(error)")
+			}
+			semaphore.signal()
+		}
+		semaphore.wait()
+		let networkFinish = CFAbsoluteTimeGetCurrent()
+
+		// now try retrieving from cache
+		var imageTwo: UIImage?
+		let cacheStart = CFAbsoluteTimeGetCurrent()
+		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
+			do {
+				let imageData = try result.get()
+				imageTwo = UIImage(data: imageData)
+			} catch {
+				XCTFail("Failed getting image data: \(error)")
+			}
+			semaphore.signal()
+		}
+		semaphore.wait()
+		let cacheFinish = CFAbsoluteTimeGetCurrent()
+
+		let networkDuration = networkFinish - networkStart
+		let cacheDuration = cacheFinish - cacheStart
+		let cacheRatio = cacheDuration / networkDuration
+		print("netDuration: \(networkDuration)\ncacheDuration: \(cacheDuration)\ncache took \(cacheRatio)x as long")
+
+		let imageOneData = image?.pngData()
+		let imageTwoData = imageTwo?.pngData()
+		XCTAssertNotNil(imageOneData)
+		XCTAssertNotNil(imageTwoData)
+		XCTAssertEqual(imageOneData, imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
+	}
 }
