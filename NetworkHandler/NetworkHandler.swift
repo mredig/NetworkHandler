@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// Pre-typed strings for use with URLRequest.method
 public enum HTTPMethods: String {
 	case post = "POST"
 	case put = "PUT"
@@ -18,6 +19,7 @@ public enum HTTPMethods: String {
 	case options = "OPTIONS"
 }
 
+/// Pre-typed strings for use with formatting headers
 public enum HTTPHeaderKeys: String {
 	case contentType = "Content-Type"
 	case auth = "Authorization"
@@ -27,15 +29,52 @@ public enum HTTPHeaderKeys: String {
 	}
 }
 
+/**
+Errors specific to networking with NetworkHandler. These specific cases are all
+accounted for when using the included `UIAlertController` extension to provide a
+*/
 public enum NetworkError: Error {
+	/**
+	A generic wrapper for when an `Error` doesn't otherwise fall under one of the
+	predetermined categories.
+	*/
 	case otherError(error: Error)
+	/**
+	Occurs when a request is expecting data back, but either doesn't get any, or
+	gets noticably corrupted data.
+	*/
 	case badData
+	/**
+	Occurs when using a `Codable` data type that can't get decoded or encoded. Wraps
+	the original error.
+	*/
 	case dataCodingError(specifically: Error)
+	/**
+	Not used within the NetworkHandler framework, but a preset error available for
+	use when attempting to decode an image from a remote source and failing.
+	Compatible with the UIAlertController extension included.
+	*/
 	case imageDecodeError
+	/**
+	Not used within the NetworkHandler framework, but a preset error available for
+	use when a URL is invalid. Can wrap the offending `String`. Compatible with the
+	UIAlertController extension included.
+	*/
 	case urlInvalid(urlString: String?)
+	/// Thrown when a `URLResponse` doesn't include a valid response code.
 	case noStatusCodeResponse
+	/**
+	Thrown when a `URLResponse` includes a response code other than 200, or a range
+	of 200-299 (depending on whether `strict200CodeResponse` is on or off). Wraps
+	the response code and included `Data?`, is there is any.
+	*/
 	case httpNon200StatusCode(code: Int, data: Data?)
-	/// generically labeled to account for other databases, like Realm
+	/**
+	Not used within the NetworkHandler framework, but a preset error available for
+	use when there's an error with whatever database you're using. Wraps the
+	original `Error`. Generically labeled to account for other databases, like Realm
+	or CoreData. Compatible with the UIAlertController extension included.
+	*/
 	case databaseFailure(specifically: Error)
 }
 
@@ -110,7 +149,21 @@ public class NetworkHandler {
 	*/
 	public var mockDelay: TimeInterval = 0.5
 
-	/// Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
+	/**
+	Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
+
+	- Parameters:
+		- request: URLRequest containing the url and other request information.
+		- useCache: Bool toggle indicating whether to use cache or not.
+		**Default**: `false`
+		- session: URLSession instance. **Default**: `URLSession.shared`
+		- completion: completion closure run when the data task is finished.
+		Provides a `Result` type argument providing `Data?` when there was a
+		successful transaction, but a `NetworkError` when failure ocurred.
+	- Returns: The resulting, generated `URLSessionDataTask`. In the event that
+	you're either mocking or have `usingCache` flagged `true` and there is cached
+	data, returns nil.
+	*/
 	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: URLRequest, usingCache useCache: Bool = false, session: URLSession = URLSession.shared, completion: @escaping (Result<DecodableType, NetworkError>) -> Void) -> URLSessionDataTask? {
 
 		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] (result) in
@@ -136,7 +189,21 @@ public class NetworkHandler {
 		return task
 	}
 
-	/// Preconfigured URLSession tasking to fetch and provide data.
+	/**
+	Preconfigured URLSession tasking to fetch and provide data.
+
+	- Parameters:
+		- request: URLRequest containing the url and other request information.
+		- useCache: Bool toggle indicating whether to use cache or not.
+		**Default**: `false`
+		- session: URLSession instance. **Default**: `URLSession.shared`
+		- completion: completion closure run when the data task is finished.
+		Provides a `Result` type argument providing `Data?` when there was a
+		successful transaction, but a `NetworkError` when failure ocurred.
+	- Returns: The resulting, generated `URLSessionDataTask`. In the event that
+	you're either mocking or have `usingCache` flagged `true` and there is cached
+	data, returns nil.
+	*/
 	@discardableResult public func transferMahDatas(with request: URLRequest, usingCache useCache: Bool = false, session: URLSession = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> URLSessionDataTask? {
 		let task = transferMahOptionalDatas(with: request, usingCache: useCache, session: session) { (result: Result<Data?, NetworkError>) in
 			do {
@@ -154,12 +221,22 @@ public class NetworkHandler {
 		return task
 	}
 
+
 	/**
 	Preconfigured URLSession tasking to fetch and provide optional data,
 	primarily for when you don't actually care about the response.
 
-	If cache is used and there is a value in the cache for the requested
-	key, a dummy URLSessionDataTask will be returned
+	- Parameters:
+		- request: URLRequest containing the url and other request information.
+		- useCache: Bool toggle indicating whether to use cache or not.
+		**Default**: `false`
+		- session: URLSession instance. **Default**: `URLSession.shared`
+		- completion: completion closure run when the data task is finished.
+		Provides a `Result` type argument providing `Data?` when there was a
+		successful transaction, but a `NetworkError` when failure ocurred.
+	 - Returns: The resulting, generated `URLSessionDataTask`. In the event that
+		you're either mocking or have `usingCache` flagged `true` and there is cached
+		data, returns nil.
 	*/
 	@discardableResult public func transferMahOptionalDatas(with request: URLRequest, usingCache useCache: Bool = false, session: URLSession = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask? {
 		if mockMode {
