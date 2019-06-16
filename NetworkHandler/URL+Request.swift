@@ -10,8 +10,6 @@ import Foundation
 
 public extension URL {
 	var request: URLRequest {
-		var req = URLRequest(url: self)
-		req.cachePolicy = .reloadIgnoringLocalCacheData
-		return req
+		return URLRequest(url: self)
 	}
 }

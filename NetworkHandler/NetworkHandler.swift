@@ -57,8 +57,22 @@ public class NetworkHandler {
 		return JSONDecoder()
 	}()
 
-	/** If cache is used and there is a value in the cache for the requested
-	key, a dummy URLSessionDataTask will be returned */
+	/**
+	An instance of Network Cache to speed up subsequent requests. Usage is
+	optional, but automatic when making requests using the `usingCache` flag.
+
+	Note that URLCache is still used behind the scenes for requests that don't have
+	the `usingCache` flag toggled true. This means that you can modify and have the
+	current level of support by using the URLRequest's `cachePolicy` property for
+	requests that don't have `usingCache` true. However, when `usingCache` is
+	toggled true, local and remote cache policy headers are ignored and the data is
+	stored indefinitely (until it either gets deleted to make space for more recent
+	cache objects or the app is closed), ready to be reloaded instantly the next
+	time a duplicate URL request is made (Note that it is unique to the URL, not the
+	URLRequest). Additionally, to refrain from duplicating data locally, if data is
+	stored in the `NetworkCache`, it is also removed from the `URLCache` if it
+	exists.
+	*/
 	public let cache = NetworkCache()
 
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
@@ -140,8 +154,13 @@ public class NetworkHandler {
 		return task
 	}
 
-	/** Preconfigured URLSession tasking to fetch and provide optional data,
-	primarily for when you don't actually care about the response. */
+	/**
+	Preconfigured URLSession tasking to fetch and provide optional data,
+	primarily for when you don't actually care about the response.
+
+	If cache is used and there is a value in the cache for the requested
+	key, a dummy URLSessionDataTask will be returned
+	*/
 	@discardableResult public func transferMahOptionalDatas(with request: URLRequest, usingCache useCache: Bool = false, session: URLSession = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask? {
 		if mockMode {
 			DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) { [weak self] in
@@ -189,7 +208,10 @@ public class NetworkHandler {
 
 				completion(.success(data))
 				if useCache, let url = request.url, let data = data {
+					// save into cache
 					self.cache[url] = data
+					// don't duplicate cached data
+					URLCache.shared.removeCachedResponse(for: request)
 				}
 			}
 			task.resume()
