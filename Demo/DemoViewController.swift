@@ -15,17 +15,30 @@ class DemoViewController: UITableViewController {
 	@IBOutlet var generateDemoDataButton: UIButton!
 	private var tasks = [UITableViewCell: URLSessionDataTask]()
 
-	override func viewWillAppear(_ animated: Bool) {
-		super.viewWillAppear(animated)
+	override func viewDidLoad() {
+		super.viewDidLoad()
+
+		tableView.refreshControl = UIRefreshControl()
+		tableView.refreshControl?.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+	}
+
+	@objc func refreshData() {
+		tableView.refreshControl?.beginRefreshing()
 		demoModelController.fetchDemoModels { [weak self] (error) in
 			DispatchQueue.main.async {
 				if let error = error {
 					let alert = UIAlertController(error: error)
 					self?.present(alert, animated: true)
 				}
+				self?.tableView.refreshControl?.endRefreshing()
 				self?.tableView.reloadData()
 			}
 		}
+	}
+
+	override func viewWillAppear(_ animated: Bool) {
+		super.viewWillAppear(animated)
+		refreshData()
 	}
 
 	@IBAction func generateDemoDataButtonPressed(_ sender: UIButton) {

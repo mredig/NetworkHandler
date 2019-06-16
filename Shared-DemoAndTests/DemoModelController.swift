@@ -10,7 +10,17 @@ import Foundation
 import NetworkHandler
 
 class DemoModelController {
-	private(set) var demoModels = [DemoModel]()
+	private var _demoModels = [DemoModel]()
+
+	private(set) var demoModels: [DemoModel] {
+		get {
+			return _demoModels
+		}
+
+		set {
+			_demoModels = newValue.sorted { $0.title < $1.title }
+		}
+	}
 
 	func create(modelWithTitle title: String, andSubtitle subtitle: String, imageURL: URL) {
 		let model = DemoModel(title: title, subtitle: subtitle, imageURL: imageURL)
@@ -57,10 +67,11 @@ class DemoModelController {
 	func fetchDemoModels(completion: @escaping (NetworkError?) -> Void = { _ in }) {
 		let getURL = baseURL.appendingPathExtension("json")
 
-		NetworkHandler.default.transferMahCodableDatas(with: getURL.request) { [weak self] (result: Result<[String: DemoModel], NetworkError>) in
+		let request = getURL.request
+		NetworkHandler.default.transferMahCodableDatas(with: request) { [weak self] (result: Result<[String: DemoModel], NetworkError>) in
 			do {
 				let results = try result.get()
-				self?.demoModels = Array(results.values).sorted { $0.title < $1.title }
+				self?.demoModels = Array(results.values)
 				completion(nil)
 			} catch {
 				NSLog("Error loading demo models: \(error)")
