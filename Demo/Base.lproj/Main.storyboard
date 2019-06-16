@@ -19,9 +19,27 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <view key="tableHeaderView" contentMode="scaleToFill" id="bHB-n7-KNP">
+                            <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <subviews>
+                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hjS-1R-ueb">
+                                    <rect key="frame" x="113.5" y="7" width="187" height="30"/>
+                                    <state key="normal" title="Generate Some Demo Data"/>
+                                    <connections>
+                                        <action selector="generateDemoDataButtonPressed:" destination="JWe-mu-UtX" eventType="touchUpInside" id="sNf-vt-iXR"/>
+                                    </connections>
+                                </button>
+                            </subviews>
+                            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <constraints>
+                                <constraint firstItem="hjS-1R-ueb" firstAttribute="centerY" secondItem="bHB-n7-KNP" secondAttribute="centerY" id="GXg-9O-Vsp"/>
+                                <constraint firstItem="hjS-1R-ueb" firstAttribute="centerX" secondItem="bHB-n7-KNP" secondAttribute="centerX" id="XCI-VP-iXQ"/>
+                            </constraints>
+                        </view>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="Cell" textLabel="501-4N-yhU" detailTextLabel="7y4-rW-1Ee" style="IBUITableViewCellStyleSubtitle" id="SQi-RJ-6nb">
-                                <rect key="frame" x="0.0" y="28" width="414" height="44"/>
+                                <rect key="frame" x="0.0" y="72" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="SQi-RJ-6nb" id="R09-Wm-OqE">
                                     <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
@@ -57,6 +75,9 @@
                             </connections>
                         </barButtonItem>
                     </navigationItem>
+                    <connections>
+                        <outlet property="generateDemoDataButton" destination="hjS-1R-ueb" id="PpE-7J-ddZ"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="H4u-rd-DQ5" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

@@ -97,4 +97,30 @@ class DemoModelController {
 
 		NetworkHandler.default.transferMahOptionalDatas(with: request, completion: completion)
 	}
+
+	// MARK: - demo purposes
+
+	func generateDemoData(completion: @escaping () -> Void) {
+		DispatchQueue.global().async {
+			// confirm latest information
+			let semaphore = DispatchSemaphore(value: 0)
+			self.fetchDemoModels { _ in
+				semaphore.signal()
+			}
+			semaphore.wait()
+
+			let baseURL = URL(string: "https://placekitten.com/")!
+
+			while self.demoModels.count < 100 {
+				let kittenURL = baseURL
+					.appendingPathComponent("\(Int.random(in: 400...800))")
+					.appendingPathComponent("\(Int.random(in: 400...800))")
+
+				self.create(modelWithTitle: DemoText.demoNames.randomElement()!, andSubtitle: DemoText.demoSubtitles.randomElement()!, imageURL: kittenURL)
+				print(self.demoModels.count)
+			}
+			completion()
+		}
+
+	}
 }

@@ -17,6 +17,8 @@
 		331908F222B5F65100A871E8 /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331908F022B5F32C00A871E8 /* DemoModelController.swift */; };
 		331908F322B5F66300A871E8 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331908C922B5EFA000A871E8 /* DemoModel.swift */; };
 		331908F522B6006200A871E8 /* CreateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331908F422B6006200A871E8 /* CreateViewController.swift */; };
+		334987FB22B609DE0004AA36 /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334987F922B608370004AA36 /* DemoText.swift */; };
+		334987FC22B609DF0004AA36 /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334987F922B608370004AA36 /* DemoText.swift */; };
 		335D7D31229F4ABB005D5A20 /* NetworkHandler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */; };
 		335D7D36229F4ABB005D5A20 /* NetworkHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D35229F4ABB005D5A20 /* NetworkHandlerTests.swift */; };
 		335D7D38229F4ABB005D5A20 /* NetworkHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -48,6 +50,7 @@
 		331908DD22B5F29600A871E8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		331908F022B5F32C00A871E8 /* DemoModelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModelController.swift; sourceTree = "<group>"; };
 		331908F422B6006200A871E8 /* CreateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateViewController.swift; sourceTree = "<group>"; };
+		334987F922B608370004AA36 /* DemoText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoText.swift; sourceTree = "<group>"; };
 		335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkHandler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkHandler.h; sourceTree = "<group>"; };
 		335D7D2B229F4ABA005D5A20 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -92,8 +95,8 @@
 			children = (
 				331908D122B5F29200A871E8 /* AppDelegate.swift */,
 				331908D322B5F29200A871E8 /* DemoViewController.swift */,
-				331908D522B5F29200A871E8 /* Main.storyboard */,
 				331908F422B6006200A871E8 /* CreateViewController.swift */,
+				331908D522B5F29200A871E8 /* Main.storyboard */,
 				331908D822B5F29600A871E8 /* Assets.xcassets */,
 				331908DA22B5F29600A871E8 /* LaunchScreen.storyboard */,
 				331908DD22B5F29600A871E8 /* Info.plist */,
@@ -106,6 +109,7 @@
 			children = (
 				331908C922B5EFA000A871E8 /* DemoModel.swift */,
 				331908F022B5F32C00A871E8 /* DemoModelController.swift */,
+				334987F922B608370004AA36 /* DemoText.swift */,
 			);
 			path = "Shared-DemoAndTests";
 			sourceTree = "<group>";
@@ -301,6 +305,7 @@
 				331908D422B5F29200A871E8 /* DemoViewController.swift in Sources */,
 				331908D222B5F29200A871E8 /* AppDelegate.swift in Sources */,
 				331908F222B5F65100A871E8 /* DemoModelController.swift in Sources */,
+				334987FB22B609DE0004AA36 /* DemoText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,6 +327,7 @@
 				335D7D36229F4ABB005D5A20 /* NetworkHandlerTests.swift in Sources */,
 				331908CA22B5EFA000A871E8 /* DemoModel.swift in Sources */,
 				331908F122B5F32C00A871E8 /* DemoModelController.swift in Sources */,
+				334987FC22B609DF0004AA36 /* DemoText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

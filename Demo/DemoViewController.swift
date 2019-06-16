@@ -12,6 +12,7 @@ import NetworkHandler
 class DemoViewController: UITableViewController {
 	let demoModelController = DemoModelController()
 
+	@IBOutlet var generateDemoDataButton: UIButton!
 	private var tasks = [UITableViewCell: URLSessionDataTask]()
 
 	override func viewWillAppear(_ animated: Bool) {
@@ -24,6 +25,21 @@ class DemoViewController: UITableViewController {
 				}
 				self?.tableView.reloadData()
 			}
+		}
+	}
+
+	@IBAction func generateDemoDataButtonPressed(_ sender: UIButton) {
+		sender.isEnabled = false
+		demoModelController.generateDemoData { [weak self] in
+			self?.demoModelController.fetchDemoModels(completion: { [weak self] error in
+				if let error = error {
+					NSLog("There was an error \(error)")
+				}
+				DispatchQueue.main.async {
+					self?.tableView.reloadData()
+					sender.isEnabled = true
+				}
+			})
 		}
 	}
 
@@ -46,8 +62,17 @@ extension DemoViewController {
 		let demoModel = demoModelController.demoModels[indexPath.row]
 		cell.textLabel?.text = demoModel.title
 		cell.detailTextLabel?.text = demoModel.subtitle
+		cell.imageView?.image = nil
 		loadImage(for: cell, at: indexPath)
 		return cell
+	}
+
+	override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+		if editingStyle == .delete {
+			let demoModel = demoModelController.demoModels[indexPath.row]
+			demoModelController.delete(model: demoModel)
+			tableView.deleteRows(at: [indexPath], with: .automatic)
+		}
 	}
 
 	func loadImage(for cell: UITableViewCell, at indexPath: IndexPath) {
