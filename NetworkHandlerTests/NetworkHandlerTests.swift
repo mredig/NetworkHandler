@@ -59,7 +59,7 @@ class NetworkHandlerTests: XCTestCase {
 		semaphore.wait()
 
 		XCTAssertTrue(demoModelController.demoModels.contains(updatedModel))
-		XCTAssert(demoModelController.demoModels.contains(startModel) == false)
+		XCTAssert(demoModelController.demoModels.contains(startModel) == false) // for some reason XCTAssertFalse was failing, but it was definitely false
 
 		// delete
 		let deleteCompletion = completion
