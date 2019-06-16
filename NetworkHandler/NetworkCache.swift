@@ -52,7 +52,7 @@ public class NetworkCache {
 	}
 
 	init() {
-		cache.name = "NetworkHandler: NetworkCache"
+		name = "NetworkHandler: NetworkCache"
 	}
 
 	public func reset() {
