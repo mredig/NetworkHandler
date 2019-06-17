@@ -1,6 +1,6 @@
 # Network Handler
 
-I wrote this because I found myself repeating a lot of boilerplate code when sending and receiving data with APIs.  Essentially, every time I'd want to make a network call, I'd have to check for errors, check the response code, check if there's data, check if the data is valid, and finally use the data. Every. Time. (Sure, you could skip a couple of those steps occasionally, but then you might run into an unforeseen error).
+I wrote this because I found myself repeating a lot of boilerplate code when sending and receiving data with APIs. Essentially, every time I'd want to make a network call, I'd have to check for errors, check the response code, check if there's data, check if the data is valid, and finally use the data. Every. Time. (Sure, you could skip a couple of those steps occasionally, but then you might run into an unforeseen error).
 
 NetworkHandler primarily consists of three main functions:
 
@@ -124,8 +124,21 @@ Additionally, included are several classes and types:
 * NetworkHandler:
 	* The bread to the above butter, the class that helps with URLSession.dataTasks
 
+### Installation:
 
-### Todo
+#### Carthage
+* I recommend using Carthage. Simply add the following line to your cartfile. (and of course, follow the remaining carthage instructions as usual)
+	`github "mredig/NetworkHandler"`
+
+#### Brute Force Files
+* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
+
+#### CocoaPods
+* If you're looking for an open source contribution, here's your chance!
+
+##### Todo
 * Readme
 	* demo task as return value and cancelling
 	* demo mocking data
+* create build targets for other platforms.
+* podfile? meh
