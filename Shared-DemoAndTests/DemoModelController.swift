@@ -38,10 +38,11 @@ class DemoModelController {
 
 	@discardableResult func update(model: DemoModel, withTitle title: String, subtitle: String, imageURL: URL, completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel? {
 		guard let index = demoModels.firstIndex(of: model) else { return nil }
-		demoModels[index].title = title
-		demoModels[index].subtitle = subtitle
-		demoModels[index].imageURL = imageURL
-		let updatedModel = demoModels[index]
+		var updatedModel = demoModels[index]
+		updatedModel.title = title
+		updatedModel.subtitle = subtitle
+		updatedModel.imageURL = imageURL
+		demoModels[index] = updatedModel
 		put(model: updatedModel) { (result: Result<DemoModel, NetworkError>) in
 			do {
 				_ = try result.get()
@@ -138,9 +139,10 @@ class DemoModelController {
 			let baseURL = URL(string: "https://placekitten.com/")!
 
 			while self.demoModels.count < 100 {
+				let dimensions = Int.random(in: 400...800)
 				let kittenURL = baseURL
-					.appendingPathComponent("\(Int.random(in: 400...800))")
-					.appendingPathComponent("\(Int.random(in: 400...800))")
+					.appendingPathComponent("\(dimensions)")
+					.appendingPathComponent("\(dimensions)")
 
 				self.create(modelWithTitle: DemoText.demoNames.randomElement()!, andSubtitle: DemoText.demoSubtitles.randomElement()!, imageURL: kittenURL)
 				print(self.demoModels.count)
