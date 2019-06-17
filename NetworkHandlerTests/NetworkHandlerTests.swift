@@ -64,11 +64,9 @@ class NetworkHandlerTests: XCTestCase {
 		XCTAssert(demoModelController.demoModels.contains(startModel) == false)
 
 		// delete
-		let deleteCompletion = completion
-		demoModelController.delete(model: updatedModel, completion: deleteCompletion)
+		demoModelController.delete(model: updatedModel, completion: completion)
 		semaphore.wait()
-		let deleteRefreshCompletion = completion
-		demoModelController.fetchDemoModels(completion: deleteRefreshCompletion)
+		demoModelController.fetchDemoModels(completion: completion)
 		semaphore.wait()
 
 		XCTAssertFalse(demoModelController.demoModels.contains(updatedModel))
