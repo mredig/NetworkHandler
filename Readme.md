@@ -126,15 +126,17 @@ Additionally, included are several classes and types:
 
 ### Installation:
 
-#### Carthage
-* I recommend using Carthage. Simply add the following line to your cartfile. (and of course, follow the remaining carthage instructions as usual)
-	`github "mredig/NetworkHandler"`
-
-#### Brute Force Files
-* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
-
-#### CocoaPods
-* If you're looking for an open source contribution, here's your chance!
+1. Download and install
+	* Carthage
+		* I recommend using Carthage. Simply add the following line to your cartfile. (and of course, follow the remaining carthage instructions as usual)
+			`github "mredig/NetworkHandler"`
+	* Brute Force Files
+		* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
+	* CocoaPods
+		* If you're looking for an open source contribution, here's your chance!
+1. Import to any files you want to use it in
+	`import NetworkHandler`
+1. Use it.
 
 ##### Todo
 * Readme
