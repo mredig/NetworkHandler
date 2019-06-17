@@ -10,5 +10,3 @@ This essentially reduces the boilerplate you need to deal with when you make an 
 	* show before and after code examples
 	* demo task as return value and cancelling
 	* demo mocking data
-* create request struct
-* tests
