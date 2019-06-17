@@ -19,62 +19,8 @@ class NetworkHandlerTests: XCTestCase {
 		demoModelController = DemoModelController()
 	}
 
-	func testCRUD() {
-		guard let demoModelController = demoModelController else {
-			XCTFail("No Model Controller")
-			return
-		}
-		let semaphore = DispatchSemaphore(value: 0)
-		let completion = { (error: NetworkError?) in
-			if let error = error {
-				XCTFail("There was an error: \(error)")
-			}
-			semaphore.signal()
-		}
-
-		// create
-		let startCount = demoModelController.demoModels.count
-
-		let startModel = demoModelController.create(modelWithTitle: "Test CRUD Cat", andSubtitle: "Super Cat", imageURL: imageURL, completion: completion)
-		semaphore.wait()
-
-		// read
-		demoModelController.clearLocalModelCache()
-		XCTAssertTrue(demoModelController.demoModels.count == 0)
-		demoModelController.fetchDemoModels(completion: completion)
-		semaphore.wait()
-
-		let newCount = demoModelController.demoModels.count
-		XCTAssertTrue(newCount > startCount)
-		XCTAssertTrue(demoModelController.demoModels.contains(startModel))
-
-		// update
-		guard let updatedModel = demoModelController.update(model: startModel, withTitle: "Updated CRUD Cat", subtitle: "Updated Cat", imageURL: imageURL, completion: completion) else {
-			XCTFail("Failed Updating Model")
-			return
-		}
-		semaphore.wait()
-		demoModelController.clearLocalModelCache()
-		XCTAssertTrue(demoModelController.demoModels.count == 0)
-		demoModelController.fetchDemoModels(completion: completion)
-		semaphore.wait()
-
-		XCTAssertTrue(demoModelController.demoModels.contains(updatedModel))
-		// for some reason XCTAssertFalse was failing, but it was definitely false
-		XCTAssert(demoModelController.demoModels.contains(startModel) == false)
-
-		// delete
-		demoModelController.delete(model: updatedModel, completion: completion)
-		semaphore.wait()
-		demoModelController.fetchDemoModels(completion: completion)
-		semaphore.wait()
-
-		XCTAssertFalse(demoModelController.demoModels.contains(updatedModel))
-		XCTAssert(demoModelController.demoModels.contains(startModel) == false)
-	}
-
 	func testImageDownloadAndCache() {
-		let semaphore = DispatchSemaphore(value: 0)
+		let waitForInitialDownload = expectation(description: "Waiting for things")
 		let networkHandler = NetworkHandler()
 
 		var image: UIImage?
@@ -86,13 +32,18 @@ class NetworkHandlerTests: XCTestCase {
 			} catch {
 				XCTFail("Failed getting image data: \(error)")
 			}
-			semaphore.signal()
+			waitForInitialDownload.fulfill()
 		}
-		semaphore.wait()
+		waitForExpectations(timeout: 10) { (error) in
+			if let error = error {
+				XCTFail("Timed out waiting for download: \(error)")
+			}
+		}
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 
 		// now try retrieving from cache
 		var imageTwo: UIImage?
+		let waitForCacheLoad = expectation(description: "Watiting for cache")
 		let cacheStart = CFAbsoluteTimeGetCurrent()
 		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
 			do {
@@ -101,9 +52,13 @@ class NetworkHandlerTests: XCTestCase {
 			} catch {
 				XCTFail("Failed getting image data: \(error)")
 			}
-			semaphore.signal()
+			waitForCacheLoad.fulfill()
 		}
-		semaphore.wait()
+		waitForExpectations(timeout: 10) { (error) in
+			if let error = error {
+				XCTFail("Timed out waiting for download: \(error)")
+			}
+		}
 		let cacheFinish = CFAbsoluteTimeGetCurrent()
 
 		let networkDuration = networkFinish - networkStart

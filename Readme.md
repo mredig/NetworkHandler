@@ -144,3 +144,6 @@ Additionally, included are several classes and types:
 	* demo mocking data
 * create build targets for other platforms.
 * podfile? meh
+* error equatable
+* protocol for mocking
+* investigate: https://qualitycoding.org/swift-equatable-testing/
