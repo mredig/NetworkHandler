@@ -148,4 +148,52 @@ class NetworkHandlerTests: XCTestCase {
 			}
 		}
 	}
+
+	func testMock404Response() {
+		let networkHandler = NetworkHandler()
+
+		// expected result
+		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
+
+		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
+		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
+		let dummyModelURL = dummyBaseURL
+			.appendingPathComponent(demoModel.id.uuidString)
+			.appendingPathExtension("json")
+
+		let waitForMocking = expectation(description: "Wait for mocking")
+		let mockSession = NetworkMockingSession(mockData: nil, mockError: nil, mockResponseCode: 404)
+
+		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
+			defer {
+				waitForMocking.fulfill()
+			}
+			do {
+				_ = try result.get()
+			} catch {
+				guard case NetworkError.httpNon200StatusCode(code: 404, data: nil) = error else {
+					XCTFail("Recieved unexpected error: \(error)")
+					return
+				}
+			}
+		}
+		waitForExpectations(timeout: 10) { (error) in
+			if let error = error {
+				XCTFail("Timed out waiting for mocking: \(error)")
+			}
+		}
+	}
+
+	func testErrorEquatable() {
+		let allErrors = allErrorCases()
+		let dupErrors = allErrorCases()
+		var rotErrors = allErrorCases()
+		let rot1 = rotErrors.remove(at: 0)
+		rotErrors.append(rot1)
+
+		for (index, error) in allErrors.enumerated() {
+			XCTAssertEqual(error, dupErrors[index])
+			XCTAssertNotEqual(error, rotErrors[index])
+		}
+	}
 }
