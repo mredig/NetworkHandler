@@ -111,6 +111,8 @@ Additionally, included are several classes and types:
 
 * NetworkCache:
 	* A wrapper for NSCache that can make subsequent requests super zippy fast
+* NetworkMockingSession
+	* Makes for super easy data mocking
 * UIAlertController Extension:
 	* This extension allows you to simply pass in an `Error` and let the alert controller automatically create a user facing alert for you.
 * URL Extension:
@@ -144,6 +146,3 @@ Additionally, included are several classes and types:
 	* demo mocking data
 * create build targets for other platforms.
 * podfile? meh
-* error equatable
-* protocol for mocking
-* investigate: https://qualitycoding.org/swift-equatable-testing/
