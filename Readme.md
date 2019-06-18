@@ -94,6 +94,7 @@ NetworkHandler.default.transferMahCodableDatas(with: request) { (result: Result<
 		print(models)
 	} catch NetworkError.dataWasNull {
 		// there was no actual error, Firebase just returns "null" if there is a request it can't provide data for.
+		let models = [DemoModel]()
 		// do something with your empty array result!
 		print(models)
 	} catch {
