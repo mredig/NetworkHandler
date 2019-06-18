@@ -74,18 +74,16 @@ class NetworkHandlerTests: XCTestCase {
 	}
 
 	func testMockDataSuccess() {
-		let semaphore = DispatchSemaphore(value: 0)
 		let networkHandler = NetworkHandler()
+		let waitForMocking = expectation(description: "Wait for mocking")
 
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
-		networkHandler.mockMode = true
-		networkHandler.mockDelay = 0.2
-		networkHandler.mockSuccess = true
-		networkHandler.mockData = {
+		let mockData = {
 			return try? JSONEncoder().encode(demoModel)
 		}()
+		let mockSession = NetworkMockingSession(mockData: mockData, mockError: nil)
 
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
 		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
@@ -93,26 +91,34 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathComponent(demoModel.id.uuidString)
 			.appendingPathExtension("json")
 
-		networkHandler.transferMahCodableDatas(with: dummyModelURL.request) { (result: Result<DemoModel, NetworkError>) in
+		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
 			do {
 				let model = try result.get()
 				XCTAssertEqual(model, demoModel)
 			} catch {
 				XCTFail("Error getting mock data: \(error)")
 			}
-			semaphore.signal()
+			waitForMocking.fulfill()
 		}
-		semaphore.wait()
+		waitForExpectations(timeout: 10) { (error) in
+			if let error = error {
+				XCTFail("Timed out waiting for mocking: \(error)")
+			}
+		}
 	}
 
-	func testMockDataError() {
+	func allErrorCases() -> [NetworkError] {
+		let dummyError = NSError.init(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil)
+		let allErrorCases: [NetworkError] = [.badData, .databaseFailure(specifically: dummyError), .dataCodingError(specifically: dummyError), .dataWasNull, .httpNon200StatusCode(code: 404, data: nil), .imageDecodeError, .noStatusCodeResponse, .otherError(error: dummyError), .urlInvalid(urlString: "he.ho.hum")]
+		return allErrorCases
+	}
+
+	func testMockDataErrors() {
 		let networkHandler = NetworkHandler()
-		let semaphore = DispatchSemaphore(value: 0)
 
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
-		networkHandler.mockMode = true
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
 		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
 		let dummyModelURL = dummyBaseURL
@@ -120,25 +126,26 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathExtension("json")
 
 
-		let allErrorCases: [NetworkError] = [.badData, .databaseFailure(specifically: NSError()), .dataCodingError(specifically: NSError()), .dataWasNull, .httpNon200StatusCode(code: 404, data: nil), .imageDecodeError, .noStatusCodeResponse, .otherError(error: NSError())]
+		let allErrors = allErrorCases()
 
-		for testingError in allErrorCases {
-			networkHandler.mockDelay = 0.2
-			networkHandler.mockError = testingError
-			networkHandler.mockSuccess = false
+		for testingError in allErrors {
+			let waitForMocking = expectation(description: "Wait for mocking")
+			let mockSession = NetworkMockingSession(mockData: nil, mockError: testingError)
 
-			networkHandler.transferMahCodableDatas(with: dummyModelURL.request) { (result: Result<DemoModel, NetworkError>) in
+			networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
 				do {
-					XCTAssertThrowsError(_ = try result.get())
+					_ = try result.get()
 				} catch {
-					// do nothing, but won't build without catch
+					let netError = error as! NetworkError
+					XCTAssertEqual(testingError, netError)
 				}
-				semaphore.signal()
+				waitForMocking.fulfill()
 			}
-			semaphore.wait()
+			waitForExpectations(timeout: 10) { (error) in
+				if let error = error {
+					XCTFail("Timed out waiting for mocking: \(error)")
+				}
+			}
 		}
-
-
-
 	}
 }

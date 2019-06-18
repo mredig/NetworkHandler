@@ -33,7 +33,9 @@ public enum HTTPHeaderKeys: String {
 Errors specific to networking with NetworkHandler. These specific cases are all
 accounted for when using the included `UIAlertController` extension to provide a
 */
-public enum NetworkError: Error {
+public enum NetworkError: Error, Equatable {
+
+
 	/**
 	A generic wrapper for when an `Error` doesn't otherwise fall under one of the
 	predetermined categories.
@@ -97,6 +99,29 @@ public enum NetworkError: Error {
 	```
 	*/
 	case dataWasNull
+
+	public static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
+		switch lhs {
+		case .badData:
+			if case .badData = rhs { return true } else { return false }
+		case .databaseFailure(specifically: let otherError):
+			if case .databaseFailure(let rhsError) = rhs, otherError.localizedDescription == rhsError.localizedDescription { return true } else { return false }
+		case .dataCodingError(specifically: let otherError):
+			if case .dataCodingError(let rhsError) = rhs, otherError.localizedDescription == rhsError.localizedDescription { return true } else { return false }
+		case .dataWasNull:
+			if case .dataWasNull = rhs { return true } else { return false }
+		case .httpNon200StatusCode(code: let code, data: let data):
+			if case .httpNon200StatusCode(let rhsCode, let rhsData) = rhs, code == rhsCode, data == rhsData { return true } else { return false }
+		case .imageDecodeError:
+			if case .imageDecodeError = rhs { return true } else { return false }
+		case .noStatusCodeResponse:
+			if case .noStatusCodeResponse = rhs { return true } else { return false }
+		case .otherError(let otherError):
+			if case .otherError(let rhsError) = rhs, otherError.localizedDescription == rhsError.localizedDescription { return true } else { return false }
+		case .urlInvalid(let urlString):
+			if case .urlInvalid(let rhsURLString) = rhs, urlString == rhsURLString { return true } else { return false }
+		}
+	}
 }
 
 public class NetworkHandler {
@@ -140,38 +165,6 @@ public class NetworkHandler {
 
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
 	public static let `default` = NetworkHandler()
-
-	// MARK: - Mocking Helpers
-	/**
-	Toggles the handler instance into mock mode or not. This must be set before
-	`transferMahDatas` or its variants are called. 	In mock mode, you can provide
-	test data to test your app in different scenarios providing different data and
-	errors. Currently, 	mock mode will complete with *either* an error or data, but
-	not both (both is possible in the real world).
-
-		To use, set mock mode to trun, provide it with data (`mockData`) or an error
-	(`mockError`), set `mockDelay` to emulate whatever 	level of network latency you
-	wish to test, and set `mockSuccess` to determine whether you want to test
-	success or failure.
-	*/
-	public var mockMode = false
-	/**
-	Data to provide in the event you want your mock mode test to succeed
-	*/
-	public var mockData: Data?
-	/**
-	Error to provide in the event you want your mock mode test to fail
-	*/
-	public var mockError: NetworkError?
-	/**
-	Determines if your mock mode test is successful or not - if successful, will
-	return data, if not, will return the error
-	*/
-	public var mockSuccess = true
-	/**
-	Amount of time the mock mode test will take before completing its closures
-	*/
-	public var mockDelay: TimeInterval = 0.5
 
 	/**
 	Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
@@ -268,61 +261,47 @@ public class NetworkHandler {
 		data, returns nil.
 	*/
 	@discardableResult public func transferMahOptionalDatas(with request: URLRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask? {
-		if mockMode {
-			DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) { [weak self] in
-				guard let self = self else { return }
-				if self.mockSuccess {
-					guard let mockData = self.mockData else { fatalError("When mocking, you need to provide mock data for success.") }
-					completion(.success(mockData))
-				} else {
-					guard let mockError = self.mockError else { fatalError("When mocking, you need to provide a mock error for failure.") }
-					completion(.failure(mockError))
-				}
-			}
-			return nil
-		} else {
-			if useCache {
-				if let url = request.url, let data = cache[url] {
-					completion(.success(data))
-					return nil
-				}
-			}
-
-			let task = session.loadData(with: request) { [weak self] (data, response, error) in
-				guard let self = self else { return }
-				if let response = response as? HTTPURLResponse {
-					if self.strict200CodeResponse && response.statusCode != 200 {
-						self.printToConsole("Received a non 200 http response: \(response.statusCode) in \(#file) line: \(#line)")
-						completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
-						return
-					} else if !self.strict200CodeResponse && !(200..<300).contains(response.statusCode) {
-						self.printToConsole("Received a non 200 http response: \(response.statusCode) in \(#file) line: \(#line)")
-						completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
-						return
-					}
-				} else {
-					self.printToConsole("Did not receive a proper response code in \(#file) line: \(#line)")
-					completion(.failure(.noStatusCodeResponse))
-					return
-				}
-
-				if let error = error {
-					self.printToConsole("An error was encountered: \(error) in \(#file) line: \(#line)")
-					completion(.failure(.otherError(error: error)))
-					return
-				}
-
+		if useCache {
+			if let url = request.url, let data = cache[url] {
 				completion(.success(data))
-				if useCache, let url = request.url, let data = data {
-					// save into cache
-					self.cache[url] = data
-					// don't duplicate cached data
-					URLCache.shared.removeCachedResponse(for: request)
-				}
+				return nil
 			}
-			task?.resume()
-			return task
 		}
+
+		let task = session.loadData(with: request) { [weak self] (data, response, error) in
+			guard let self = self else { return }
+			if let response = response as? HTTPURLResponse {
+				if self.strict200CodeResponse && response.statusCode != 200 {
+					self.printToConsole("Received a non 200 http response: \(response.statusCode) in \(#file) line: \(#line)")
+					completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
+					return
+				} else if !self.strict200CodeResponse && !(200..<300).contains(response.statusCode) {
+					self.printToConsole("Received a non 200 http response: \(response.statusCode) in \(#file) line: \(#line)")
+					completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
+					return
+				}
+			} else {
+				self.printToConsole("Did not receive a proper response code in \(#file) line: \(#line)")
+				completion(.failure(.noStatusCodeResponse))
+				return
+			}
+
+			if let error = error {
+				self.printToConsole("An error was encountered: \(error) in \(#file) line: \(#line)")
+				completion(.failure(error as? NetworkError ?? .otherError(error: error)))
+				return
+			}
+
+			completion(.success(data))
+			if useCache, let url = request.url, let data = data {
+				// save into cache
+				self.cache[url] = data
+				// don't duplicate cached data
+				URLCache.shared.removeCachedResponse(for: request)
+			}
+		}
+		task?.resume()
+		return task
 	}
 
 	private func printToConsole(_ string: String) {
