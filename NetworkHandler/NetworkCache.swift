@@ -10,7 +10,7 @@ import Foundation
 
 /**
 Essentially just a wrapper for NSCache, but specifically purposed for use with
-NetworkHandler and does the work of converting URL -> NSURL and Data -> NSData
+NetworkHandler and does the work of converting `URL` <-> `NSURL` and `Data` <-> `NSData`
 for you. Directly exposes some properties like `countLimit` and `totalCostLimit`
 */
 public class NetworkCache {
