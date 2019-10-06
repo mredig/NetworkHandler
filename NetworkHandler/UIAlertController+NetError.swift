@@ -13,11 +13,15 @@ public extension UIAlertController {
 		let message: String
 	}
 
+    // MARK: - Init
+    
 	convenience init(error: Error, preferredStyle: UIAlertController.Style = .alert) {
 		self.init(title: nil, message: nil, preferredStyle: preferredStyle)
 		configureWith(error: error)
 	}
 
+    // MARK: - Methods
+    
 	private func configureWith(error: Error) {
 		title = "Error"
 
