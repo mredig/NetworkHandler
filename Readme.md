@@ -147,3 +147,6 @@ Additionally, included are several classes and types:
 	* demo mocking data
 * create build targets for other platforms.
 * podfile? meh
+* fix access control for several things
+* fix network error code snippet (```swift)
+* swiftlint conformance
