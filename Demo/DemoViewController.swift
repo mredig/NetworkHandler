@@ -10,50 +10,58 @@ import UIKit
 import NetworkHandler
 
 class DemoViewController: UITableViewController {
+    
+    // MARK: - Properties
+    
 	let demoModelController = DemoModelController()
+    private var tasks = [UITableViewCell: URLSessionDataTask]()
 
+    // MARK: - Outlets
+    
 	@IBOutlet var generateDemoDataButton: UIButton!
-	private var tasks = [UITableViewCell: URLSessionDataTask]()
 
+    // MARK: - Actions
+    
+    @IBAction func generateDemoDataButtonPressed(_ sender: UIButton) {
+        sender.isEnabled = false
+        demoModelController.generateDemoData { [weak self] in
+            self?.demoModelController.fetchDemoModels(completion: { [weak self] error in
+                if let error = error {
+                    NSLog("There was an error \(error)")
+                }
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                    sender.isEnabled = true
+                }
+            })
+        }
+    }
+    
+    @objc func refreshData() {
+        tableView.refreshControl?.beginRefreshing()
+        demoModelController.fetchDemoModels { [weak self] (error) in
+            DispatchQueue.main.async {
+                if let error = error {
+                    let alert = UIAlertController(error: error)
+                    self?.present(alert, animated: true)
+                }
+                self?.tableView.refreshControl?.endRefreshing()
+                self?.tableView.reloadData()
+            }
+        }
+    }
+    
+    // MARK: - VC Lifecycle
+    
 	override func viewDidLoad() {
 		super.viewDidLoad()
-
 		tableView.refreshControl = UIRefreshControl()
 		tableView.refreshControl?.addTarget(self, action: #selector(refreshData), for: .valueChanged)
-	}
-
-	@objc func refreshData() {
-		tableView.refreshControl?.beginRefreshing()
-		demoModelController.fetchDemoModels { [weak self] (error) in
-			DispatchQueue.main.async {
-				if let error = error {
-					let alert = UIAlertController(error: error)
-					self?.present(alert, animated: true)
-				}
-				self?.tableView.refreshControl?.endRefreshing()
-				self?.tableView.reloadData()
-			}
-		}
-	}
+    }
 
 	override func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
 		refreshData()
-	}
-
-	@IBAction func generateDemoDataButtonPressed(_ sender: UIButton) {
-		sender.isEnabled = false
-		demoModelController.generateDemoData { [weak self] in
-			self?.demoModelController.fetchDemoModels(completion: { [weak self] error in
-				if let error = error {
-					NSLog("There was an error \(error)")
-				}
-				DispatchQueue.main.async {
-					self?.tableView.reloadData()
-					sender.isEnabled = true
-				}
-			})
-		}
 	}
 
 	override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -65,6 +73,9 @@ class DemoViewController: UITableViewController {
 
 // MARK: tableview stuff
 extension DemoViewController {
+    
+    // MARK: - Tableview
+    
 	override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 		return demoModelController.demoModels.count
 	}
@@ -88,6 +99,8 @@ extension DemoViewController {
 		}
 	}
 
+    // MARK: - Methods
+    
 	func loadImage(for cell: UITableViewCell, at indexPath: IndexPath) {
 		tasks[cell]?.cancel()
 		tasks[cell] = nil
