@@ -50,6 +50,7 @@ opt_in_rules:
   - redundant_nil_coalescing
   - static_operator
   - toggle_bool
+  - trailing_whitespace
   - unavailable_function
   - unneeded_parentheses_in_closure_argument
   - untyped_error_in_catch

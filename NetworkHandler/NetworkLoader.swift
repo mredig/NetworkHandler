@@ -14,7 +14,7 @@ public protocol NetworkLoader {
 
 extension URLSession: NetworkLoader {
 	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask? {
-		let task = self.dataTask(with: request) { (data, response, error) in
+		let task = self.dataTask(with: request) { data, response, error in
 			completion(data, response, error)
 		}
 		return task

@@ -11,12 +11,10 @@ import UIKit
 class CreateViewController: UIViewController {
 	var demoModelController: DemoModelController?
 
-	@IBOutlet var titleTextField: UITextField!
-	@IBOutlet var subtitleTextField: UITextField!
-	@IBOutlet var widthTextField: UITextField!
-	@IBOutlet var heightTextField: UITextField!
-
-
+	@IBOutlet private var titleTextField: UITextField!
+	@IBOutlet private var subtitleTextField: UITextField!
+	@IBOutlet private var widthTextField: UITextField!
+	@IBOutlet private var heightTextField: UITextField!
 
 	@IBAction func saveButtonPressed(_ sender: UIBarButtonItem) {
 		guard let title = titleTextField.text, !title.isEmpty,
@@ -31,6 +29,5 @@ class CreateViewController: UIViewController {
 
 		demoModelController?.create(modelWithTitle: title, andSubtitle: subtitle, imageURL: kittenURL)
 		navigationController?.popViewController(animated: true)
-		
 	}
 }

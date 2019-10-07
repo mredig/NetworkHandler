@@ -16,6 +16,7 @@ class NetworkHandlerTests: XCTestCase {
 	let imageURL = URL(string: "https://placekitten.com/300/300")!
 
 	override func setUp() {
+		super.setUp()
 		demoModelController = DemoModelController()
 	}
 
@@ -34,7 +35,7 @@ class NetworkHandlerTests: XCTestCase {
 			}
 			waitForInitialDownload.fulfill()
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for download: \(error)")
 			}
@@ -54,7 +55,7 @@ class NetworkHandlerTests: XCTestCase {
 			}
 			waitForCacheLoad.fulfill()
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for download: \(error)")
 			}
@@ -81,7 +82,7 @@ class NetworkHandlerTests: XCTestCase {
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
 		let mockData = {
-			return try? JSONEncoder().encode(demoModel)
+			try? JSONEncoder().encode(demoModel)
 		}()
 		let mockSession = NetworkMockingSession(mockData: mockData, mockError: nil)
 
@@ -100,7 +101,7 @@ class NetworkHandlerTests: XCTestCase {
 			}
 			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -109,7 +110,15 @@ class NetworkHandlerTests: XCTestCase {
 
 	func allErrorCases() -> [NetworkError] {
 		let dummyError = NSError(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil)
-		let allErrorCases: [NetworkError] = [.badData, .databaseFailure(specifically: dummyError), .dataCodingError(specifically: dummyError), .dataWasNull, .httpNon200StatusCode(code: 404, data: nil), .imageDecodeError, .noStatusCodeResponse, .otherError(error: dummyError), .urlInvalid(urlString: "he.ho.hum")]
+		let allErrorCases: [NetworkError] = [.badData,
+											 .databaseFailure(specifically: dummyError),
+											 .dataCodingError(specifically: dummyError),
+											 .dataWasNull,
+											 .httpNon200StatusCode(code: 404, data: nil),
+											 .imageDecodeError,
+											 .noStatusCodeResponse,
+											 .otherError(error: dummyError),
+											 .urlInvalid(urlString: "he.ho.hum")]
 		return allErrorCases
 	}
 
@@ -153,7 +162,7 @@ class NetworkHandlerTests: XCTestCase {
 					}
 				}
 			}
-			waitForExpectations(timeout: 10) { (error) in
+			waitForExpectations(timeout: 10) { error in
 				if let error = error {
 					XCTFail("Timed out waiting for mocking: \(error)")
 				}
@@ -190,7 +199,7 @@ class NetworkHandlerTests: XCTestCase {
 				}
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -227,7 +236,7 @@ class NetworkHandlerTests: XCTestCase {
 				}
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -260,7 +269,7 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathExtension("json")
 
 		let mockData = {
-			return try? JSONEncoder().encode(demoModel)
+			try? JSONEncoder().encode(demoModel)
 		}()
 		let mockSession200 = NetworkMockingSession(mockData: mockData, mockError: nil, mockResponseCode: 200)
 
@@ -277,7 +286,7 @@ class NetworkHandlerTests: XCTestCase {
 				XCTFail("an error occured: \(error)")
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -297,7 +306,7 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathExtension("json")
 
 		let mockData = {
-			return try? JSONEncoder().encode(demoModel)
+			try? JSONEncoder().encode(demoModel)
 		}()
 		let mockSession202 = NetworkMockingSession(mockData: mockData, mockError: nil, mockResponseCode: 202)
 
@@ -316,7 +325,7 @@ class NetworkHandlerTests: XCTestCase {
 				}
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -336,7 +345,7 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathExtension("json")
 
 		let mockData = {
-			return try? JSONEncoder().encode(demoModel)
+			try? JSONEncoder().encode(demoModel)
 		}()
 		let mockSession200 = NetworkMockingSession(mockData: mockData, mockError: nil, mockResponseCode: 200)
 
@@ -353,7 +362,7 @@ class NetworkHandlerTests: XCTestCase {
 				XCTFail("an error occured: \(error)")
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -373,7 +382,7 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathExtension("json")
 
 		let mockData = {
-			return try? JSONEncoder().encode(demoModel)
+			try? JSONEncoder().encode(demoModel)
 		}()
 		let mockSession202 = NetworkMockingSession(mockData: mockData, mockError: nil, mockResponseCode: 202)
 
@@ -390,7 +399,7 @@ class NetworkHandlerTests: XCTestCase {
 				XCTFail("an error occured: \(error)")
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -425,7 +434,7 @@ class NetworkHandlerTests: XCTestCase {
 				}
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -445,7 +454,7 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathExtension("json")
 
 		let mockData = {
-			return try? JSONEncoder().encode(demoModel)[0...20]
+			try? JSONEncoder().encode(demoModel)[0...20]
 		}()
 		let mockSession = NetworkMockingSession(mockData: mockData, mockError: nil)
 
@@ -463,7 +472,7 @@ class NetworkHandlerTests: XCTestCase {
 				}
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
@@ -498,7 +507,7 @@ class NetworkHandlerTests: XCTestCase {
 				}
 			}
 		}
-		waitForExpectations(timeout: 10) { (error) in
+		waitForExpectations(timeout: 10) { error in
 			if let error = error {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}

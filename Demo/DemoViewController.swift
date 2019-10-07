@@ -12,7 +12,7 @@ import NetworkHandler
 class DemoViewController: UITableViewController {
 	let demoModelController = DemoModelController()
 
-	@IBOutlet var generateDemoDataButton: UIButton!
+	@IBOutlet private var generateDemoDataButton: UIButton!
 	private var tasks = [UITableViewCell: URLSessionDataTask]()
 
 	override func viewDidLoad() {
@@ -24,7 +24,7 @@ class DemoViewController: UITableViewController {
 
 	@objc func refreshData() {
 		tableView.refreshControl?.beginRefreshing()
-		demoModelController.fetchDemoModels { [weak self] (error) in
+		demoModelController.fetchDemoModels { [weak self] error in
 			DispatchQueue.main.async {
 				if let error = error {
 					let alert = UIAlertController(error: error)
@@ -94,7 +94,9 @@ extension DemoViewController {
 
 		let demoModel = demoModelController.demoModels[indexPath.row]
 
-		tasks[cell] = NetworkHandler.default.transferMahDatas(with: demoModel.imageURL.request, usingCache: true, completion: { [weak self] (result: Result<Data, NetworkError>) in
+		tasks[cell] = NetworkHandler.default.transferMahDatas(with: demoModel.imageURL.request,
+															  usingCache: true,
+															  completion: { [weak self] (result: Result<Data, NetworkError>) in
 			DispatchQueue.main.async {
 				do {
 					let imageData = try result.get()

@@ -4,7 +4,6 @@
 //  Created by Michael Redig on 5/9/19.
 //  Copyright © 2019 Michael Redig. All rights reserved.
 //
-//swiftlint:disable line_length
 
 import UIKit
 
@@ -51,7 +50,7 @@ public extension UIAlertController {
 			message = "There was an unexpected error. Please screenshot this and inform the developer: \(error)"
 		}
 
-		if actions.count == 0 {
+		if actions.isEmpty {
 			let action = UIAlertAction(title: "Drat", style: .default)
 			addAction(action)
 		}

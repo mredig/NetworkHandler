@@ -21,7 +21,10 @@ class DemoModelController {
 		}
 	}
 
-	@discardableResult func create(modelWithTitle title: String, andSubtitle subtitle: String, imageURL: URL, completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel {
+	@discardableResult func create(modelWithTitle title: String,
+								   andSubtitle subtitle: String,
+								   imageURL: URL,
+								   completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel {
 		let model = DemoModel(title: title, subtitle: subtitle, imageURL: imageURL)
 		demoModels.append(model)
 		put(model: model) { (result: Result<DemoModel, NetworkError>) in
@@ -36,7 +39,11 @@ class DemoModelController {
 		return model
 	}
 
-	@discardableResult func update(model: DemoModel, withTitle title: String, subtitle: String, imageURL: URL, completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel? {
+	@discardableResult func update(model: DemoModel,
+								   withTitle title: String,
+								   subtitle: String,
+								   imageURL: URL,
+								   completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel? {
 		guard let index = demoModels.firstIndex(of: model) else { return nil }
 		var updatedModel = demoModels[index]
 		updatedModel.title = title

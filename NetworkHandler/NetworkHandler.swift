@@ -4,7 +4,7 @@
 //  Created by Michael Redig on 5/7/19.
 //  Copyright © 2019 Michael Redig. All rights reserved.
 //
-//swiftlint:disable line_length cyclomatic_complexity
+//swiftlint:disable line_length conditional_returns_on_newline
 
 import Foundation
 
@@ -139,7 +139,7 @@ public class NetworkHandler {
 	be aware that its settings apply to all decoding, not just for a single use.
 	*/
 	public lazy var netDecoder = {
-		return JSONDecoder()
+		JSONDecoder()
 	}()
 
 	/// When querying for Codable data, if the response received is `null` (typically in the event that a remote object doesn't exist - This ocurrs on firebase for example) consider it valid as an empty collection. Only works on types that conform to Sequence.
@@ -183,7 +183,7 @@ public class NetworkHandler {
 	*/
 	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: URLRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<DecodableType, NetworkError>) -> Void) -> URLSessionDataTask? {
 
-		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] (result) in
+		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] result in
 			guard let self = self else { return }
 			let decoder = self.netDecoder
 
@@ -268,7 +268,7 @@ public class NetworkHandler {
 			}
 		}
 
-		let task = session.loadData(with: request) { [weak self] (data, response, error) in
+		let task = session.loadData(with: request) { [weak self] data, response, error in
 			guard let self = self else { return }
 			if let response = response as? HTTPURLResponse {
 				if self.strict200CodeResponse && response.statusCode != 200 {
