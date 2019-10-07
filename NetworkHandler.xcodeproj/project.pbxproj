@@ -59,6 +59,7 @@
 		331908DD22B5F29600A871E8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		331908F022B5F32C00A871E8 /* DemoModelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModelController.swift; sourceTree = "<group>"; };
 		331908F422B6006200A871E8 /* CreateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateViewController.swift; sourceTree = "<group>"; };
+		331B9054234AF4190044F789 /* Styleguide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Styleguide.md; sourceTree = "<group>"; };
 		334987F922B608370004AA36 /* DemoText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoText.swift; sourceTree = "<group>"; };
 		335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkHandler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkHandler.h; sourceTree = "<group>"; };
@@ -129,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				335D7D45229F74A6005D5A20 /* Readme.md */,
+				331B9054234AF4190044F789 /* Styleguide.md */,
 				335D7D29229F4ABA005D5A20 /* NetworkHandler */,
 				331908D022B5F29200A871E8 /* Demo */,
 				331908EF22B5F2CD00A871E8 /* Shared-DemoAndTests */,
