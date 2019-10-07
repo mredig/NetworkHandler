@@ -10,6 +10,8 @@ import UIKit
 
 class UsersTableViewController: UITableViewController {
 
+    let demoController = DemoControllr()
+    
     lazy var refresher: UIRefreshControl = {
         let refreshControl = UIRefreshControl()
         refreshControl.tintColor = .black
@@ -25,16 +27,12 @@ class UsersTableViewController: UITableViewController {
 
     @objc
     func refreshUsers() {
-        
         print("get user data")
         
         let deadline = DispatchTime.now() + .seconds(5)
-        
         DispatchQueue.main.asyncAfter(deadline: deadline) {
             self.refresher.endRefreshing()
         }
-        
-        
     }
     
     
