@@ -9,20 +9,17 @@
 import UIKit
 
 class CreateViewController: UIViewController {
-    
-    // MARK: - Properties
-    
+
+	// MARK: - Properties
 	var demoModelController: DemoModelController?
 
-    // MARK: - Outlets
-    
+	// MARK: - Outlets
 	@IBOutlet var titleTextField: UITextField!
 	@IBOutlet var subtitleTextField: UITextField!
 	@IBOutlet var widthTextField: UITextField!
 	@IBOutlet var heightTextField: UITextField!
 
-    // MARK: - Actions
-    
+	// MARK: - Actions
 	@IBAction func saveButtonPressed(_ sender: UIBarButtonItem) {
 		guard let title = titleTextField.text, !title.isEmpty,
 			let subtitle = subtitleTextField.text, !subtitle.isEmpty,
