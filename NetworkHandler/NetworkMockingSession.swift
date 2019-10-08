@@ -10,11 +10,13 @@ import Foundation
 
 struct NetworkMockingSession: NetworkLoader {
 
+	// MARK: - Properties
 	let mockData: Data?
 	let mockError: Error?
 	let mockResponseCode: Int
 	var mockDelay: TimeInterval
 
+	// MARK: - Init
 	init(mockData: Data?, mockError: Error?, mockResponseCode: Int = 200, mockDelay: TimeInterval = 0.1) {
 		self.mockData = mockData
 		self.mockError = mockError
@@ -22,7 +24,8 @@ struct NetworkMockingSession: NetworkLoader {
 		self.mockDelay = mockDelay
 	}
 
-	func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask? {
+	// MARK: - Public
+	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask? {
 		guard let url = request.url else { completion(nil, nil, nil); return nil }
 		let mockResponse = HTTPURLResponse(url: url, statusCode: mockResponseCode, httpVersion: "HTTP/2", headerFields: nil)
 

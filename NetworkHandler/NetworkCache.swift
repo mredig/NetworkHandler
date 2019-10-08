@@ -14,6 +14,8 @@ NetworkHandler and does the work of converting `URL` <-> `NSURL` and `Data` <-> 
 for you. Directly exposes some properties like `countLimit` and `totalCostLimit`
 */
 public class NetworkCache {
+
+	// MARK: - Properties
 	private let cache = NSCache<NSURL, NSData>()
 
 	/**
@@ -70,10 +72,12 @@ public class NetworkCache {
 		}
 	}
 
+	// MARK: - Init
 	init() {
 		name = "NetworkHandler: NetworkCache"
 	}
 
+	// MARK: - Methods
 	public func reset() {
 		cache.removeAllObjects()
 	}
