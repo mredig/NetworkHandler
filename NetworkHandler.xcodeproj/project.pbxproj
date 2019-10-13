@@ -62,7 +62,7 @@
 		331B9054234AF4190044F789 /* Styleguide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Styleguide.md; sourceTree = "<group>"; };
 		331B9057234AF47B0044F789 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		334987F922B608370004AA36 /* DemoText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoText.swift; sourceTree = "<group>"; };
-		334AA6262353E70A00C3E2A2 /* NetworkHandler.podspec  */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NetworkHandler.podspec "; sourceTree = "<group>"; };
+		334AA6262353E70A00C3E2A2 /* NetworkHandler.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = NetworkHandler.podspec; sourceTree = "<group>"; usesTabs = 0; };
 		335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkHandler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkHandler.h; sourceTree = "<group>"; };
 		335D7D2B229F4ABA005D5A20 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -131,7 +131,7 @@
 		335D7D1D229F4ABA005D5A20 = {
 			isa = PBXGroup;
 			children = (
-				334AA6262353E70A00C3E2A2 /* NetworkHandler.podspec  */,
+				334AA6262353E70A00C3E2A2 /* NetworkHandler.podspec */,
 				335D7D45229F74A6005D5A20 /* Readme.md */,
 				331B9054234AF4190044F789 /* Styleguide.md */,
 				331B9057234AF47B0044F789 /* .swiftlint.yml */,
