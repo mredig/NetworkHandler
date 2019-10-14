@@ -1,11 +1,11 @@
 # Network Handler
 
-NetworkHandler was written to save you time by cutting out the needlessly messy boilerplate code from `UrlSession`. Typically, everytime you make a network call, you have to check for errors, response codes, data existence and data validity. Every. Single.. Time... Skipping those steps while using `UrlSession` might result in unforseen consequences. Luckily, we built `NetworkHandler` as a solution.
+NetworkHandler was written to save you time by cutting out the needlessly messy boilerplate code from `URLSession`. Typically, everytime you make a network call, you have to check for errors, response codes, data existence and data validity. Every. Single.. Time... Skipping those steps while using `URLSession` might result in unforseen consequences. Luckily, we built `NetworkHandler` as a solution.
 
 NetworkHandler consists of 3 core functions:
 
 * `transferMahOptionalDatas`:
-	* Occasionally, you want to make network requests without needing to check for response codes. You use  `transferMahOptionalDatas`  in these situations to provide you strictly with `Data?` when successful and a `NetworkError` when unsuccessful.
+	* Occasionally, you want to make network requests without needing to check if data was returned from the server. You use  `transferMahOptionalDatas` in these situations to provide you strictly with `Data?` when successful and a `NetworkError` when unsuccessful.
 * `transferMahDatas`:
 	* This is for situations when you know a successful transaction results in legitimate data. You are then provided with `Data` upon success, and a `NetworkError` upon failure.
 * `transferMahCodableDatas`:
