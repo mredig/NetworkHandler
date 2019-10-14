@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'NetworkHandler'
-  s.version          = '0.9.2'
+  s.version          = '0.9.2.1'
   s.summary          = 'NetworkHandler replaces URLSession by providing a clean way to make HTTP network requests'
   s.swift_version    = '5.0'
 

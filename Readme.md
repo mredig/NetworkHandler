@@ -144,7 +144,7 @@ Additionally, included are several classes and types:
 		* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
 	* CocoaPods
 		* add this line to your Podfile:
-			`  pod 'NetworkHandler', '~> 0.9.2'`
+        `  pod 'NetworkHandler', '~> 0.9.2.1'`
 1. Import to any files you want to use it in
 	`import NetworkHandler`
 1. Use it!
