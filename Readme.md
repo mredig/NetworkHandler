@@ -1,8 +1,8 @@
 # Network Handler
 
-I wrote this because I found myself repeating a lot of boilerplate code when sending and receiving data with APIs. Essentially, every time I'd want to make a network call, I'd have to check for errors, check the response code, check if there's data, check if the data is valid, and finally use the data. Every. Time. (Sure, you could skip a couple of those steps occasionally, but then you might run into an unforeseen error).
+NetworkHandler was written to save you time by cutting out the needlessly messy boilerplate code from `UrlSession`. Typically, everytime you make a network call, you have to check for errors, response codes, data existence and data validity. Every. Single.. Time... Skipping those steps while using `UrlSession` might result in unforseen consequences. Luckily, we built `NetworkHandler` as a solution.
 
-NetworkHandler primarily consists of three main functions:
+NetworkHandler consists of 3 core functions:
 
 * `transferMahOptionalDatas`:
 	* Sometimes you don't care if the server provides data or there may be a situation where the data MIGHT get returned or it MIGHT not, just as long as the transaction was successful otherwise. In these situations, you can use `transferMahOptionalDatas` and it'll provide you with `Data?` when successful, and a `NetworkError` when failure occurs.
@@ -131,7 +131,7 @@ Additionally, included are several classes and types:
 
 1. Download and install
 	* Carthage
-		* I recommend using Carthage. Simply add the following line to your cartfile. (and of course, follow the remaining carthage instructions as usual)
+		* We recommend using Carthage. Simply add the following line to your cartfile. (and of course, follow the remaining carthage instructions as usual)
 			`github "mredig/NetworkHandler"`
 	* Brute Force Files
 		* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
@@ -140,7 +140,7 @@ Additionally, included are several classes and types:
 			`  pod 'NetworkHandler', '~> 0.9.2'`
 1. Import to any files you want to use it in
 	`import NetworkHandler`
-1. Use it.
+1. Use it!
 
 ##### Todo
 * Readme
