@@ -16,7 +16,7 @@ class DemoViewController: UITableViewController {
 	private var tasks = [UITableViewCell: URLSessionDataTask]()
 
 	// MARK: - Outlets
-	@IBOutlet var generateDemoDataButton: UIButton!
+	@IBOutlet private var generateDemoDataButton: UIButton!
 
 	// MARK: - Actions
 	@IBAction func generateDemoDataButtonPressed(_ sender: UIButton) {
