@@ -5,16 +5,16 @@ NetworkHandler was written to save you time by cutting out the needlessly messy 
 NetworkHandler consists of 3 core functions:
 
 * `transferMahOptionalDatas`:
-	* Sometimes you don't care if the server provides data or there may be a situation where the data MIGHT get returned or it MIGHT not, just as long as the transaction was successful otherwise. In these situations, you can use `transferMahOptionalDatas` and it'll provide you with `Data?` when successful, and a `NetworkError` when failure occurs.
+	* Occasionally, you want to make network requests without needing to check for response codes. You use  `transferMahOptionalDatas`  in these situations to provide you strictly with `Data?` when successful and a `NetworkError` when unsuccessful.
 * `transferMahDatas`:
 	* This is for situations when you know a successful transaction results in legitimate data. You are then provided with `Data` upon success, and a `NetworkError` upon failure.
 * `transferMahCodableDatas`:
 	* This is for the specific use case when dealing with JSON apis. You construct your model, `DemoModel` for example, then simply tell the function this is specifically the type you want as a result. (`transferMahCodableDatas(with: urlRequest, completion: (Result<DemoModel, NetworkError>) -> Void)`) Upon success, it'll handle *all of the decoding for you* and simply provide you with data in the custom type you requested! (upon success) Upon failure, of course, it will provide a `NetworkError`.
 
 ### Features
-This essentially reduces the boilerplate you need to deal with when you make an HTTP network request. It makes use of the Swift 5 Result type for super powers in reducing redundancies.
+NetworkHandler reduces the boilerplate code you need to deal with when making an HTTP request. NetworkHandler is written in Swift 5 to make use of Result type to cut out redundancies.
 
-You might be wondering how much boilerplate it can actually cut out for you. Well here's an example:
+You might be wondering how much boilerplate mumbo-jumbo it can really cut out.. Well here's an example:
 
 #### Used for both examples:
 ```swift
