@@ -138,7 +138,7 @@ Additionally, included are several classes and types:
 
 1. Download and install
 	* Carthage
-		* We recommend using Carthage. Simply add the following line to your cartfile. (and of course, follow the remaining carthage instructions as usual)
+		* Add this line to your Cartfile then proceed to follow the remaining Cathage setup instructions
 			`github "mredig/NetworkHandler"`
 	* Brute Force Files
 		* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
