@@ -166,6 +166,9 @@ public class NetworkHandler {
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
 	public static let `default` = NetworkHandler()
 
+	/// Initialize a new NetworkHandler instance.
+	public init() {}
+
 	/**
 	Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
 
