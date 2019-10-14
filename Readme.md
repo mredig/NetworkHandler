@@ -1,20 +1,20 @@
 # Network Handler
 
-I wrote this because I found myself repeating a lot of boilerplate code when sending and receiving data with APIs. Essentially, every time I'd want to make a network call, I'd have to check for errors, check the response code, check if there's data, check if the data is valid, and finally use the data. Every. Time. (Sure, you could skip a couple of those steps occasionally, but then you might run into an unforeseen error).
+NetworkHandler was written to save you time by cutting out the needlessly messy boilerplate code from `URLSession`. Typically, everytime you make a network call, you have to check for errors, response codes, data existence and data validity. Every. Single.. Time... Skipping those steps while using `URLSession` might result in unforseen consequences. Luckily, we built `NetworkHandler` as a solution.
 
-NetworkHandler primarily consists of three main functions:
+NetworkHandler consists of 3 core functions:
 
 * `transferMahOptionalDatas`:
-	* Sometimes you don't care if the server provides data or there may be a situation where the data MIGHT get returned or it MIGHT not, just as long as the transaction was successful otherwise. In these situations, you can use `transferMahOptionalDatas` and it'll provide you with `Data?` when successful, and a `NetworkError` when failure occurs.
+	* Occasionally, you want to make network requests without needing to check if data was returned from the server. You use  `transferMahOptionalDatas` in these situations to provide you strictly with `Data?` when successful and a `NetworkError` when unsuccessful.
 * `transferMahDatas`:
 	* This is for situations when you know a successful transaction results in legitimate data. You are then provided with `Data` upon success, and a `NetworkError` upon failure.
 * `transferMahCodableDatas`:
 	* This is for the specific use case when dealing with JSON apis. You construct your model, `DemoModel` for example, then simply tell the function this is specifically the type you want as a result. (`transferMahCodableDatas(with: urlRequest, completion: (Result<DemoModel, NetworkError>) -> Void)`) Upon success, it'll handle *all of the decoding for you* and simply provide you with data in the custom type you requested! (upon success) Upon failure, of course, it will provide a `NetworkError`.
 
 ### Features
-This essentially reduces the boilerplate you need to deal with when you make an HTTP network request. It makes use of the Swift 5 Result type for super powers in reducing redundancies.
+NetworkHandler reduces the boilerplate code you need to deal with when making an HTTP request. NetworkHandler is written in Swift 5 to make use of Result type to cut out redundancies.
 
-You might be wondering how much boilerplate it can actually cut out for you. Well here's an example:
+You might be wondering how much boilerplate mumbo-jumbo it can really cut out.. Well here's an example:
 
 #### Used for both examples:
 ```swift
@@ -110,28 +110,35 @@ There's also built in mocking! Just toggle it on, tell it if you want to get an 
 
 Additionally, included are several classes and types:
 
-* NetworkCache:
-	* A wrapper for NSCache that can make subsequent requests super zippy fast
-* NetworkMockingSession
-	* Makes for super easy data mocking
-* UIAlertController Extension:
-	* This extension allows you to simply pass in an `Error` and let the alert controller automatically create a user facing alert for you.
-* URL Extension:
-	* Allows for easy URLRequest generation
-* HTTPMethods:
-	* an enum containing common HTTP method strings to set in your requests (keep you from typoing on stringly typed data)
-* HTTPHeaderKeys:
+* `NetworkCache`:
+	* A wrapper for NSCache that make subsequent requests super-zippy-fast
+    
+* `NetworkMockingSession`:
+	* Super easy data mocking
+    
+* `UIAlertController Extension`:
+	* Allows you to simply pass in an `Error` and let the alert controller create a user facing alert for you
+    
+* `URL Extension`:
+	* Easy URLRequest generation
+    
+* `HTTPMethods`:
+	* Enum containing common HTTP method strings to set in your requests (keep you from typoing on stringly typed data)
+    
+* `HTTPHeaderKeys`:
 	* Similarly, common keys for HTTP headers
-* NetworkError:
+    
+* `NetworkError`:
 	* Swifty errors for easier error handling
-* NetworkHandler:
-	* The bread to the above butter, the class that helps with URLSession.dataTasks
+    
+* `NetworkHandler`:
+	* The bread to the above butter, this class helps with `URLSession.dataTasks`
 
 ### Installation:
 
 1. Download and install
 	* Carthage
-		* I recommend using Carthage. Simply add the following line to your cartfile. (and of course, follow the remaining carthage instructions as usual)
+		* Add this line to your Cartfile then proceed to follow the remaining Cathage setup instructions
 			`github "mredig/NetworkHandler"`
 	* Brute Force Files
 		* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
@@ -140,7 +147,7 @@ Additionally, included are several classes and types:
 			`  pod 'NetworkHandler', '~> 0.9.2'`
 1. Import to any files you want to use it in
 	`import NetworkHandler`
-1. Use it.
+1. Use it!
 
 ##### Todo
 * Readme
