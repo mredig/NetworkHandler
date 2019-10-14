@@ -110,22 +110,29 @@ There's also built in mocking! Just toggle it on, tell it if you want to get an 
 
 Additionally, included are several classes and types:
 
-* NetworkCache:
-	* A wrapper for NSCache that can make subsequent requests super zippy fast
-* NetworkMockingSession
-	* Makes for super easy data mocking
-* UIAlertController Extension:
-	* This extension allows you to simply pass in an `Error` and let the alert controller automatically create a user facing alert for you.
-* URL Extension:
-	* Allows for easy URLRequest generation
-* HTTPMethods:
-	* an enum containing common HTTP method strings to set in your requests (keep you from typoing on stringly typed data)
-* HTTPHeaderKeys:
+* `NetworkCache`:
+	* A wrapper for NSCache that make subsequent requests super-zippy-fast
+    
+* `NetworkMockingSession`:
+	* Super easy data mocking
+    
+* `UIAlertController Extension`:
+	* Allows you to simply pass in an `Error` and let the alert controller create a user facing alert for you
+    
+* `URL Extension`:
+	* Easy URLRequest generation
+    
+* `HTTPMethods`:
+	* Enum containing common HTTP method strings to set in your requests (keep you from typoing on stringly typed data)
+    
+* `HTTPHeaderKeys`:
 	* Similarly, common keys for HTTP headers
-* NetworkError:
+    
+* `NetworkError`:
 	* Swifty errors for easier error handling
-* NetworkHandler:
-	* The bread to the above butter, the class that helps with URLSession.dataTasks
+    
+* `NetworkHandler`:
+	* The bread to the above butter, this class helps with `URLSession.dataTasks`
 
 ### Installation:
 
