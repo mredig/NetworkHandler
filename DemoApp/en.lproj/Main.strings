@@ -1,0 +1,24 @@
+
+/* Class = "UITextField"; placeholder = "Placekitten Height"; ObjectID = "4YS-uX-PVJ"; */
+"4YS-uX-PVJ.placeholder" = "Placekitten Height";
+
+/* Class = "UILabel"; text = "Title"; ObjectID = "501-4N-yhU"; */
+"501-4N-yhU.text" = "Title";
+
+/* Class = "UILabel"; text = "Subtitle"; ObjectID = "7y4-rW-1Ee"; */
+"7y4-rW-1Ee.text" = "Subtitle";
+
+/* Class = "UIButton"; normalTitle = "Generate Some Demo Data"; ObjectID = "hjS-1R-ueb"; */
+"hjS-1R-ueb.normalTitle" = "Generate Some Demo Data";
+
+/* Class = "UINavigationItem"; title = "Create New Demo Model"; ObjectID = "kK7-oi-gwa"; */
+"kK7-oi-gwa.title" = "Create New Demo Model";
+
+/* Class = "UITextField"; placeholder = "Create Title"; ObjectID = "kwx-V0-Xm4"; */
+"kwx-V0-Xm4.placeholder" = "Create Title";
+
+/* Class = "UITextField"; placeholder = "Create Subtitle"; ObjectID = "pVT-ri-dTC"; */
+"pVT-ri-dTC.placeholder" = "Create Subtitle";
+
+/* Class = "UITextField"; placeholder = "Placekitten Width"; ObjectID = "uEb-7s-fLE"; */
+"uEb-7s-fLE.placeholder" = "Placekitten Width";
