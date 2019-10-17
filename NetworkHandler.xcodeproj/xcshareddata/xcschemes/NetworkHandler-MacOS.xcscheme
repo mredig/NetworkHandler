@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1020"
+   LastUpgradeVersion = "1100"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
+               BlueprintIdentifier = "33C92E982357F8350061B0F8"
                BuildableName = "NetworkHandler.framework"
-               BlueprintName = "NetworkHandler-iOS"
+               BlueprintName = "NetworkHandler-MacOS"
                ReferencedContainer = "container:NetworkHandler.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -26,35 +26,15 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES"
-      codeCoverageEnabled = "YES"
-      onlyGenerateCoverageForSpecifiedTargets = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
-            BuildableName = "NetworkHandler.framework"
-            BlueprintName = "NetworkHandler-iOS"
-            ReferencedContainer = "container:NetworkHandler.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <CodeCoverageTargets>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
-            BuildableName = "NetworkHandler.framework"
-            BlueprintName = "NetworkHandler-iOS"
-            ReferencedContainer = "container:NetworkHandler.xcodeproj">
-         </BuildableReference>
-      </CodeCoverageTargets>
+      shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "335D7D2F229F4ABB005D5A20"
-               BuildableName = "NetworkHandlerTests-iOS.xctest"
-               BlueprintName = "NetworkHandlerTests-iOS"
+               BlueprintIdentifier = "33C92EA02357F8350061B0F8"
+               BuildableName = "NetworkHandler-MacOSTests.xctest"
+               BlueprintName = "NetworkHandler-MacOSTests"
                ReferencedContainer = "container:NetworkHandler.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -70,15 +50,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
-            BuildableName = "NetworkHandler.framework"
-            BlueprintName = "NetworkHandler-iOS"
-            ReferencedContainer = "container:NetworkHandler.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -89,9 +60,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
+            BlueprintIdentifier = "33C92E982357F8350061B0F8"
             BuildableName = "NetworkHandler.framework"
-            BlueprintName = "NetworkHandler-iOS"
+            BlueprintName = "NetworkHandler-MacOS"
             ReferencedContainer = "container:NetworkHandler.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

@@ -9,6 +9,13 @@
 import XCTest
 @testable import NetworkHandler
 
+#if os(macOS)
+typealias TestImage = NSImage
+#elseif os(iOS)
+typealias TestImage = UIImage
+#else
+#endif
+
 /// Obviously dependent on network conditions
 class NetworkHandlerTests: XCTestCase {
 
@@ -24,12 +31,12 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForInitialDownload = expectation(description: "Waiting for things")
 		let networkHandler = NetworkHandler()
 
-		var image: UIImage?
+		var image: TestImage?
 		let networkStart = CFAbsoluteTimeGetCurrent()
 		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
 			do {
 				let imageData = try result.get()
-				image = UIImage(data: imageData)
+				image = TestImage(data: imageData)
 			} catch {
 				XCTFail("Failed getting image data: \(error)")
 			}
@@ -43,13 +50,13 @@ class NetworkHandlerTests: XCTestCase {
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 
 		// now try retrieving from cache
-		var imageTwo: UIImage?
+		var imageTwo: TestImage?
 		let waitForCacheLoad = expectation(description: "Watiting for cache")
 		let cacheStart = CFAbsoluteTimeGetCurrent()
 		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
 			do {
 				let imageData = try result.get()
-				imageTwo = UIImage(data: imageData)
+				imageTwo = TestImage(data: imageData)
 			} catch {
 				XCTFail("Failed getting image data: \(error)")
 			}
