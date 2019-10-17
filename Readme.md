@@ -116,7 +116,7 @@ Additionally, included are several classes and types:
 * `NetworkMockingSession`:
 	* Super easy data mocking
     
-* `UIAlertController Extension`:
+* `UIAlertController` Extension (iOS only):
 	* Allows you to simply pass in an `Error` and let the alert controller create a user facing alert for you
     
 * `URL Extension`:
