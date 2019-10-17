@@ -42,7 +42,7 @@
 		335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkHandler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkHandler.h; sourceTree = "<group>"; };
 		335D7D2B229F4ABA005D5A20 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		335D7D30229F4ABB005D5A20 /* NetworkHandlerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NetworkHandlerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		335D7D30229F4ABB005D5A20 /* NetworkHandlerTests-iOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "NetworkHandlerTests-iOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		335D7D35229F4ABB005D5A20 /* NetworkHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkHandlerTests.swift; sourceTree = "<group>"; };
 		335D7D37229F4ABB005D5A20 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkHandler.swift; sourceTree = "<group>"; };
@@ -101,7 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */,
-				335D7D30229F4ABB005D5A20 /* NetworkHandlerTests.xctest */,
+				335D7D30229F4ABB005D5A20 /* NetworkHandlerTests-iOS.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -144,9 +144,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		335D7D26229F4ABA005D5A20 /* NetworkHandler */ = {
+		335D7D26229F4ABA005D5A20 /* NetworkHandler-iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 335D7D3B229F4ABB005D5A20 /* Build configuration list for PBXNativeTarget "NetworkHandler" */;
+			buildConfigurationList = 335D7D3B229F4ABB005D5A20 /* Build configuration list for PBXNativeTarget "NetworkHandler-iOS" */;
 			buildPhases = (
 				335D7D22229F4ABA005D5A20 /* Headers */,
 				335D7D23229F4ABA005D5A20 /* Sources */,
@@ -158,14 +158,14 @@
 			);
 			dependencies = (
 			);
-			name = NetworkHandler;
+			name = "NetworkHandler-iOS";
 			productName = NetworkHandler;
 			productReference = 335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		335D7D2F229F4ABB005D5A20 /* NetworkHandlerTests */ = {
+		335D7D2F229F4ABB005D5A20 /* NetworkHandlerTests-iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 335D7D3E229F4ABB005D5A20 /* Build configuration list for PBXNativeTarget "NetworkHandlerTests" */;
+			buildConfigurationList = 335D7D3E229F4ABB005D5A20 /* Build configuration list for PBXNativeTarget "NetworkHandlerTests-iOS" */;
 			buildPhases = (
 				335D7D2C229F4ABB005D5A20 /* Sources */,
 				335D7D2D229F4ABB005D5A20 /* Frameworks */,
@@ -176,9 +176,9 @@
 			dependencies = (
 				335D7D33229F4ABB005D5A20 /* PBXTargetDependency */,
 			);
-			name = NetworkHandlerTests;
+			name = "NetworkHandlerTests-iOS";
 			productName = NetworkHandlerTests;
-			productReference = 335D7D30229F4ABB005D5A20 /* NetworkHandlerTests.xctest */;
+			productReference = 335D7D30229F4ABB005D5A20 /* NetworkHandlerTests-iOS.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -213,8 +213,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				335D7D26229F4ABA005D5A20 /* NetworkHandler */,
-				335D7D2F229F4ABB005D5A20 /* NetworkHandlerTests */,
+				335D7D26229F4ABA005D5A20 /* NetworkHandler-iOS */,
+				335D7D2F229F4ABB005D5A20 /* NetworkHandlerTests-iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -288,7 +288,7 @@
 /* Begin PBXTargetDependency section */
 		335D7D33229F4ABB005D5A20 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 335D7D26229F4ABA005D5A20 /* NetworkHandler */;
+			target = 335D7D26229F4ABA005D5A20 /* NetworkHandler-iOS */;
 			targetProxy = 335D7D32229F4ABB005D5A20 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -437,7 +437,8 @@
 				);
 				MARKETING_VERSION = 0.9.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.redeggproductions.NetworkHandler;
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_MODULE_NAME = NetworkHandler;
+				PRODUCT_NAME = NetworkHandler;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -466,7 +467,8 @@
 				);
 				MARKETING_VERSION = 0.9.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.redeggproductions.NetworkHandler;
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_MODULE_NAME = NetworkHandler;
+				PRODUCT_NAME = NetworkHandler;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -523,7 +525,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		335D7D3B229F4ABB005D5A20 /* Build configuration list for PBXNativeTarget "NetworkHandler" */ = {
+		335D7D3B229F4ABB005D5A20 /* Build configuration list for PBXNativeTarget "NetworkHandler-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				335D7D3C229F4ABB005D5A20 /* Debug */,
@@ -532,7 +534,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		335D7D3E229F4ABB005D5A20 /* Build configuration list for PBXNativeTarget "NetworkHandlerTests" */ = {
+		335D7D3E229F4ABB005D5A20 /* Build configuration list for PBXNativeTarget "NetworkHandlerTests-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				335D7D3F229F4ABB005D5A20 /* Debug */,
