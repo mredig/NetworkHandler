@@ -266,6 +266,7 @@
 				33C92E952357F8350061B0F8 /* Sources */,
 				33C92E962357F8350061B0F8 /* Frameworks */,
 				33C92E972357F8350061B0F8 /* Resources */,
+				33C92EFA23580A6D0061B0F8 /* Swiftlint */,
 			);
 			buildRules = (
 			);
@@ -373,6 +374,24 @@
 
 /* Begin PBXShellScriptBuildPhase section */
 		331B9056234AF4380044F789 /* Swiftlint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Swiftlint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		33C92EFA23580A6D0061B0F8 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -598,7 +617,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.2.1;
+				MARKETING_VERSION = 0.9.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.redeggproductions.NetworkHandler;
 				PRODUCT_MODULE_NAME = NetworkHandler;
 				PRODUCT_NAME = NetworkHandler;
@@ -628,7 +647,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.9.2.1;
+				MARKETING_VERSION = 0.9.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.redeggproductions.NetworkHandler;
 				PRODUCT_MODULE_NAME = NetworkHandler;
 				PRODUCT_NAME = NetworkHandler;
@@ -693,7 +712,8 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MARKETING_VERSION = 0.9.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.redeggproductions.NetworkHandler-MacOS";
 				PRODUCT_MODULE_NAME = NetworkHandler;
 				PRODUCT_NAME = NetworkHandler;
@@ -720,7 +740,8 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MARKETING_VERSION = 0.9.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.redeggproductions.NetworkHandler-MacOS";
 				PRODUCT_MODULE_NAME = NetworkHandler;
 				PRODUCT_NAME = NetworkHandler;

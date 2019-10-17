@@ -144,7 +144,7 @@ Additionally, included are several classes and types:
 		* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
 	* CocoaPods
 		* add this line to your Podfile:
-        `  pod 'NetworkHandler', '~> 0.9.2.1'`
+        `  pod 'NetworkHandler', '~> 0.9.3'`
 1. Import to any files you want to use it in
 	`import NetworkHandler`
 1. Use it!
@@ -154,6 +154,8 @@ Additionally, included are several classes and types:
 	* demo task as return value and cancelling
 	* demo mocking data
 * create build targets for other platforms.
+	* tvOS
+	* watchOS
 * there may be more access control fixes needed, but the biggest one was fixed
 * fix network error code snippet (```swift)
 * swiftlint conformance
