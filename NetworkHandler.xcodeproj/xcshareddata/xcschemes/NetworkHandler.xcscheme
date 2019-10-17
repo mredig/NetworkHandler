@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
-               BuildableName = "NetworkHandler_iOS.framework"
+               BuildableName = "NetworkHandler.framework"
                BlueprintName = "NetworkHandler-iOS"
                ReferencedContainer = "container:NetworkHandler.xcodeproj">
             </BuildableReference>
@@ -33,7 +33,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
-            BuildableName = "NetworkHandler_iOS.framework"
+            BuildableName = "NetworkHandler.framework"
             BlueprintName = "NetworkHandler-iOS"
             ReferencedContainer = "container:NetworkHandler.xcodeproj">
          </BuildableReference>
@@ -42,7 +42,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
-            BuildableName = "NetworkHandler_iOS.framework"
+            BuildableName = "NetworkHandler.framework"
             BlueprintName = "NetworkHandler-iOS"
             ReferencedContainer = "container:NetworkHandler.xcodeproj">
          </BuildableReference>
@@ -74,7 +74,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
-            BuildableName = "NetworkHandler_iOS.framework"
+            BuildableName = "NetworkHandler.framework"
             BlueprintName = "NetworkHandler-iOS"
             ReferencedContainer = "container:NetworkHandler.xcodeproj">
          </BuildableReference>
@@ -90,7 +90,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "335D7D26229F4ABA005D5A20"
-            BuildableName = "NetworkHandler_iOS.framework"
+            BuildableName = "NetworkHandler.framework"
             BlueprintName = "NetworkHandler-iOS"
             ReferencedContainer = "container:NetworkHandler.xcodeproj">
          </BuildableReference>
