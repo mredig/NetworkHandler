@@ -34,8 +34,6 @@ Errors specific to networking with NetworkHandler. These specific cases are all
 accounted for when using the included `UIAlertController` extension to provide a
 */
 public enum NetworkError: Error, Equatable {
-
-
 	/**
 	A generic wrapper for when an `Error` doesn't otherwise fall under one of the
 	predetermined categories.
