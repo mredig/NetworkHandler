@@ -24,7 +24,7 @@ public enum HTTPHeaderKeys: String {
 	case contentType = "Content-Type"
 	case auth = "Authorization"
 
-	enum ContentTypes: String {
+	public enum ContentTypes: String {
 		case json = "application/json"
 	}
 }
