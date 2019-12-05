@@ -47,6 +47,12 @@ public extension UIAlertController {
 				message = "There was an error handling the local cache. Please screenshot and inform the developer: \(otherError)"
 			case .dataWasNull:
 				message = "There was no data returned from the server. This may or may not be expected."
+			case .unspecifiedError(let reason):
+				if let reason = reason {
+					message = "There was an error: \(reason)"
+				} else {
+					message = "There was an unspecified error."
+				}
 			}
 		} else {
 			message = "There was an unexpected error. Please screenshot this and inform the developer: \(error)"

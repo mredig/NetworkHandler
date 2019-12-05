@@ -99,6 +99,11 @@ public enum NetworkError: Error, Equatable {
 	```
 	*/
 	case dataWasNull
+	/**
+	If you need to provide an error state but none of the other specified cases
+	apply, use this. Optionally provide a reason. Useful for when guard statements fail.
+	*/
+	case unspecifiedError(reason: String?)
 
 	public static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
 		switch lhs {
@@ -120,6 +125,8 @@ public enum NetworkError: Error, Equatable {
 			if case .otherError(let rhsError) = rhs, otherError.localizedDescription == rhsError.localizedDescription { return true } else { return false }
 		case .urlInvalid(let urlString):
 			if case .urlInvalid(let rhsURLString) = rhs, urlString == rhsURLString { return true } else { return false }
+		case .unspecifiedError(let lhsReason):
+			if case .unspecifiedError(let rhsReason) = rhs, lhsReason == rhsReason { return true } else { return false }
 		}
 	}
 }
