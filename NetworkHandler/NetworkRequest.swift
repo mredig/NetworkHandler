@@ -23,7 +23,7 @@ public struct NetworkRequest {
 
 	// MARK: - New Properties
 	public private(set) var urlRequest: URLRequest
-	var expectedResponseCodes: [Int]
+	public var expectedResponseCodes: [Int]
 
 	// MARK: - Upgraded Properties
 	public var httpMethod: HTTPMethod? {
