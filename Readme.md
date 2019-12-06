@@ -156,6 +156,8 @@ Additionally, included are several classes and types:
 * create build targets for other platforms.
 	* tvOS
 	* watchOS
-* there may be more access control fixes needed, but the biggest one was fixed
-* fix network error code snippet (```swift)
-* swiftlint conformance
+* NetworkRequest documentation
+* NetworkHeaders documentation (file, not type)
+* version bumping
+* demo new additions in readme
+* update demo for new additions (network request/etc)
