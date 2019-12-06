@@ -8,27 +8,6 @@
 
 import Foundation
 
-/// Pre-typed strings for use with URLRequest.method
-public enum HTTPMethods: String {
-	case post = "POST"
-	case put = "PUT"
-	case delete = "DELETE"
-	case get = "GET"
-	case head = "HEAD"
-	case patch = "PATCH"
-	case options = "OPTIONS"
-}
-
-/// Pre-typed strings for use with formatting headers
-public enum HTTPHeaderKeys: String {
-	case contentType = "Content-Type"
-	case auth = "Authorization"
-
-	public enum ContentTypes: String {
-		case json = "application/json"
-	}
-}
-
 /**
 Errors specific to networking with NetworkHandler. These specific cases are all
 accounted for when using the included `UIAlertController` extension to provide a
@@ -134,12 +113,6 @@ public class NetworkHandler {
 	// MARK: - Properties
 	public var printErrorsToConsole = false
 	/**
-	When true, results are only considered successful when the response code is
-	*exactly* 200. False allows values anywhere in the 200-299 range to be
-	considered successful.
-	*/
-	public var strict200CodeResponse = true
-	/**
 	The decoder used to decode JSON Codable data. You may edit its settings, just
 	be aware that its settings apply to all decoding, not just for a single use.
 	*/
@@ -171,14 +144,16 @@ public class NetworkHandler {
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
 	public static let `default` = NetworkHandler()
 
+	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
 	public init() {}
 
+	// MARK: - Network Handling
 	/**
 	Preconfigured URLSession tasking to fetch, decode, and provide decodable json data.
 
 	- Parameters:
-		- request: URLRequest containing the url and other request information.
+		- request: NetworkRequest containing the url and other request information.
 		- useCache: Bool toggle indicating whether to use cache or not.
 		**Default**: `false`
 		- session: URLSession instance. **Default**: `URLSession.shared`
@@ -189,7 +164,7 @@ public class NetworkHandler {
 	you're either mocking or have `usingCache` flagged `true` and there is cached
 	data, returns nil.
 	*/
-	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: URLRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<DecodableType, NetworkError>) -> Void) -> URLSessionDataTask? {
+	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<DecodableType, NetworkError>) -> Void) -> URLSessionDataTask? {
 
 		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] result in
 			guard let self = self else { return }
@@ -223,7 +198,7 @@ public class NetworkHandler {
 	Preconfigured URLSession tasking to fetch and provide data.
 
 	- Parameters:
-		- request: URLRequest containing the url and other request information.
+		- request: NetworkRequest containing the url and other request information.
 		- useCache: Bool toggle indicating whether to use cache or not.
 		**Default**: `false`
 		- session: URLSession instance. **Default**: `URLSession.shared`
@@ -234,7 +209,7 @@ public class NetworkHandler {
 	you're either mocking or have `usingCache` flagged `true` and there is cached
 	data, returns nil.
 	*/
-	@discardableResult public func transferMahDatas(with request: URLRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> URLSessionDataTask? {
+	@discardableResult public func transferMahDatas(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> URLSessionDataTask? {
 		let task = transferMahOptionalDatas(with: request, usingCache: useCache, session: session) { (result: Result<Data?, NetworkError>) in
 			do {
 				let optData = try result.get()
@@ -257,7 +232,7 @@ public class NetworkHandler {
 	primarily for when you don't actually care about the response.
 
 	- Parameters:
-		- request: URLRequest containing the url and other request information.
+		- request: NetworkRequest containing the url and other request information.
 		- useCache: Bool toggle indicating whether to use cache or not.
 		**Default**: `false`
 		- session: URLSession instance. **Default**: `URLSession.shared`
@@ -268,7 +243,7 @@ public class NetworkHandler {
 		you're either mocking or have `usingCache` flagged `true` and there is cached
 		data, returns nil.
 	*/
-	@discardableResult public func transferMahOptionalDatas(with request: URLRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask? {
+	@discardableResult public func transferMahOptionalDatas(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> URLSessionDataTask? {
 		if useCache {
 			if let url = request.url, let data = cache[url] {
 				completion(.success(data))
@@ -276,15 +251,11 @@ public class NetworkHandler {
 			}
 		}
 
-		let task = session.loadData(with: request) { [weak self] data, response, error in
+		let task = session.loadData(with: request.urlRequest) { [weak self] data, response, error in
 			guard let self = self else { return }
 			if let response = response as? HTTPURLResponse {
-				if self.strict200CodeResponse && response.statusCode != 200 {
-					self.printToConsole("Received a non 200 http response: \(response.statusCode) in \(#file) line: \(#line)")
-					completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
-					return
-				} else if !self.strict200CodeResponse && !(200..<300).contains(response.statusCode) {
-					self.printToConsole("Received a non 200 http response: \(response.statusCode) in \(#file) line: \(#line)")
+				if !request.expectedResponseCodes.contains(response.statusCode) {
+					self.printToConsole("Received an unexpected http response: \(response.statusCode) in \(#file) line: \(#line)")
 					completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
 					return
 				}
@@ -305,7 +276,7 @@ public class NetworkHandler {
 				// save into cache
 				self.cache[url] = data
 				// don't duplicate cached data
-				URLCache.shared.removeCachedResponse(for: request)
+				URLCache.shared.removeCachedResponse(for: request.urlRequest)
 			}
 		}
 		task?.resume()

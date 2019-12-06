@@ -9,7 +9,7 @@
 import Foundation
 
 public extension URL {
-	var request: URLRequest {
-		return URLRequest(url: self)
+	var request: NetworkRequest {
+		return NetworkRequest((URLRequest(url: self)))
 	}
 }
