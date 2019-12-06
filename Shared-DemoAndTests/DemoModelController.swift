@@ -109,7 +109,7 @@ class DemoModelController {
 			.appendingPathExtension("json")
 
 		var request = putURL.request
-		request.httpMethod = HTTPMethods.put.rawValue
+		request.httpMethod = .put
 
 		do {
 			request.httpBody = try JSONEncoder().encode(model)
@@ -127,7 +127,7 @@ class DemoModelController {
 			.appendingPathExtension("json")
 
 		var request = deleteURL.request
-		request.httpMethod = HTTPMethods.delete.rawValue
+		request.httpMethod = .delete
 
 		NetworkHandler.default.transferMahOptionalDatas(with: request, completion: completion)
 	}
