@@ -17,6 +17,7 @@
 		335D7D44229F4ACD005D5A20 /* UIAlertController+NetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */; };
 		33A6796C22B85DDE00A580BB /* NetworkMockingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DD002B22B8593000620BA2 /* NetworkMockingSession.swift */; };
 		33ACFCCD239B7B280020BEFC /* GQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ACFCCC239B7B280020BEFC /* GQLError.swift */; };
+		33ACFCCE239B8AD30020BEFC /* GQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ACFCCC239B7B280020BEFC /* GQLError.swift */; };
 		33C92EA22357F8350061B0F8 /* NetworkHandler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33C92E992357F8350061B0F8 /* NetworkHandler.framework */; };
 		33C92EA92357F8350061B0F8 /* NetworkHandler_MacOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 33C92E9B2357F8350061B0F8 /* NetworkHandler_MacOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		33C92EB12357F8640061B0F8 /* NetworkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */; };
@@ -461,6 +462,7 @@
 				33CCBAE5239A426900A98C82 /* NetworkRequest.swift in Sources */,
 				33CCBAE6239A426B00A98C82 /* NetworkHeaders.swift in Sources */,
 				33C92EB52357F86A0061B0F8 /* URL+Request.swift in Sources */,
+				33ACFCCE239B8AD30020BEFC /* GQLError.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

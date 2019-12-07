@@ -8,6 +8,10 @@
 
 import Foundation
 
+struct GQLErrorContainer: Codable, Hashable {
+	let errors: [GQLError]
+}
+
 public struct GQLError: Codable, Hashable {
 	public let message: String
 	public let path: [String]?

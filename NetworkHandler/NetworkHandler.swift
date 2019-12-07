@@ -20,14 +20,14 @@ public enum NetworkError: Error, Equatable {
 	case otherError(error: Error)
 	/**
 	Occurs when a request is expecting data back, but either doesn't get any, or
-	gets noticably corrupted data.
+	gets noticably corrupted data. Wraps the source data for debugging.
 	*/
-	case badData
+	case badData(sourceData: Data?)
 	/**
 	Occurs when using a `Codable` data type that can't get decoded or encoded. Wraps
-	the original error.
+	the original error and source data for debugging.
 	*/
-	case dataCodingError(specifically: Error)
+	case dataCodingError(specifically: Error, sourceData: Data?)
 	/**
 	Not used within the NetworkHandler framework, but a preset error available for
 	use when attempting to decode an image from a remote source and failing.
@@ -85,12 +85,14 @@ public enum NetworkError: Error, Equatable {
 
 	public static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
 		switch lhs {
-		case .badData:
-			if case .badData = rhs { return true } else { return false }
+		case .badData(let lhsSourceData):
+			if case .badData(let rhsSourceData) = rhs, lhsSourceData == rhsSourceData { return true } else { return false }
 		case .databaseFailure(specifically: let otherError):
 			if case .databaseFailure(let rhsError) = rhs, otherError.localizedDescription == rhsError.localizedDescription { return true } else { return false }
-		case .dataCodingError(specifically: let otherError):
-			if case .dataCodingError(let rhsError) = rhs, otherError.localizedDescription == rhsError.localizedDescription { return true } else { return false }
+		case .dataCodingError(specifically: let otherError, let lhsSourceData):
+			if case .dataCodingError(let rhsError, let rhsSourceData) = rhs,
+				otherError.localizedDescription == rhsError.localizedDescription,
+			lhsSourceData == rhsSourceData { return true } else { return false }
 		case .dataWasNull:
 			if case .dataWasNull = rhs { return true } else { return false }
 		case .httpNon200StatusCode(code: let code, data: let data):
@@ -191,7 +193,7 @@ public class NetworkHandler {
 					return
 				}
 				self.printToConsole("Error decoding data in \(#file) line: \(#line): \(error)")
-				completion(.failure(.dataCodingError(specifically: error)))
+				completion(.failure(.dataCodingError(specifically: error, sourceData: data)))
 			}
 		}
 		return task
@@ -218,7 +220,7 @@ public class NetworkHandler {
 				let optData = try result.get()
 				guard let data = optData else {
 					self.printToConsole("\(NetworkError.badData)")
-					completion(.failure(.badData))
+					completion(.failure(.badData(sourceData: optData)))
 					return
 				}
 				completion(.success(data))
@@ -269,7 +271,8 @@ public class NetworkHandler {
 			}
 
 			if let data = data {
-				if let errorDict = try? JSONDecoder().decode([String: GQLError].self, from: data), let error = errorDict["error"] {
+				if let errorContainer = try? JSONDecoder().decode(GQLErrorContainer.self, from: data),
+					let error = errorContainer.errors.first {
 					completion(.failure(.graphQLError(error: error)))
 					return
 				}

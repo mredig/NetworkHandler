@@ -30,7 +30,7 @@ public extension UIAlertController {
 			case .httpNon200StatusCode(let code, let data):
 				let httpErrorMessage = getStatusCodeSpecifics(statusCode: code, potentialData: data)
 				message = "HTTP transfer error: \(httpErrorMessage)"
-			case .dataCodingError(specifically: let specificDecodeError):
+			case .dataCodingError(specifically: let specificDecodeError, _):
 				message = "There was an error decoding data. Please screenshot this and inform the developer: \(specificDecodeError)"
 			case .imageDecodeError:
 				message = "There was an error decoding a fetched image."

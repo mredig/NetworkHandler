@@ -117,9 +117,9 @@ class NetworkHandlerTests: XCTestCase {
 
 	func allErrorCases() -> [NetworkError] {
 		let dummyError = NSError(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil)
-		let allErrorCases: [NetworkError] = [.badData,
+		let allErrorCases: [NetworkError] = [.badData(sourceData: nil),
 											 .databaseFailure(specifically: dummyError),
-											 .dataCodingError(specifically: dummyError),
+											 .dataCodingError(specifically: dummyError, sourceData: nil),
 											 .dataWasNull,
 											 .httpNon200StatusCode(code: 404, data: nil),
 											 .imageDecodeError,
@@ -263,7 +263,7 @@ class NetworkHandlerTests: XCTestCase {
 		let theExtension = GQLErrorExtension(code: "INTERNAL_SERVER_ERROR", exception: exception)
 		let mockDataModel = GQLError(message: "Test error", path: nil, locations: nil, extensions: theExtension)
 
-		let mockData = try? JSONEncoder().encode(["error": mockDataModel])
+		let mockData = try? JSONEncoder().encode(["errors": [mockDataModel]])
 
 		let mockSession = NetworkMockingSession(mockData: mockData, mockError: nil, mockResponseCode: 200)
 
@@ -278,13 +278,48 @@ class NetworkHandlerTests: XCTestCase {
 				XCTFail("no error was thrown")
 			} catch NetworkError.graphQLError(let gqlError) {
 				XCTAssertEqual(mockDataModel, gqlError)
-				print(gqlError)
 				return
 			} catch {
-				guard case NetworkError.httpNon200StatusCode(code: 404, data: nil) = error else {
-					XCTFail("Recieved unexpected error: \(error)")
-					return
-				}
+				XCTFail("Recieved unexpected error: \(error)")
+			}
+		}
+		waitForExpectations(timeout: 10) { error in
+			if let error = error {
+				XCTFail("Timed out waiting for mocking: \(error)")
+			}
+		}
+	}
+
+	/// This test will only work so long as my school project is live. Would be better to make a permanent test server to test this with.
+	func testGraphQLError() {
+		let networkHandler = NetworkHandler()
+
+		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
+		let baseURL = URL(string: "https://lambda-labs-swaap-staging.herokuapp.com/")!
+
+		let waitForMocking = expectation(description: "Wait for mocking")
+
+		var request = baseURL.request
+
+		request.expectedResponseCodes.insertRange(0...1000)
+		request.httpMethod = .post
+		request.addValue(.contentType(type: .json), forHTTPHeaderField: .commonKey(key: .contentType))
+
+		request.httpBody = ##"{ "query": "{ userss { id authId name } }" }"##.data(using: .utf8)
+
+		networkHandler.transferMahCodableDatas(with: request) { (result: Result<DemoModel, NetworkError>) in
+			defer {
+				waitForMocking.fulfill()
+			}
+			do {
+				_ = try result.get()
+				XCTFail("no error was thrown")
+			} catch NetworkError.graphQLError(let gqlError) {
+				XCTAssertEqual(##"Cannot query field "userss" on type "Query". Did you mean "users" or "user"?"##, gqlError.message)
+				XCTAssertEqual("GRAPHQL_VALIDATION_FAILED", gqlError.extensions.code)
+				return
+			} catch {
+				XCTFail("Recieved unexpected error: \(error)")
 			}
 		}
 		waitForExpectations(timeout: 10) { error in
