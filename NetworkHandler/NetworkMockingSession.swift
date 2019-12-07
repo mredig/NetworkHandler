@@ -9,7 +9,6 @@
 import Foundation
 
 struct NetworkMockingSession: NetworkLoader {
-
 	// MARK: - Properties
 	let mockData: Data?
 	let mockError: Error?
@@ -35,6 +34,4 @@ struct NetworkMockingSession: NetworkLoader {
 
 		return nil
 	}
-
-
 }
