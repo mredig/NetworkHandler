@@ -16,6 +16,7 @@
 		335D7D43229F4ACD005D5A20 /* NetworkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */; };
 		335D7D44229F4ACD005D5A20 /* UIAlertController+NetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */; };
 		33A6796C22B85DDE00A580BB /* NetworkMockingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DD002B22B8593000620BA2 /* NetworkMockingSession.swift */; };
+		33ACFCCD239B7B280020BEFC /* GQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ACFCCC239B7B280020BEFC /* GQLError.swift */; };
 		33C92EA22357F8350061B0F8 /* NetworkHandler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33C92E992357F8350061B0F8 /* NetworkHandler.framework */; };
 		33C92EA92357F8350061B0F8 /* NetworkHandler_MacOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 33C92E9B2357F8350061B0F8 /* NetworkHandler_MacOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		33C92EB12357F8640061B0F8 /* NetworkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */; };
@@ -70,6 +71,7 @@
 		335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkHandler.swift; sourceTree = "<group>"; };
 		335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIAlertController+NetError.swift"; sourceTree = "<group>"; };
 		335D7D45229F74A6005D5A20 /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
+		33ACFCCC239B7B280020BEFC /* GQLError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GQLError.swift; sourceTree = "<group>"; };
 		33C92E992357F8350061B0F8 /* NetworkHandler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkHandler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		33C92E9B2357F8350061B0F8 /* NetworkHandler_MacOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkHandler_MacOS.h; sourceTree = "<group>"; };
 		33C92E9C2357F8350061B0F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				33FE1DB522B5773F00D64839 /* NetworkCache.swift */,
 				33DD002922B856E300620BA2 /* NetworkLoader.swift */,
 				33FE1DBC22B587E100D64839 /* URL+Request.swift */,
+				33ACFCCC239B7B280020BEFC /* GQLError.swift */,
 			);
 			path = NetworkHandler;
 			sourceTree = "<group>";
@@ -430,6 +433,7 @@
 				335D7D43229F4ACD005D5A20 /* NetworkHandler.swift in Sources */,
 				33FE1DBD22B587E100D64839 /* URL+Request.swift in Sources */,
 				33CCBAE4239A417B00A98C82 /* NetworkHeaders.swift in Sources */,
+				33ACFCCD239B7B280020BEFC /* GQLError.swift in Sources */,
 				33A6796C22B85DDE00A580BB /* NetworkMockingSession.swift in Sources */,
 				33DD002A22B856E300620BA2 /* NetworkLoader.swift in Sources */,
 			);

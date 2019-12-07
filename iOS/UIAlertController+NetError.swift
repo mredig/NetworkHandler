@@ -4,6 +4,7 @@
 //  Created by Michael Redig on 5/9/19.
 //  Copyright © 2019 Michael Redig. All rights reserved.
 //
+// swiftlint:disable function_body_length
 
 import UIKit
 
@@ -53,6 +54,18 @@ public extension UIAlertController {
 				} else {
 					message = "There was an unspecified error."
 				}
+			case .graphQLError(let error):
+				let codesUntyped = [error.extensions.code, error.extensions.exception.code as Any, error.extensions.exception.errno as Any] as [Any]
+				let codes: [String] = codesUntyped.compactMap {
+					if let value = $0 as? String {
+						return value
+					} else if let value = $0 as? Int {
+						return "\(value)"
+					} else {
+						return nil
+					}
+				}
+				message = "There was an error: (\(codes)) - \(error.message)"
 			}
 		} else {
 			message = "There was an unexpected error. Please screenshot this and inform the developer: \(error)"

@@ -4,7 +4,7 @@
 //  Created by Michael Redig on 5/7/19.
 //  Copyright © 2019 Michael Redig. All rights reserved.
 //
-//swiftlint:disable line_length conditional_returns_on_newline
+//swiftlint:disable line_length conditional_returns_on_newline cyclomatic_complexity
 
 import Foundation
 
@@ -81,6 +81,7 @@ public enum NetworkError: Error, Equatable {
 	apply, use this. Optionally provide a reason. Useful for when guard statements fail.
 	*/
 	case unspecifiedError(reason: String?)
+	case graphQLError(error: GQLError)
 
 	public static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
 		switch lhs {
@@ -104,6 +105,8 @@ public enum NetworkError: Error, Equatable {
 			if case .urlInvalid(let rhsURLString) = rhs, urlString == rhsURLString { return true } else { return false }
 		case .unspecifiedError(let lhsReason):
 			if case .unspecifiedError(let rhsReason) = rhs, lhsReason == rhsReason { return true } else { return false }
+		case .graphQLError(let lhsError):
+			if case .graphQLError(let rhsError) = rhs, lhsError == rhsError { return true } else { return false }
 		}
 	}
 }
@@ -263,6 +266,13 @@ public class NetworkHandler {
 				self.printToConsole("Did not receive a proper response code in \(#file) line: \(#line)")
 				completion(.failure(.noStatusCodeResponse))
 				return
+			}
+
+			if let data = data {
+				if let errorDict = try? JSONDecoder().decode([String: GQLError].self, from: data), let error = errorDict["error"] {
+					completion(.failure(.graphQLError(error: error)))
+					return
+				}
 			}
 
 			if let error = error {
