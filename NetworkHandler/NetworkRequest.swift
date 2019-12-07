@@ -23,7 +23,7 @@ public struct NetworkRequest {
 
 	// MARK: - New Properties
 	public private(set) var urlRequest: URLRequest
-	public var expectedResponseCodes: [Int]
+	public var expectedResponseCodes: Set<Int>
 
 	// MARK: - Upgraded Properties
 	public var httpMethod: HTTPMethod? {
@@ -93,7 +93,7 @@ public struct NetworkRequest {
 	}
 
 	// MARK: - Lifecycle
-	init(_ request: URLRequest, expectedResponseCodes: [Int] = [200]) {
+	init(_ request: URLRequest, expectedResponseCodes: Set<Int> = [200]) {
 		self.urlRequest = request
 		self.expectedResponseCodes = expectedResponseCodes
 	}
@@ -143,5 +143,15 @@ public struct NetworkRequest {
 			strValue = otherValue
 		}
 		return strValue
+	}
+}
+
+extension Set where Element: FixedWidthInteger {
+	public mutating func insert(_ array: [Element]) {
+		Set(array).forEach { insert($0) }
+	}
+
+	public mutating func insertRange(_ range: ClosedRange<Element>) {
+		Set(range).forEach { insert($0) }
 	}
 }

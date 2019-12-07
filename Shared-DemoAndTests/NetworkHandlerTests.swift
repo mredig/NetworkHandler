@@ -229,7 +229,7 @@ class NetworkHandlerTests: XCTestCase {
 		let mockSession = NetworkMockingSession(mockData: nil, mockError: nil, mockResponseCode: 404)
 
 		var request = dummyModelURL.request
-		request.expectedResponseCodes = (200...299).map { $0 }
+		request.expectedResponseCodes.insertRange(200...299)
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
 			defer {
 				waitForMocking.fulfill()
@@ -283,7 +283,7 @@ class NetworkHandlerTests: XCTestCase {
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
-		request.expectedResponseCodes = (200...299).map { $0 }
+		request.expectedResponseCodes.insertRange(200...299)
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, NetworkError>) in
 			defer {
 				waitForMocking.fulfill()
@@ -321,7 +321,7 @@ class NetworkHandlerTests: XCTestCase {
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
-		request.expectedResponseCodes = (200...299).map { $0 }
+		request.expectedResponseCodes.insertRange(200...299)
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, NetworkError>) in
 			defer {
 				waitForMocking.fulfill()
@@ -361,7 +361,7 @@ class NetworkHandlerTests: XCTestCase {
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
-		request.expectedResponseCodes = (200...299).map { $0 }
+		request.expectedResponseCodes.insertRange(200...299)
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, NetworkError>) in
 			defer {
 				waitForMocking.fulfill()
@@ -399,7 +399,7 @@ class NetworkHandlerTests: XCTestCase {
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
-		request.expectedResponseCodes = (200...299).map { $0 }
+		request.expectedResponseCodes.insertRange(200...299)
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, NetworkError>) in
 			defer {
 				waitForMocking.fulfill()
