@@ -137,7 +137,7 @@ Additionally, included are several classes and types:
 ### Installation:
 
 1. Download and install
-	* Carthage
+	* Carthage (recommended)
 		* Add this line to your Cartfile then proceed to follow the remaining Cathage setup instructions
 			`github "mredig/NetworkHandler"`
 	* Brute Force Files
@@ -160,4 +160,7 @@ Additionally, included are several classes and types:
 * NetworkHeaders documentation (file, not type)
 * version bumping
 * demo new additions in readme
-* update demo for new additions (network request/etc)
+	* network request
+	* graphql error message forwarding
+	* passing erroneous data for debugging
+* update demo for new additions (network request/graphql error forwarding/etc)
