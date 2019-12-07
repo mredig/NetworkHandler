@@ -254,9 +254,6 @@ class NetworkHandlerTests: XCTestCase {
 	func testMockGraphQLError() {
 		let networkHandler = NetworkHandler()
 
-		// expected result
-		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
-
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
 		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
 
@@ -295,7 +292,6 @@ class NetworkHandlerTests: XCTestCase {
 				XCTFail("Timed out waiting for mocking: \(error)")
 			}
 		}
-
 	}
 
 	func testErrorEquatable() {
