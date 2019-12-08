@@ -268,7 +268,7 @@ class NetworkHandlerTests: XCTestCase {
 		let mockSession = NetworkMockingSession(mockData: mockData, mockError: nil, mockResponseCode: 200)
 
 		var request = dummyBaseURL.request
-		request.expectedResponseCodes = [200]
+		request.expectedResponseCodes = 200
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
 			defer {
 				waitForMocking.fulfill()

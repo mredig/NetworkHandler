@@ -146,7 +146,13 @@ public struct NetworkRequest {
 	}
 }
 
-extension Set where Element: FixedWidthInteger {
+extension Set: ExpressibleByIntegerLiteral where Element: FixedWidthInteger {
+
+	public init(integerLiteral value: Int) {
+		self.init()
+		self.insert(Element(value))
+	}
+
 	public mutating func insert(_ array: [Element]) {
 		Set(array).forEach { insert($0) }
 	}
