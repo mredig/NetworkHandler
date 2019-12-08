@@ -125,8 +125,15 @@ public class NetworkHandler {
 		JSONDecoder()
 	}()
 
-	/// When querying for Codable data, if the response received is `null` (typically in the event that a remote object doesn't exist - This ocurrs on firebase for example) consider it valid as an empty collection. Only works on types that conform to Sequence.
+	/// When querying for Codable data, if the response received is `null` (typically in the event that a remote object
+	/// doesn't exist - This ocurrs on firebase for example) consider it valid as an empty collection. Only works on
+	/// types that conform to Sequence.
 	public var nullDataIsValid = false
+
+	/// Set this value to `true` when dealing with a graphQL server as they return a `200` response code even in error
+	/// states, but with different (error) json model. Turning this on will then attempt to decode the json error model
+	/// and pass forward the errors provided by the graphQL server.
+	public var graphQLErrorSupport = false
 
 	/**
 	An instance of Network Cache to speed up subsequent requests. Usage is
@@ -270,12 +277,12 @@ public class NetworkHandler {
 				return
 			}
 
-			if let data = data {
-				if let errorContainer = try? JSONDecoder().decode(GQLErrorContainer.self, from: data),
-					let error = errorContainer.errors.first {
-					completion(.failure(.graphQLError(error: error)))
-					return
-				}
+			if self.graphQLErrorSupport,
+				let data = data,
+				let errorContainer = try? JSONDecoder().decode(GQLErrorContainer.self, from: data),
+				let error = errorContainer.errors.first {
+				completion(.failure(.graphQLError(error: error)))
+				return
 			}
 
 			if let error = error {

@@ -253,6 +253,7 @@ class NetworkHandlerTests: XCTestCase {
 
 	func testMockGraphQLError() {
 		let networkHandler = NetworkHandler()
+		networkHandler.graphQLErrorSupport = true
 
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
 		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
@@ -293,6 +294,7 @@ class NetworkHandlerTests: XCTestCase {
 	/// This test will only work so long as my school project is live. Would be better to make a permanent test server to test this with.
 	func testGraphQLError() {
 		let networkHandler = NetworkHandler()
+		networkHandler.graphQLErrorSupport = true
 
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
 		let baseURL = URL(string: "https://lambda-labs-swaap-staging.herokuapp.com/")!
@@ -304,7 +306,6 @@ class NetworkHandlerTests: XCTestCase {
 		request.expectedResponseCodes.insertRange(0...1000)
 		request.httpMethod = .post
 		request.addValue(.contentType(type: .json), forHTTPHeaderField: .commonKey(key: .contentType))
-
 		request.httpBody = ##"{ "query": "{ userss { id authId name } }" }"##.data(using: .utf8)
 
 		networkHandler.transferMahCodableDatas(with: request) { (result: Result<DemoModel, NetworkError>) in
