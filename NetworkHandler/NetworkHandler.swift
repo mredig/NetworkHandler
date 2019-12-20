@@ -226,7 +226,7 @@ public class NetworkHandler {
 			do {
 				let optData = try result.get()
 				guard let data = optData else {
-					self.printToConsole("\(NetworkError.badData)")
+					self.printToConsole("\(String(describing: NetworkError.badData))")
 					completion(.failure(.badData(sourceData: optData)))
 					return
 				}
