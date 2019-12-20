@@ -8,15 +8,15 @@
 
 import Foundation
 
-struct NetworkMockingSession: NetworkLoader {
+public struct NetworkMockingSession: NetworkLoader {
 	// MARK: - Properties
-	let mockData: Data?
-	let mockError: Error?
-	let mockResponseCode: Int
-	var mockDelay: TimeInterval
+	public let mockData: Data?
+	public let mockError: Error?
+	public let mockResponseCode: Int
+	public var mockDelay: TimeInterval
 
 	// MARK: - Init
-	init(mockData: Data?, mockError: Error?, mockResponseCode: Int = 200, mockDelay: TimeInterval = 0.1) {
+	public init(mockData: Data?, mockError: Error?, mockResponseCode: Int = 200, mockDelay: TimeInterval = 0.1) {
 		self.mockData = mockData
 		self.mockError = mockError
 		self.mockResponseCode = mockResponseCode
