@@ -1,5 +1,9 @@
 # Network Handler
 
+### NOTE!
+the current version says "1.0" even though it is 100% in active development (consider it beta-ish)! The app store, however, freaks out if a version string (or build number) has a 'b' in it (god forbid), so to allow for it to work for appstore submissions, the current version says "1.0".
+(It's getting close to what I'd feel comforable releasing, but there are definitely a few things that still need to be smoothed over)
+
 NetworkHandler was written to save you time by cutting out the needlessly messy boilerplate code from `URLSession`. Typically, everytime you make a network call, you have to check for errors, response codes, data existence and data validity. Every. Single.. Time... Skipping those steps while using `URLSession` might result in unforseen consequences. Luckily, we built `NetworkHandler` as a solution.
 
 NetworkHandler consists of 3 core functions:
