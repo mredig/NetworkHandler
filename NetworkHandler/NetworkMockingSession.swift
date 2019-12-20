@@ -28,6 +28,8 @@ public struct NetworkMockingSession: NetworkLoader {
 		self.inputVerificationHandler = nil
 	}
 
+	/// Using the `inputVerificationHandler` closure, you can confirm that the input you are providing is correct for
+	/// the request you're making, then provide response data, code, and error as the return value varying to the input
 	public init(inputVerificationHandler: @escaping InputVerificationHandler, mockDelay: TimeInterval = 0.1) {
 		self.inputVerificationHandler = inputVerificationHandler
 		self.mockData = nil
