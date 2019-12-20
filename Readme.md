@@ -168,3 +168,4 @@ Additionally, included are several classes and types:
 	* graphql error message forwarding
 	* passing erroneous data for debugging
 * update demo for new additions (network request/graphql error forwarding/etc)
+* create tests for mocking with input verification
