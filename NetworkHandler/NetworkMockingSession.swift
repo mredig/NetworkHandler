@@ -16,8 +16,8 @@ public struct NetworkMockingSession: NetworkLoader {
 	public var mockDelay: TimeInterval
 	public var httpVersion = "HTTP/2"
 
-	public typealias InputVerificationHandler = (URLRequest) -> (Data?, Int, Error?)
-	let inputVerificationHandler: InputVerificationHandler?
+	public typealias ServerSideSimulationHandler = (URLRequest) -> (Data?, Int, Error?)
+	let serverSideSimulatorHandler: ServerSideSimulationHandler?
 
 	// MARK: - Init
 	public init(mockData: Data?, mockError: Error?, mockResponseCode: Int = 200, mockDelay: TimeInterval = 0.1) {
@@ -25,14 +25,14 @@ public struct NetworkMockingSession: NetworkLoader {
 		self.mockError = mockError
 		self.mockResponseCode = mockResponseCode
 		self.mockDelay = mockDelay
-		self.inputVerificationHandler = nil
+		self.serverSideSimulatorHandler = nil
 	}
 
-	/// Using the `inputVerificationHandler` closure, you can confirm that the input you are providing is correct for
+	/// Using the `serverSideSimulatorHandler` closure, you can confirm that the input you are providing is correct for
 	/// the request you're making, then provide response data, code, and error as the return value varying to the input
 	/// Effectively, this lets you simulate what's happening server side, if desired.
-	public init(mockDelay: TimeInterval = 0.1, inputVerificationHandler: @escaping InputVerificationHandler) {
-		self.inputVerificationHandler = inputVerificationHandler
+	public init(mockDelay: TimeInterval = 0.1, serverSideSimulatorHandler: @escaping ServerSideSimulationHandler) {
+		self.serverSideSimulatorHandler = serverSideSimulatorHandler
 		self.mockData = nil
 		self.mockError = nil
 		self.mockResponseCode = -1
@@ -45,7 +45,7 @@ public struct NetworkMockingSession: NetworkLoader {
 		let mockResponse: HTTPURLResponse?
 		let returnData: Data?
 		let returnError: Error?
-		if let handler = inputVerificationHandler {
+		if let handler = serverSideSimulatorHandler {
 			let (verificationData, verificationResponse, verificationError) = handler(request)
 			mockResponse = HTTPURLResponse(url: url, statusCode: verificationResponse, httpVersion: httpVersion, headerFields: nil)
 			returnData = verificationData
