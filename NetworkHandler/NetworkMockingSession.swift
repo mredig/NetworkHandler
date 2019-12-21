@@ -16,7 +16,7 @@ public struct NetworkMockingSession: NetworkLoader {
 	public var mockDelay: TimeInterval
 	public var httpVersion = "HTTP/2"
 
-	public typealias InputVerificationHandler = (Data?) -> (Data?, Int, Error?)
+	public typealias InputVerificationHandler = (URLRequest) -> (Data?, Int, Error?)
 	let inputVerificationHandler: InputVerificationHandler?
 
 	// MARK: - Init
@@ -46,7 +46,7 @@ public struct NetworkMockingSession: NetworkLoader {
 		let returnData: Data?
 		let returnError: Error?
 		if let handler = inputVerificationHandler {
-			let (verificationData, verificationResponse, verificationError) = handler(request.httpBody)
+			let (verificationData, verificationResponse, verificationError) = handler(request)
 			mockResponse = HTTPURLResponse(url: url, statusCode: verificationResponse, httpVersion: httpVersion, headerFields: nil)
 			returnData = verificationData
 			returnError = verificationError
