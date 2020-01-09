@@ -71,7 +71,7 @@ class DemoViewController: UITableViewController {
 extension DemoViewController {
 	// MARK: - Tableview
 	override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		return demoModelController.demoModels.count
+		demoModelController.demoModels.count
 	}
 
 	override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

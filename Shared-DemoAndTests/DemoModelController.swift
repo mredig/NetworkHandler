@@ -14,7 +14,7 @@ class DemoModelController {
 
 	private(set) var demoModels: [DemoModel] {
 		get {
-			return _demoModels
+			_demoModels
 		}
 		set {
 			_demoModels = newValue.sorted { $0.title < $1.title }

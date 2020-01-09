@@ -25,12 +25,8 @@ public class NetworkCache {
 	This is not a strict limit—if the cache goes over the limit, an object in the cache could be evicted instantly, later, or possibly never, depending on the implementation details of the cache.
 	*/
 	public var countLimit: Int {
-		get {
-			return cache.countLimit
-		}
-		set {
-			cache.countLimit = newValue
-		}
+		get { cache.countLimit }
+		set { cache.countLimit = newValue }
 	}
 
 	/**
@@ -41,28 +37,18 @@ public class NetworkCache {
 	This is not a strict limit, and if the cache goes over the limit, an object in the cache could be evicted instantly, at a later point in time, or possibly never, all depending on the implementation details of the cache.
 	*/
 	public var totalCostLimit: Int {
-		get {
-			return cache.totalCostLimit
-		}
-		set {
-			cache.totalCostLimit = newValue
-		}
+		get { cache.totalCostLimit }
+		set { cache.totalCostLimit = newValue }
 	}
 
 	/// The name of the cache. The default is "NetworkHandler: NetworkCache"
 	public var name: String {
-		get {
-			return cache.name
-		}
-		set {
-			cache.name = newValue
-		}
+		get { cache.name }
+		set { cache.name = newValue }
 	}
 
 	public subscript(key: URL) -> Data? {
-		get {
-			return cache.object(forKey: key as NSURL) as Data?
-		}
+		get { cache.object(forKey: key as NSURL) as Data? }
 		set {
 			if let newData = newValue {
 				cache.setObject(newData as NSData, forKey: key as NSURL, cost: newData.count)

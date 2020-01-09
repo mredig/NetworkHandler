@@ -10,6 +10,6 @@ import Foundation
 
 public extension URL {
 	var request: NetworkRequest {
-		return NetworkRequest((URLRequest(url: self)))
+		NetworkRequest((URLRequest(url: self)))
 	}
 }
