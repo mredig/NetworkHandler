@@ -21,7 +21,7 @@ public struct GQLError: Codable, Hashable {
 
 public struct GQLErrorExtension: Codable, Hashable {
 	public let code: String
-	public let exception: GQLErrorException
+	public let exception: GQLErrorException?
 }
 
 public struct GQLErrorException: Codable, Hashable {
@@ -29,7 +29,7 @@ public struct GQLErrorException: Codable, Hashable {
 	public let code: String?
 	public let syscall: String?
 	public let path: String?
-	public let stacktrace: [String]
+	public let stacktrace: [String]?
 }
 
 public struct GQLErrorLocation: Codable, Hashable {

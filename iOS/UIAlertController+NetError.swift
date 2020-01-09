@@ -55,7 +55,7 @@ public extension UIAlertController {
 					message = "There was an unspecified error."
 				}
 			case .graphQLError(let error):
-				let codesUntyped = [error.extensions.code, error.extensions.exception.code as Any, error.extensions.exception.errno as Any] as [Any]
+				let codesUntyped = [error.extensions.code, error.extensions.exception?.code as Any, error.extensions.exception?.errno as Any] as [Any]
 				let codes: [String] = codesUntyped.compactMap {
 					if let value = $0 as? String {
 						return value

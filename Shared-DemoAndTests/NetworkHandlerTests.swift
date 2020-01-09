@@ -291,7 +291,8 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
-	/// This test will only work so long as my school project is live. Would be better to make a permanent test server to test this with.
+	/// This test will only work so long as my school project is live and conforming. Would be better to make a
+	/// permanent test server to test this with.
 	func testGraphQLError() {
 		let networkHandler = NetworkHandler()
 		networkHandler.graphQLErrorSupport = true
@@ -316,7 +317,7 @@ class NetworkHandlerTests: XCTestCase {
 				_ = try result.get()
 				XCTFail("no error was thrown")
 			} catch NetworkError.graphQLError(let gqlError) {
-				XCTAssertEqual(##"Cannot query field "userss" on type "Query". Did you mean "users" or "user"?"##, gqlError.message)
+				XCTAssertEqual(##"Cannot query field "userss" on type "Query". Did you mean "user"?"##, gqlError.message)
 				XCTAssertEqual("GRAPHQL_VALIDATION_FAILED", gqlError.extensions.code)
 				return
 			} catch {
