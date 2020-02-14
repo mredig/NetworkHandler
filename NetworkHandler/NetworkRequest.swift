@@ -92,6 +92,13 @@ public struct NetworkRequest {
 		set { urlRequest.allowsConstrainedNetworkAccess = newValue }
 	}
 
+	/// Encoder used to encode with the `setJson` function.
+	public var encoder: NHEncoder = JSONEncoder()
+
+	/// Decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`
+	public var decoder: NHDecoder = JSONDecoder()
+
+
 	// MARK: - Lifecycle
 	init(_ request: URLRequest, expectedResponseCodes: Set<Int> = [200]) {
 		self.urlRequest = request
@@ -120,6 +127,21 @@ public struct NetworkRequest {
 	public func value(forHTTPHeaderField key: HTTPHeaderKey) -> String? {
 		let strKey = getKeyString(from: key)
 		return urlRequest.value(forHTTPHeaderField: strKey)
+	}
+
+	/// Sets `.httpBody` data to the result of encoding an encodable object passed in. If successful, returns the data.
+	@discardableResult public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType) -> Data? {
+		if httpMethod == .get {
+			NSLog("Attempt to populate a GET request http body. Used on \(type(of: encodableType))")
+		}
+		do {
+			let data = try encoder.encode(encodableType)
+			httpBody = data
+			return data
+		} catch {
+			NSLog("Failed encoding \(type(of: encodableType)) as json: \(error)")
+			return nil
+		}
 	}
 
 	// MARK: - Utility
