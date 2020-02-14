@@ -117,13 +117,6 @@ public class NetworkHandler {
 
 	// MARK: - Properties
 	public var printErrorsToConsole = false
-	/**
-	The decoder used to decode JSON Codable data. You may edit its settings, just
-	be aware that its settings apply to all decoding, not just for a single use.
-	*/
-	public lazy var netDecoder = {
-		JSONDecoder()
-	}()
 
 	/// When querying for Codable data, if the response received is `null` (typically in the event that a remote object
 	/// doesn't exist - This ocurrs on firebase for example) consider it valid as an empty collection. Only works on
@@ -180,7 +173,7 @@ public class NetworkHandler {
 
 		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] result in
 			guard let self = self else { return }
-			let decoder = self.netDecoder
+			let decoder = request.decoder
 
 			var data = Data()
 			do {

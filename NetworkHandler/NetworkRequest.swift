@@ -93,9 +93,9 @@ public struct NetworkRequest {
 	}
 
 	/// Encoder used to encode with the `setJson` function.
-	public var encoder: NHEncoder = JSONEncoder()
+	public lazy var encoder: NHEncoder = { JSONEncoder() }()
 
-	/// Decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`
+	/// Decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`.
 	public var decoder: NHDecoder = JSONDecoder()
 
 
@@ -133,6 +133,9 @@ public struct NetworkRequest {
 	@discardableResult public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType) -> Data? {
 		if httpMethod == .get {
 			NSLog("Attempt to populate a GET request http body. Used on \(type(of: encodableType))")
+		}
+		if value(forHTTPHeaderField: .commonKey(key: .contentType)) == nil {
+			NSLog("You are encoding data without declaring a content-type in your request header. Used on \(type(of: encodableType))")
 		}
 		do {
 			let data = try encoder.encode(encodableType)
