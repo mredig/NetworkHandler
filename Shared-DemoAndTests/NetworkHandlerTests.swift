@@ -605,4 +605,32 @@ class NetworkHandlerTests: XCTestCase {
 			}
 		}
 	}
+
+	func testEncodingGeneric() {
+		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
+
+		let dummyURL = URL(string: "https://redeggproductions.com")!
+		var request = dummyURL.request
+
+		request.encodeData(testDummy)
+
+		guard let requestData = request.httpBody else {
+			XCTFail("No httpBody")
+			return
+		}
+		
+		do {
+			let reconstructedDummy = try request.decoder.decode(DummyType.self, from: requestData)
+			XCTAssertEqual(testDummy, reconstructedDummy)
+		} catch {
+			XCTFail("Can't decode dummy data")
+			return
+		}
+	}
+
+	struct DummyType: Codable, Equatable {
+		let id: Int
+		let value: String
+		let other: Double
+	}
 }
