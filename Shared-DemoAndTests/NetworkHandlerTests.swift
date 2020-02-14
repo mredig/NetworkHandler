@@ -5,6 +5,7 @@
 //  Created by Michael Redig on 5/29/19.
 //  Copyright © 2019 Red_Egg Productions. All rights reserved.
 //
+//swiftlint:disable type_body_length
 
 import XCTest
 @testable import NetworkHandler
