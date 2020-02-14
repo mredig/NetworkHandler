@@ -113,6 +113,43 @@ public enum NetworkError: Error, Equatable {
 	}
 }
 
+extension NetworkError: CustomDebugStringConvertible {
+	private func stringifyData(_ data: Data?) -> String {
+		guard let data = data else { return "nil value" }
+		return String(data: data, encoding: .utf8) ??
+			String(data: data, encoding: .unicode) ??
+			String(data: data, encoding: .utf16) ??
+			"Non string data: \(data)"
+	}
+
+	public var debugDescription: String {
+		switch self {
+		case .otherError(error: let error):
+			return "NetworkError: OtherError (\(error))"
+		case .badData(sourceData: let sourceData):
+			return "NetworkError: BadData (\(stringifyData(sourceData)))"
+		case .databaseFailure(specifically: let error):
+			return "NetworkError: Database Failure: (\(error))"
+		case .dataCodingError(specifically: let error, sourceData: let sourceData):
+			return "NetworkError: Data Coding Error\n Error: \(error)\nSourceData: \(stringifyData(sourceData))"
+		case .dataWasNull:
+			return "NetworkError: Data was Null"
+		case .graphQLError(error: let gqlError):
+			return "NetworkError: \(gqlError)"
+		case .httpNon200StatusCode(code: let code, data: let data):
+			return "NetworkError: Bad Response Code (\(code)) with data: \(stringifyData(data))"
+		case .imageDecodeError:
+			return "NetworkError: Image Decode Error"
+		case .noStatusCodeResponse:
+			return "NetworkError: No Status Code in Response"
+		case .unspecifiedError(reason: let reason):
+			return "NetworkError: Unspecified Error: \(reason ?? "nil value")"
+		case .urlInvalid(urlString: let urlString):
+			return "NetworkError: Invalid URL: \(urlString ?? "nil value")"
+		}
+	}
+}
+
 public class NetworkHandler {
 
 	// MARK: - Properties

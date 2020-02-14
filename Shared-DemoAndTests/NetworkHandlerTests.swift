@@ -633,4 +633,26 @@ class NetworkHandlerTests: XCTestCase {
 		let value: String
 		let other: Double
 	}
+
+	@available(iOS 11.0, *)
+	func testErrorOutput() {
+		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
+		let encoder = JSONEncoder()
+		encoder.outputFormatting = [.sortedKeys]
+		let testData = try? encoder.encode(testDummy)
+
+		var error = NetworkError.badData(sourceData: testData)
+		let testString = String(data: testData!, encoding: .utf8)!
+		let error1Str = "NetworkError: BadData (\(testString))"
+
+		XCTAssertEqual(error1Str, error.debugDescription)
+
+		error = .httpNon200StatusCode(code: 401, data: testData)
+		let error2Str = "NetworkError: Bad Response Code (401) with data: \(testString)"
+		XCTAssertEqual(error2Str, error.debugDescription)
+
+		error = .badData(sourceData: nil)
+		let error3Str = "NetworkError: BadData (nil value)"
+		XCTAssertEqual(error3Str, error.debugDescription)
+	}
 }
