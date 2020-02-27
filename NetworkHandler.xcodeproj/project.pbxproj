@@ -37,6 +37,8 @@
 		33CCBAE5239A426900A98C82 /* NetworkRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CCBAE1239A416900A98C82 /* NetworkRequest.swift */; };
 		33CCBAE6239A426B00A98C82 /* NetworkHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CCBAE3239A417B00A98C82 /* NetworkHeaders.swift */; };
 		33DD002A22B856E300620BA2 /* NetworkLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DD002922B856E300620BA2 /* NetworkLoader.swift */; };
+		33E4D6E0240794F400BD6C52 /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C45B7723F66C2000D73231 /* NetworkError.swift */; };
+		33E4D6E1240794FE00BD6C52 /* CodingHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C45B7523F6554100D73231 /* CodingHelpers.swift */; };
 		33FE1DB622B5773F00D64839 /* NetworkCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FE1DB522B5773F00D64839 /* NetworkCache.swift */; };
 		33FE1DBD22B587E100D64839 /* URL+Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FE1DBC22B587E100D64839 /* URL+Request.swift */; };
 /* End PBXBuildFile section */
@@ -469,6 +471,8 @@
 				33C92EB42357F86A0061B0F8 /* NetworkLoader.swift in Sources */,
 				33CCBAE5239A426900A98C82 /* NetworkRequest.swift in Sources */,
 				33CCBAE6239A426B00A98C82 /* NetworkHeaders.swift in Sources */,
+				33E4D6E0240794F400BD6C52 /* NetworkError.swift in Sources */,
+				33E4D6E1240794FE00BD6C52 /* CodingHelpers.swift in Sources */,
 				33C92EB52357F86A0061B0F8 /* URL+Request.swift in Sources */,
 				33ACFCCE239B8AD30020BEFC /* GQLError.swift in Sources */,
 			);
