@@ -17,7 +17,7 @@ NetworkHandler reduces the boilerplate code you need to deal with when you make 
   s.osx.deployment_target = '10.11'
 
   s.source_files = 'NetworkHandler/*.swift'
-  s.ios.source_files = 'iOS/*.swift'
-  s.osx.source_files = 'macOS/*.swift'
+  s.ios.source_files = 'Sources/NetworkHandler/*.swift'
+  s.osx.source_files = 'Sources/NetworkHandler/*.swift'
 
 end

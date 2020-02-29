@@ -635,7 +635,7 @@ class NetworkHandlerTests: XCTestCase {
 		let other: Double
 	}
 
-	@available(iOS 11.0, *)
+	@available(iOS 11.0, macOS 13.0, *)
 	func testErrorOutput() {
 		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
 		let encoder = JSONEncoder()

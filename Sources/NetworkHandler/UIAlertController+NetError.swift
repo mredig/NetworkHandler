@@ -6,6 +6,8 @@
 //
 // swiftlint:disable function_body_length
 
+#if os(iOS)
+
 import UIKit
 
 public extension UIAlertController {
@@ -106,3 +108,4 @@ public extension UIAlertController {
 		}
 	}
 }
+#endif

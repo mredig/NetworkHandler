@@ -6,6 +6,7 @@
 //  Copyright © 2019 Red_Egg Productions. All rights reserved.
 //
 
+#if os(macOS)
 import AppKit
 
 extension NSImage {
@@ -17,3 +18,4 @@ extension NSImage {
 		return newRep.representation(using: .png, properties: [:])
 	}
 }
+#endif
