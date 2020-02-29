@@ -7,31 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		331908CA22B5EFA000A871E8 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331908C922B5EFA000A871E8 /* DemoModel.swift */; };
-		331908F122B5F32C00A871E8 /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331908F022B5F32C00A871E8 /* DemoModelController.swift */; };
-		334987FC22B609DF0004AA36 /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334987F922B608370004AA36 /* DemoText.swift */; };
+		330BD6C0240A4A3900FCD96C /* NSImage+PNG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6BF240A4A3900FCD96C /* NSImage+PNG.swift */; };
+		330BD6CA240A4A5E00FCD96C /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C4240A4A5E00FCD96C /* DemoModel.swift */; };
+		330BD6CB240A4A5E00FCD96C /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C4240A4A5E00FCD96C /* DemoModel.swift */; };
+		330BD6CC240A4A5E00FCD96C /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C5240A4A5E00FCD96C /* DemoModelController.swift */; };
+		330BD6CD240A4A5E00FCD96C /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C5240A4A5E00FCD96C /* DemoModelController.swift */; };
+		330BD6CE240A4A5E00FCD96C /* NetworkHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C6240A4A5E00FCD96C /* NetworkHandlerTests.swift */; };
+		330BD6CF240A4A5E00FCD96C /* NetworkHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C6240A4A5E00FCD96C /* NetworkHandlerTests.swift */; };
+		330BD6D0240A4A5E00FCD96C /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C7240A4A5E00FCD96C /* DemoText.swift */; };
+		330BD6D1240A4A5E00FCD96C /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C7240A4A5E00FCD96C /* DemoText.swift */; };
 		335D7D31229F4ABB005D5A20 /* NetworkHandler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */; };
-		335D7D36229F4ABB005D5A20 /* NetworkHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D35229F4ABB005D5A20 /* NetworkHandlerTests.swift */; };
-		335D7D38229F4ABB005D5A20 /* NetworkHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		335D7D43229F4ACD005D5A20 /* NetworkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */; };
-		335D7D44229F4ACD005D5A20 /* UIAlertController+NetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */; };
 		33A6796C22B85DDE00A580BB /* NetworkMockingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DD002B22B8593000620BA2 /* NetworkMockingSession.swift */; };
 		33ACFCCD239B7B280020BEFC /* GQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ACFCCC239B7B280020BEFC /* GQLError.swift */; };
 		33ACFCCE239B8AD30020BEFC /* GQLError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33ACFCCC239B7B280020BEFC /* GQLError.swift */; };
 		33C45B7623F6554100D73231 /* CodingHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C45B7523F6554100D73231 /* CodingHelpers.swift */; };
 		33C45B7823F66C2000D73231 /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C45B7723F66C2000D73231 /* NetworkError.swift */; };
 		33C92EA22357F8350061B0F8 /* NetworkHandler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33C92E992357F8350061B0F8 /* NetworkHandler.framework */; };
-		33C92EA92357F8350061B0F8 /* NetworkHandler_MacOS.h in Headers */ = {isa = PBXBuildFile; fileRef = 33C92E9B2357F8350061B0F8 /* NetworkHandler_MacOS.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		33C92EB12357F8640061B0F8 /* NetworkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */; };
 		33C92EB22357F86A0061B0F8 /* NetworkMockingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DD002B22B8593000620BA2 /* NetworkMockingSession.swift */; };
 		33C92EB32357F86A0061B0F8 /* NetworkCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FE1DB522B5773F00D64839 /* NetworkCache.swift */; };
 		33C92EB42357F86A0061B0F8 /* NetworkLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DD002922B856E300620BA2 /* NetworkLoader.swift */; };
 		33C92EB52357F86A0061B0F8 /* URL+Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33FE1DBC22B587E100D64839 /* URL+Request.swift */; };
-		33C92EB62357F8700061B0F8 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331908C922B5EFA000A871E8 /* DemoModel.swift */; };
-		33C92EB72357F8700061B0F8 /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331908F022B5F32C00A871E8 /* DemoModelController.swift */; };
-		33C92EB82357F8700061B0F8 /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 334987F922B608370004AA36 /* DemoText.swift */; };
-		33C92EB92357F87C0061B0F8 /* NetworkHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D35229F4ABB005D5A20 /* NetworkHandlerTests.swift */; };
-		33C92EBB2357FB9A0061B0F8 /* NSImage+PNG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92EBA2357FB9A0061B0F8 /* NSImage+PNG.swift */; };
 		33CCBAE2239A416900A98C82 /* NetworkRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CCBAE1239A416900A98C82 /* NetworkRequest.swift */; };
 		33CCBAE4239A417B00A98C82 /* NetworkHeaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CCBAE3239A417B00A98C82 /* NetworkHeaders.swift */; };
 		33CCBAE5239A426900A98C82 /* NetworkRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CCBAE1239A416900A98C82 /* NetworkRequest.swift */; };
@@ -61,30 +58,25 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		331908C922B5EFA000A871E8 /* DemoModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModel.swift; sourceTree = "<group>"; };
-		331908F022B5F32C00A871E8 /* DemoModelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoModelController.swift; sourceTree = "<group>"; };
+		330BD6BC240A4A0E00FCD96C /* TestsInfo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = TestsInfo.plist; sourceTree = "<group>"; };
+		330BD6BD240A4A0E00FCD96C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		330BD6BF240A4A3900FCD96C /* NSImage+PNG.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSImage+PNG.swift"; path = "Tests/NetworkHandlerTests/NSImage+PNG.swift"; sourceTree = "<group>"; };
+		330BD6C4240A4A5E00FCD96C /* DemoModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModel.swift; path = Tests/NetworkHandlerTests/DemoModel.swift; sourceTree = "<group>"; };
+		330BD6C5240A4A5E00FCD96C /* DemoModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModelController.swift; path = Tests/NetworkHandlerTests/DemoModelController.swift; sourceTree = "<group>"; };
+		330BD6C6240A4A5E00FCD96C /* NetworkHandlerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NetworkHandlerTests.swift; path = Tests/NetworkHandlerTests/NetworkHandlerTests.swift; sourceTree = "<group>"; };
+		330BD6C7240A4A5E00FCD96C /* DemoText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoText.swift; path = Tests/NetworkHandlerTests/DemoText.swift; sourceTree = "<group>"; };
 		331B9054234AF4190044F789 /* Styleguide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Styleguide.md; sourceTree = "<group>"; };
 		331B9057234AF47B0044F789 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
-		334987F922B608370004AA36 /* DemoText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoText.swift; sourceTree = "<group>"; };
 		334AA6262353E70A00C3E2A2 /* NetworkHandler.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = NetworkHandler.podspec; sourceTree = "<group>"; usesTabs = 0; };
 		335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkHandler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkHandler.h; sourceTree = "<group>"; };
-		335D7D2B229F4ABA005D5A20 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		335D7D30229F4ABB005D5A20 /* NetworkHandlerTests-iOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "NetworkHandlerTests-iOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		335D7D35229F4ABB005D5A20 /* NetworkHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkHandlerTests.swift; sourceTree = "<group>"; };
-		335D7D37229F4ABB005D5A20 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkHandler.swift; sourceTree = "<group>"; };
-		335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIAlertController+NetError.swift"; sourceTree = "<group>"; };
 		335D7D45229F74A6005D5A20 /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
 		33ACFCCC239B7B280020BEFC /* GQLError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GQLError.swift; sourceTree = "<group>"; };
 		33C45B7523F6554100D73231 /* CodingHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodingHelpers.swift; sourceTree = "<group>"; };
 		33C45B7723F66C2000D73231 /* NetworkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkError.swift; sourceTree = "<group>"; };
 		33C92E992357F8350061B0F8 /* NetworkHandler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NetworkHandler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		33C92E9B2357F8350061B0F8 /* NetworkHandler_MacOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetworkHandler_MacOS.h; sourceTree = "<group>"; };
-		33C92E9C2357F8350061B0F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		33C92EA12357F8350061B0F8 /* NetworkHandler-MacOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "NetworkHandler-MacOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		33C92EA82357F8350061B0F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		33C92EBA2357FB9A0061B0F8 /* NSImage+PNG.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSImage+PNG.swift"; sourceTree = "<group>"; };
 		33CCBAE1239A416900A98C82 /* NetworkRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkRequest.swift; sourceTree = "<group>"; };
 		33CCBAE3239A417B00A98C82 /* NetworkHeaders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkHeaders.swift; sourceTree = "<group>"; };
 		33DD002922B856E300620BA2 /* NetworkLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkLoader.swift; sourceTree = "<group>"; };
@@ -127,15 +119,32 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		331908EF22B5F2CD00A871E8 /* Shared-DemoAndTests */ = {
+		330BD6BB240A49F100FCD96C /* Configs */ = {
 			isa = PBXGroup;
 			children = (
-				335D7D35229F4ABB005D5A20 /* NetworkHandlerTests.swift */,
-				331908C922B5EFA000A871E8 /* DemoModel.swift */,
-				331908F022B5F32C00A871E8 /* DemoModelController.swift */,
-				334987F922B608370004AA36 /* DemoText.swift */,
+				330BD6BD240A4A0E00FCD96C /* Info.plist */,
+				330BD6BC240A4A0E00FCD96C /* TestsInfo.plist */,
 			);
-			path = "Shared-DemoAndTests";
+			path = Configs;
+			sourceTree = "<group>";
+		};
+		330BD6BE240A4A2400FCD96C /* macOS Tests */ = {
+			isa = PBXGroup;
+			children = (
+				330BD6BF240A4A3900FCD96C /* NSImage+PNG.swift */,
+			);
+			name = "macOS Tests";
+			sourceTree = "<group>";
+		};
+		330BD6C2240A4A4D00FCD96C /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				330BD6C4240A4A5E00FCD96C /* DemoModel.swift */,
+				330BD6C5240A4A5E00FCD96C /* DemoModelController.swift */,
+				330BD6C7240A4A5E00FCD96C /* DemoText.swift */,
+				330BD6C6240A4A5E00FCD96C /* NetworkHandlerTests.swift */,
+			);
+			name = Tests;
 			sourceTree = "<group>";
 		};
 		335D7D1D229F4ABA005D5A20 = {
@@ -145,12 +154,10 @@
 				335D7D45229F74A6005D5A20 /* Readme.md */,
 				331B9054234AF4190044F789 /* Styleguide.md */,
 				331B9057234AF47B0044F789 /* .swiftlint.yml */,
+				330BD6BB240A49F100FCD96C /* Configs */,
 				335D7D29229F4ABA005D5A20 /* NetworkHandler */,
-				33C92E9A2357F8350061B0F8 /* macOS */,
-				33C92EB02357F84D0061B0F8 /* iOS */,
-				335D7D34229F4ABB005D5A20 /* NetworkHandler-iOSTests */,
-				33C92EA52357F8350061B0F8 /* NetworkHandler-MacOSTests */,
-				331908EF22B5F2CD00A871E8 /* Shared-DemoAndTests */,
+				330BD6BE240A4A2400FCD96C /* macOS Tests */,
+				330BD6C2240A4A4D00FCD96C /* Tests */,
 				335D7D28229F4ABA005D5A20 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -180,43 +187,8 @@
 				33ACFCCC239B7B280020BEFC /* GQLError.swift */,
 				33C45B7523F6554100D73231 /* CodingHelpers.swift */,
 			);
-			path = NetworkHandler;
-			sourceTree = "<group>";
-		};
-		335D7D34229F4ABB005D5A20 /* NetworkHandler-iOSTests */ = {
-			isa = PBXGroup;
-			children = (
-				335D7D37229F4ABB005D5A20 /* Info.plist */,
-			);
-			path = "NetworkHandler-iOSTests";
-			sourceTree = "<group>";
-		};
-		33C92E9A2357F8350061B0F8 /* macOS */ = {
-			isa = PBXGroup;
-			children = (
-				33C92E9B2357F8350061B0F8 /* NetworkHandler_MacOS.h */,
-				33C92E9C2357F8350061B0F8 /* Info.plist */,
-			);
-			path = macOS;
-			sourceTree = "<group>";
-		};
-		33C92EA52357F8350061B0F8 /* NetworkHandler-MacOSTests */ = {
-			isa = PBXGroup;
-			children = (
-				33C92EA82357F8350061B0F8 /* Info.plist */,
-				33C92EBA2357FB9A0061B0F8 /* NSImage+PNG.swift */,
-			);
-			path = "NetworkHandler-MacOSTests";
-			sourceTree = "<group>";
-		};
-		33C92EB02357F84D0061B0F8 /* iOS */ = {
-			isa = PBXGroup;
-			children = (
-				335D7D2A229F4ABA005D5A20 /* NetworkHandler.h */,
-				335D7D2B229F4ABA005D5A20 /* Info.plist */,
-				335D7D42229F4ACD005D5A20 /* UIAlertController+NetError.swift */,
-			);
-			path = iOS;
+			name = NetworkHandler;
+			path = Sources/NetworkHandler;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -226,7 +198,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				335D7D38229F4ABB005D5A20 /* NetworkHandler.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,7 +205,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33C92EA92357F8350061B0F8 /* NetworkHandler_MacOS.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -438,7 +408,6 @@
 			files = (
 				33CCBAE2239A416900A98C82 /* NetworkRequest.swift in Sources */,
 				33FE1DB622B5773F00D64839 /* NetworkCache.swift in Sources */,
-				335D7D44229F4ACD005D5A20 /* UIAlertController+NetError.swift in Sources */,
 				335D7D43229F4ACD005D5A20 /* NetworkHandler.swift in Sources */,
 				33FE1DBD22B587E100D64839 /* URL+Request.swift in Sources */,
 				33CCBAE4239A417B00A98C82 /* NetworkHeaders.swift in Sources */,
@@ -454,10 +423,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				335D7D36229F4ABB005D5A20 /* NetworkHandlerTests.swift in Sources */,
-				331908CA22B5EFA000A871E8 /* DemoModel.swift in Sources */,
-				331908F122B5F32C00A871E8 /* DemoModelController.swift in Sources */,
-				334987FC22B609DF0004AA36 /* DemoText.swift in Sources */,
+				330BD6CC240A4A5E00FCD96C /* DemoModelController.swift in Sources */,
+				330BD6D0240A4A5E00FCD96C /* DemoText.swift in Sources */,
+				330BD6CA240A4A5E00FCD96C /* DemoModel.swift in Sources */,
+				330BD6CE240A4A5E00FCD96C /* NetworkHandlerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -482,11 +451,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33C92EB72357F8700061B0F8 /* DemoModelController.swift in Sources */,
-				33C92EB62357F8700061B0F8 /* DemoModel.swift in Sources */,
-				33C92EBB2357FB9A0061B0F8 /* NSImage+PNG.swift in Sources */,
-				33C92EB82357F8700061B0F8 /* DemoText.swift in Sources */,
-				33C92EB92357F87C0061B0F8 /* NetworkHandlerTests.swift in Sources */,
+				330BD6CF240A4A5E00FCD96C /* NetworkHandlerTests.swift in Sources */,
+				330BD6CB240A4A5E00FCD96C /* DemoModel.swift in Sources */,
+				330BD6C0240A4A3900FCD96C /* NSImage+PNG.swift in Sources */,
+				330BD6D1240A4A5E00FCD96C /* DemoText.swift in Sources */,
+				330BD6CD240A4A5E00FCD96C /* DemoModelController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -646,7 +615,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Configs/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -676,7 +645,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = iOS/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Configs/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -699,7 +668,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L5UZAT7KA9;
-				INFOPLIST_FILE = "NetworkHandler-iOSTests/Info.plist";
+				INFOPLIST_FILE = Configs/TestsInfo.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -718,7 +687,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L5UZAT7KA9;
-				INFOPLIST_FILE = "NetworkHandler-iOSTests/Info.plist";
+				INFOPLIST_FILE = Configs/TestsInfo.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -742,7 +711,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = macOS/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Configs/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -770,7 +739,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				INFOPLIST_FILE = macOS/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Configs/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -794,7 +763,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = L5UZAT7KA9;
-				INFOPLIST_FILE = "NetworkHandler-MacOSTests/Info.plist";
+				INFOPLIST_FILE = Configs/TestsInfo.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -815,7 +784,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = L5UZAT7KA9;
-				INFOPLIST_FILE = "NetworkHandler-MacOSTests/Info.plist";
+				INFOPLIST_FILE = Configs/TestsInfo.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
