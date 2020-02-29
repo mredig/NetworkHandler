@@ -7,20 +7,34 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		330BD6DF240A4C1700FCD96C /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6DC240A4C1700FCD96C /* DemoModel.swift */; };
+		330BD6E0240A4C1700FCD96C /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6DD240A4C1700FCD96C /* DemoModelController.swift */; };
+		330BD6E1240A4C1700FCD96C /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6DE240A4C1700FCD96C /* DemoText.swift */; };
 		33C92E572357E9400061B0F8 /* CreateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E4D2357E9400061B0F8 /* CreateViewController.swift */; };
 		33C92E592357E9400061B0F8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E4F2357E9400061B0F8 /* AppDelegate.swift */; };
 		33C92E5A2357E9400061B0F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33C92E502357E9400061B0F8 /* Assets.xcassets */; };
 		33C92E5D2357E9400061B0F8 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E562357E9400061B0F8 /* DemoViewController.swift */; };
 		33C92E672357E9AC0061B0F8 /* NetworkHandler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33C92E462357E8EC0061B0F8 /* NetworkHandler.framework */; };
 		33C92E682357E9AC0061B0F8 /* NetworkHandler.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 33C92E462357E8EC0061B0F8 /* NetworkHandler.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		33C92E6E2357EA040061B0F8 /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E6B2357EA040061B0F8 /* DemoModelController.swift */; };
-		33C92E6F2357EA040061B0F8 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E6C2357EA040061B0F8 /* DemoModel.swift */; };
-		33C92E702357EA040061B0F8 /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E6D2357EA040061B0F8 /* DemoText.swift */; };
 		33C92E712357EA800061B0F8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 33C92E732357EA800061B0F8 /* Main.storyboard */; };
 		33C92E742357EA8A0061B0F8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 33C92E762357EA8A0061B0F8 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		330BD6D8240A4C0600FCD96C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 33C92E992357F8350061B0F8;
+			remoteInfo = "NetworkHandler-MacOS";
+		};
+		330BD6DA240A4C0600FCD96C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 33C92EA12357F8350061B0F8;
+			remoteInfo = "NetworkHandler-MacOSTests";
+		};
 		33C92E452357E8EC0061B0F8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */;
@@ -52,6 +66,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		330BD6DC240A4C1700FCD96C /* DemoModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModel.swift; path = ../Tests/NetworkHandlerTests/DemoModel.swift; sourceTree = "<group>"; };
+		330BD6DD240A4C1700FCD96C /* DemoModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModelController.swift; path = ../Tests/NetworkHandlerTests/DemoModelController.swift; sourceTree = "<group>"; };
+		330BD6DE240A4C1700FCD96C /* DemoText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoText.swift; path = ../Tests/NetworkHandlerTests/DemoText.swift; sourceTree = "<group>"; };
 		33C92E282357E8D40061B0F8 /* DemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NetworkHandler.xcodeproj; path = ../NetworkHandler.xcodeproj; sourceTree = "<group>"; };
 		33C92E4D2357E9400061B0F8 /* CreateViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateViewController.swift; sourceTree = "<group>"; };
@@ -59,9 +76,6 @@
 		33C92E4F2357E9400061B0F8 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		33C92E502357E9400061B0F8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		33C92E562357E9400061B0F8 /* DemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
-		33C92E6B2357EA040061B0F8 /* DemoModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModelController.swift; path = "../../Shared-DemoAndTests/DemoModelController.swift"; sourceTree = "<group>"; };
-		33C92E6C2357EA040061B0F8 /* DemoModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModel.swift; path = "../../Shared-DemoAndTests/DemoModel.swift"; sourceTree = "<group>"; };
-		33C92E6D2357EA040061B0F8 /* DemoText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoText.swift; path = "../../Shared-DemoAndTests/DemoText.swift"; sourceTree = "<group>"; };
 		33C92E722357EA800061B0F8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		33C92E752357EA8A0061B0F8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -78,11 +92,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		330BD6D3240A4C0600FCD96C /* Shared With Tests */ = {
+			isa = PBXGroup;
+			children = (
+				330BD6DC240A4C1700FCD96C /* DemoModel.swift */,
+				330BD6DD240A4C1700FCD96C /* DemoModelController.swift */,
+				330BD6DE240A4C1700FCD96C /* DemoText.swift */,
+			);
+			name = "Shared With Tests";
+			sourceTree = "<group>";
+		};
 		33C92E1F2357E8D40061B0F8 = {
 			isa = PBXGroup;
 			children = (
 				33C92E4B2357E9100061B0F8 /* DemoApp */,
-				33C92E6A2357E9F30061B0F8 /* Shared */,
+				330BD6D3240A4C0600FCD96C /* Shared With Tests */,
 				33C92E292357E8D40061B0F8 /* Products */,
 				33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */,
 				33C92E662357E9AC0061B0F8 /* Frameworks */,
@@ -101,7 +125,9 @@
 			isa = PBXGroup;
 			children = (
 				33C92E462357E8EC0061B0F8 /* NetworkHandler.framework */,
-				33C92E482357E8EC0061B0F8 /* NetworkHandlerTests.xctest */,
+				33C92E482357E8EC0061B0F8 /* NetworkHandlerTests-iOS.xctest */,
+				330BD6D9240A4C0600FCD96C /* NetworkHandler.framework */,
+				330BD6DB240A4C0600FCD96C /* NetworkHandler-MacOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -125,17 +151,6 @@
 			children = (
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		33C92E6A2357E9F30061B0F8 /* Shared */ = {
-			isa = PBXGroup;
-			children = (
-				33C92E6C2357EA040061B0F8 /* DemoModel.swift */,
-				33C92E6B2357EA040061B0F8 /* DemoModelController.swift */,
-				33C92E6D2357EA040061B0F8 /* DemoText.swift */,
-			);
-			name = Shared;
-			path = DemoApp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -200,6 +215,20 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		330BD6D9240A4C0600FCD96C /* NetworkHandler.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = NetworkHandler.framework;
+			remoteRef = 330BD6D8240A4C0600FCD96C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		330BD6DB240A4C0600FCD96C /* NetworkHandler-MacOSTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "NetworkHandler-MacOSTests.xctest";
+			remoteRef = 330BD6DA240A4C0600FCD96C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		33C92E462357E8EC0061B0F8 /* NetworkHandler.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -207,10 +236,10 @@
 			remoteRef = 33C92E452357E8EC0061B0F8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		33C92E482357E8EC0061B0F8 /* NetworkHandlerTests.xctest */ = {
+		33C92E482357E8EC0061B0F8 /* NetworkHandlerTests-iOS.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = NetworkHandlerTests.xctest;
+			path = "NetworkHandlerTests-iOS.xctest";
 			remoteRef = 33C92E472357E8EC0061B0F8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -236,10 +265,10 @@
 			files = (
 				33C92E5D2357E9400061B0F8 /* DemoViewController.swift in Sources */,
 				33C92E592357E9400061B0F8 /* AppDelegate.swift in Sources */,
-				33C92E6E2357EA040061B0F8 /* DemoModelController.swift in Sources */,
+				330BD6DF240A4C1700FCD96C /* DemoModel.swift in Sources */,
 				33C92E572357E9400061B0F8 /* CreateViewController.swift in Sources */,
-				33C92E6F2357EA040061B0F8 /* DemoModel.swift in Sources */,
-				33C92E702357EA040061B0F8 /* DemoText.swift in Sources */,
+				330BD6E1240A4C1700FCD96C /* DemoText.swift in Sources */,
+				330BD6E0240A4C1700FCD96C /* DemoModelController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

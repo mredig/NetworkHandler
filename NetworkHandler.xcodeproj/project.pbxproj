@@ -16,6 +16,7 @@
 		330BD6CF240A4A5E00FCD96C /* NetworkHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C6240A4A5E00FCD96C /* NetworkHandlerTests.swift */; };
 		330BD6D0240A4A5E00FCD96C /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C7240A4A5E00FCD96C /* DemoText.swift */; };
 		330BD6D1240A4A5E00FCD96C /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6C7240A4A5E00FCD96C /* DemoText.swift */; };
+		330BD6E3240A4C8800FCD96C /* UIAlertController+NetError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6E2240A4C8800FCD96C /* UIAlertController+NetError.swift */; };
 		335D7D31229F4ABB005D5A20 /* NetworkHandler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 335D7D27229F4ABA005D5A20 /* NetworkHandler.framework */; };
 		335D7D43229F4ACD005D5A20 /* NetworkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D7D41229F4ACD005D5A20 /* NetworkHandler.swift */; };
 		33A6796C22B85DDE00A580BB /* NetworkMockingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DD002B22B8593000620BA2 /* NetworkMockingSession.swift */; };
@@ -65,6 +66,7 @@
 		330BD6C5240A4A5E00FCD96C /* DemoModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModelController.swift; path = Tests/NetworkHandlerTests/DemoModelController.swift; sourceTree = "<group>"; };
 		330BD6C6240A4A5E00FCD96C /* NetworkHandlerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = NetworkHandlerTests.swift; path = Tests/NetworkHandlerTests/NetworkHandlerTests.swift; sourceTree = "<group>"; };
 		330BD6C7240A4A5E00FCD96C /* DemoText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoText.swift; path = Tests/NetworkHandlerTests/DemoText.swift; sourceTree = "<group>"; };
+		330BD6E2240A4C8800FCD96C /* UIAlertController+NetError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIAlertController+NetError.swift"; path = "../../../../Lambda/CS/Sprint 8 (Build Week 2)/NetworkHandlerSPM/Sources/NetworkHandlerSPM/UIAlertController+NetError.swift"; sourceTree = "<group>"; };
 		331B9054234AF4190044F789 /* Styleguide.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = Styleguide.md; sourceTree = "<group>"; };
 		331B9057234AF47B0044F789 /* .swiftlint.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = .swiftlint.yml; sourceTree = "<group>"; };
 		334AA6262353E70A00C3E2A2 /* NetworkHandler.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = NetworkHandler.podspec; sourceTree = "<group>"; usesTabs = 0; };
@@ -186,6 +188,7 @@
 				33FE1DBC22B587E100D64839 /* URL+Request.swift */,
 				33ACFCCC239B7B280020BEFC /* GQLError.swift */,
 				33C45B7523F6554100D73231 /* CodingHelpers.swift */,
+				330BD6E2240A4C8800FCD96C /* UIAlertController+NetError.swift */,
 			);
 			name = NetworkHandler;
 			path = Sources/NetworkHandler;
@@ -407,6 +410,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				33CCBAE2239A416900A98C82 /* NetworkRequest.swift in Sources */,
+				330BD6E3240A4C8800FCD96C /* UIAlertController+NetError.swift in Sources */,
 				33FE1DB622B5773F00D64839 /* NetworkCache.swift in Sources */,
 				335D7D43229F4ACD005D5A20 /* NetworkHandler.swift in Sources */,
 				33FE1DBD22B587E100D64839 /* URL+Request.swift in Sources */,
