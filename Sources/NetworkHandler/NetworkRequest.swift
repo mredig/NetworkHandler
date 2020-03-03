@@ -7,6 +7,9 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 /// Pre-typed strings for use with NetworkRequest.httpMethod (or URLRequest.httpMethod)
 public enum HTTPMethod: String {

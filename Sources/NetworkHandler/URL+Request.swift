@@ -7,6 +7,10 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
+
 
 public extension URL {
 	var request: NetworkRequest {

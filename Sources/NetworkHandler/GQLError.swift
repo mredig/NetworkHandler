@@ -7,6 +7,10 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
+
 
 struct GQLErrorContainer: Codable, Hashable {
 	let errors: [GQLError]

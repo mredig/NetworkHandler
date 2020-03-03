@@ -7,6 +7,9 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 public struct NetworkMockingSession: NetworkLoader {
 	// MARK: - Properties

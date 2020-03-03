@@ -7,6 +7,9 @@
 //swiftlint:disable line_length
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 public class NetworkHandler {
 	// MARK: - Properties

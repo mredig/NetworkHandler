@@ -7,6 +7,10 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
+
 
 /// Allows you to conform to this protocol to become compatible with `NetworkRequest.encodeData`
 public protocol NHEncoder {

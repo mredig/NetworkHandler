@@ -8,6 +8,9 @@
 //swiftlint:disable conditional_returns_on_newline cyclomatic_complexity
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 /**
 Errors specific to networking with NetworkHandler. These specific cases are all

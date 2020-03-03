@@ -7,6 +7,10 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
+
 
 public protocol NetworkLoader {
 	func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask?

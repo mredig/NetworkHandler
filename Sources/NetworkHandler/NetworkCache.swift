@@ -7,6 +7,10 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
+
 
 /**
 Essentially just a wrapper for NSCache, but specifically purposed for use with
