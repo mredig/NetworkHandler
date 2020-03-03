@@ -84,6 +84,7 @@ public struct NetworkRequest {
 		set { urlRequest.networkServiceType = newValue }
 	}
 
+	#if !os(Linux)
 	@available(iOS 13.0, OSX 10.15, *)
 	public var allowsExpensiveNetworkAccess: Bool {
 		get { urlRequest.allowsExpensiveNetworkAccess }
@@ -94,6 +95,7 @@ public struct NetworkRequest {
 		get { urlRequest.allowsConstrainedNetworkAccess }
 		set { urlRequest.allowsConstrainedNetworkAccess = newValue }
 	}
+	#endif
 
 	/// Encoder used to encode with the `setJson` function.
 	public lazy var encoder: NHEncoder = { JSONEncoder() }()
