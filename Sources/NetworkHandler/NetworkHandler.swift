@@ -38,7 +38,7 @@ public class NetworkHandler {
 	cache objects or the app is closed), ready to be reloaded instantly the next
 	time a duplicate URL request is made (Note that it is unique to the URL, not the
 	URLRequest). Additionally, to refrain from duplicating data locally, if data is
-	stored in the `NetworkCache`, it is also removed from the `URLCache` if it
+	stored in the `NetworkCache`, it is also removed from the default `URLCache` if it
 	exists.
 	*/
 	public let cache = NetworkCache()
