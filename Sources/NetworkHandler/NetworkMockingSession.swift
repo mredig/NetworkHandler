@@ -13,13 +13,18 @@ import FoundationNetworking
 
 public struct NetworkMockingSession: NetworkLoader {
 	// MARK: - Properties
+	/// The data returned by the mocking session. This value is superceded by the return value of `serverSideSimulatorHanler`, if set.
 	public let mockData: Data?
+	/// The error returned by the mocking session. Provide `nil` to simulate successful transactions.
 	public let mockError: Error?
+	/// The response code the mock session returns.
 	public let mockResponseCode: Int
+	/// How many seconds the mock session should artificially delay before completing. Default is `0.1` seconds.
 	public var mockDelay: TimeInterval
 	public var httpVersion = "HTTP/2"
 
 	public typealias ServerSideSimulationHandler = (URLRequest) -> (Data?, Int, Error?)
+	/// Allows you to simulate server side logic. Allows you to confirm you are sending consistent, valid data to the server.
 	let serverSideSimulatorHandler: ServerSideSimulationHandler?
 
 	// MARK: - Init

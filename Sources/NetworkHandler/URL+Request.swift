@@ -13,6 +13,7 @@ import FoundationNetworking
 
 
 public extension URL {
+	/// Easy request generation.
 	var request: NetworkRequest {
 		NetworkRequest((URLRequest(url: self)))
 	}

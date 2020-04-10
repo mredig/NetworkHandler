@@ -11,7 +11,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-
+/// Provides an abstracted method to create a url network request to make testing easier.
 public protocol NetworkLoader {
 	func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask?
 }
