@@ -141,12 +141,17 @@ Additionally, included are several classes and types:
 ### Installation:
 
 1. Download and install
-	* Carthage (recommended)
+	* SPM (recommended)
+		1. Add the line `.package(url: "https://github.com/mredig/NetworkHandler.git", from: "0.9.0")` to the appropriate section of your Package.swift
+		1. The Package Name is `NetworkHandler` - add that as a dependency to any targets you want to use it in.
+		swift package update or use Xcode
+		1. Add `import NetworkHandler` to the top of any file you with to use it in
+	* Carthage
 		* Add this line to your Cartfile then proceed to follow the remaining Cathage setup instructions
 			`github "mredig/NetworkHandler"`
 	* Brute Force Files
-		* Alternatively, you could copy all the swift files in the `NetworkHandler` folder to your project, if you're masochistic.
-	* CocoaPods
+		* Alternatively, you could copy all the swift files in the `Sources/NetworkHandler` folder to your project, if you're masochistic.
+	* CocoaPods (not actively maintained or tested, will accept PRs)
 		* add this line to your Podfile:
         `  pod 'NetworkHandler', '~> 0.9.3'`
 1. Import to any files you want to use it in
@@ -157,12 +162,8 @@ Additionally, included are several classes and types:
 * Readme
 	* demo task as return value and cancelling
 	* demo mocking data
-* create build targets for other platforms.
-	* tvOS
-	* watchOS
 * NetworkRequest documentation
 * NetworkHeaders documentation (file, not type)
-* version bumping
 * demo new additions in readme
 	* network request
 	* graphql error message forwarding
