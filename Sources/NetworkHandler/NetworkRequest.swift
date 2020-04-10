@@ -97,17 +97,58 @@ public struct NetworkRequest {
 	}
 	#endif
 
-	/// Encoder used to encode with the `setJson` function.
-	public lazy var encoder: NHEncoder = { JSONEncoder() }()
+	/**
+	Default encoder used to encode with the `setJson` function. Changes here will reflect all request that don't provide their own encoder going forward.
 
-	/// Decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`.
-	public var decoder: NHDecoder = JSONDecoder()
+	Default value is `JSONEncoder()` along with all of its defaults.
+	*/
+	public static var defaultEncoder: NHEncoder = JSONEncoder()
+	/**
+	Encoder used to encode with the `setJson` function. The default value is a reference to
+	`NetworkRequest.defaultEncoder`, therefore changes will affect all encodings using the default, going forward.
+
+	Either provide a new encoder for one off changes in encoding strategy, or standardize on a single stragegy for
+	all encodings, set through `NetworkRequest.defaultEncoder`. For example, if an endpoint requires *all* variables
+	to be encoded in snake case, you can set
+	```
+	(NetworkRequest.defaultEncoder as? JSONEncoder)?.keyEncodingStrategy = .convertToSnakeCase
+	```
+	and all unmodified future requests using `setJson` will do so. However, if any certain endpoint differs
+	from the standard strategy, you can provide a new `JSONEncoder` (or really anything that conforms to `NHEncoder`)
+	in a single instance of a NetworkRequest.
+	*/
+	public lazy var encoder: NHEncoder = { NetworkRequest.defaultEncoder }()
+
+	/**
+	Default decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`. Changes here will reflect all request that don't provide their own decoder going forward.
+
+	Default value is `JSONDecoder()` along with all of its defaults.
+	*/
+	public static var defaultDecoder: NHDecoder = JSONDecoder()
+	/**
+	Decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`. The default value is a
+	reference to `NetworkRequest.defaultDecoder`, therefore changes will affect all decodings using the default, going forward.
+
+	Either provide a new decoder for one off changes in decoding strategy, or standardize on a single stragegy for
+	all decodings, set through `NetworkRequest.defaultDecoder`. For example, if an endpoint requires *all* variables
+	to be decoded from snake case, you can set
+	```
+	(NetworkRequest.defaultDecoder as? JSONDecoder)?.keyDecodingStrategy = .convertFromSnakeCase
+	```
+	and all unmodified future requests providing Decodable data will do so. However, if any certain endpoint differs
+	from the standard strategy, you can provide a new `JSONDecoder` (or really anything that conforms to `NHDecoder`)
+	in a single instance of a NetworkRequest.
+	*/
+	public var decoder: NHDecoder = NetworkRequest.defaultDecoder
 
 
 	// MARK: - Lifecycle
 	init(_ request: URLRequest, expectedResponseCodes: Set<Int> = [200]) {
 		self.urlRequest = request
 		self.expectedResponseCodes = expectedResponseCodes
+
+		(NetworkRequest.defaultDecoder as? JSONDecoder)?.keyDecodingStrategy = .convertFromSnakeCase
+
 	}
 
 	// MARK: - Methods
