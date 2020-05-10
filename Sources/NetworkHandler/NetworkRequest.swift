@@ -146,9 +146,6 @@ public struct NetworkRequest {
 	init(_ request: URLRequest, expectedResponseCodes: Set<Int> = [200]) {
 		self.urlRequest = request
 		self.expectedResponseCodes = expectedResponseCodes
-
-		(NetworkRequest.defaultDecoder as? JSONDecoder)?.keyDecodingStrategy = .convertFromSnakeCase
-
 	}
 
 	// MARK: - Methods
