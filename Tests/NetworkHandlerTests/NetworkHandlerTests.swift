@@ -268,25 +268,20 @@ class NetworkHandlerTests: XCTestCase {
 		request.addValue(.contentType(type: .json), forHTTPHeaderField: .commonKey(key: .contentType))
 		request.httpBody = ##"{ "query": "{ userss { id authId name } }" }"##.data(using: .utf8)
 
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: request) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				_ = try result.get()
-				XCTFail("no error was thrown")
-			} catch NetworkError.graphQLError(let gqlError) {
-				XCTAssertEqual(##"Cannot query field "userss" on type "Query". Did you mean "user"?"##, gqlError.message)
-				XCTAssertEqual("GRAPHQL_VALIDATION_FAILED", gqlError.extensions.code)
-				return
-			} catch {
-				XCTFail("Recieved unexpected error: \(error)")
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
+		wait(for: [waitForMocking], timeout: 10)
+
+		XCTAssertThrowsError(try theResult?.get(), "No error when error was expected") { error in
+			guard case NetworkError.graphQLError(error: let gqlError) = error else {
+				XCTFail("Got an unexpected error from server: \(error)")
+				return
 			}
+			XCTAssertEqual(##"Cannot query field "userss" on type "Query". Did you mean "user"?"##, gqlError.message)
+			XCTAssertEqual("GRAPHQL_VALIDATION_FAILED", gqlError.extensions.code)
 		}
 	}
 
