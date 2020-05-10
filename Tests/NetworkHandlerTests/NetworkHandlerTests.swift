@@ -487,18 +487,10 @@ class NetworkHandlerTests: XCTestCase {
 
 		request.encodeData(testDummy)
 
-		guard let requestData = request.httpBody else {
-			XCTFail("No httpBody")
-			return
-		}
-		
-		do {
-			let reconstructedDummy = try request.decoder.decode(DummyType.self, from: requestData)
-			XCTAssertEqual(testDummy, reconstructedDummy)
-		} catch {
-			XCTFail("Can't decode dummy data")
-			return
-		}
+		XCTAssertNotNil(request.httpBody)
+
+		XCTAssertNoThrow(try request.decoder.decode(DummyType.self, from: request.httpBody!))
+		XCTAssertEqual(testDummy, try request.decoder.decode(DummyType.self, from: request.httpBody!))
 	}
 
 	struct DummyType: Codable, Equatable {
