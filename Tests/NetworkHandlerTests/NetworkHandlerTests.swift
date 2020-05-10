@@ -121,11 +121,10 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
-	/// Tests using a Mock session that provides an error.
+	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
 	func testMockDataErrors() {
 		let networkHandler = NetworkHandler()
 
-		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
@@ -138,33 +137,32 @@ class NetworkHandlerTests: XCTestCase {
 		var allErrors: [Error] = NetworkError.allErrorCases()
 		allErrors.append(NSError(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil))
 
-		for testingError in allErrors {
+		for originalError in allErrors {
 			let waitForMocking = expectation(description: "Wait for mocking")
-			let mockSession = NetworkMockingSession(mockData: nil, mockError: testingError)
+			let mockSession = NetworkMockingSession(mockData: nil, mockError: originalError)
 
+			var theResult: Result<DemoModel, NetworkError>?
 			networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
-				defer {
-					waitForMocking.fulfill()
-				}
-				do {
-					_ = try result.get()
-				} catch {
-					guard let netError = error as? NetworkError else {
-						XCTFail("Didn't wrap error correctly: \(error)")
-						return
-					}
-					if let testingError = testingError as? NetworkError {
-						XCTAssertEqual(testingError, netError)
-					} else if case NetworkError.otherError(error: let otherError) = netError {
-						XCTAssertEqual(testingError.localizedDescription, otherError.localizedDescription)
-					} else {
-						XCTFail("Something went wrong: \(error) \(testingError)")
-					}
-				}
+				theResult = result
+				waitForMocking.fulfill()
 			}
-			waitForExpectations(timeout: 10) { error in
-				if let error = error {
-					XCTFail("Timed out waiting for mocking: \(error)")
+
+			wait(for: [waitForMocking], timeout: 10)
+
+			XCTAssertThrowsError(try theResult?.get(), "No error when error expected") { error in
+				guard let netError = error as? NetworkError else {
+					XCTFail("Didn't wrap error correctly: \(error)")
+					return
+				}
+
+				// most of the original errors to test against are already a NetworkError. One is just a regular, error
+				// though, so the followup case is to confirm that it was properly wrapped after going through NetworkHandler's transfer
+				if let expectedError = originalError as? NetworkError {
+					XCTAssertEqual(expectedError, netError)
+				} else if case NetworkError.otherError(error: let otherError) = netError {
+					XCTAssertEqual(originalError.localizedDescription, otherError.localizedDescription)
+				} else {
+					XCTFail("Something went wrong: \(error) \(originalError)")
 				}
 			}
 		}
