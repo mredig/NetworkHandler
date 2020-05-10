@@ -389,6 +389,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	/// Tests using a mock session that responses containing "null" are properly reflected by the NetworkError.dataWasNull (might be specific to firebase)
 	func testNullData() {
 		let networkHandler = NetworkHandler()
 
@@ -404,23 +405,17 @@ class NetworkHandlerTests: XCTestCase {
 		let mockSession = NetworkMockingSession(mockData: "null".data(using: .utf8), mockError: nil)
 
 		let waitForMocking = expectation(description: "Wait for mocking")
+
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				_ = try result.get()
-			} catch {
-				guard case NetworkError.dataWasNull = error else {
-					XCTFail("got unexpected error: \(error)")
-					return
-				}
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
-			}
+
+		wait(for: [waitForMocking], timeout: 10)
+
+		XCTAssertThrowsError(try theResult?.get(), "No error when an error expected") { error in
+			XCTAssertEqual(NetworkError.dataWasNull, error as? NetworkError)
 		}
 	}
 
