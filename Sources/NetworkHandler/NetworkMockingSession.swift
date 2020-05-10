@@ -111,8 +111,8 @@ public class NetworkDataTask: NetworkLoadingTask {
 
 		DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) {
 			guard !self.isFinished, self.isResumed else { return }
-			self.simHandler()
 			self.isFinished = true
+			self.simHandler()
 		}
 	}
 
