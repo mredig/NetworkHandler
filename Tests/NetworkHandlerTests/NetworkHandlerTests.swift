@@ -5,7 +5,7 @@
 //  Created by Michael Redig on 5/29/19.
 //  Copyright © 2019 Red_Egg Productions. All rights reserved.
 //
-//swiftlint:disable type_body_length
+//swiftlint:disable
 
 import XCTest
 @testable import NetworkHandler
@@ -67,7 +67,9 @@ class NetworkHandlerTests: XCTestCase {
 		let cacheDuration = cacheFinish - cacheStart
 		let cacheRatio = cacheDuration / networkDuration
 		print("netDuration: \(networkDuration)\ncacheDuration: \(cacheDuration)\ncache took \(cacheRatio)x as long")
-		XCTAssertLessThan(cacheDuration, networkDuration * 0.5, "The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
+		XCTAssertLessThan(cacheDuration,
+						  networkDuration * 0.5,
+						  "The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
 
 		// assert cache and original match (and are in fact valid images)
 		let imageOneData = try? image1Result?.get()
@@ -483,46 +485,4 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
-	/// Tests encoding and decoding a request body
-	func testEncodingGeneric() {
-		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
-
-		let dummyURL = URL(string: "https://redeggproductions.com")!
-		var request = dummyURL.request
-
-		request.encodeData(testDummy)
-
-		XCTAssertNotNil(request.httpBody)
-
-		XCTAssertNoThrow(try request.decoder.decode(DummyType.self, from: request.httpBody!))
-		XCTAssertEqual(testDummy, try request.decoder.decode(DummyType.self, from: request.httpBody!))
-	}
-
-	struct DummyType: Codable, Equatable {
-		let id: Int
-		let value: String
-		let other: Double
-	}
-
-	@available(iOS 11.0, macOS 13.0, *)
-	func testErrorOutput() {
-		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
-		let encoder = JSONEncoder()
-		encoder.outputFormatting = [.sortedKeys]
-		let testData = try? encoder.encode(testDummy)
-
-		var error = NetworkError.badData(sourceData: testData)
-		let testString = String(data: testData!, encoding: .utf8)!
-		let error1Str = "NetworkError: BadData (\(testString))"
-
-		XCTAssertEqual(error1Str, error.debugDescription)
-
-		error = .httpNon200StatusCode(code: 401, data: testData)
-		let error2Str = "NetworkError: Bad Response Code (401) with data: \(testString)"
-		XCTAssertEqual(error2Str, error.debugDescription)
-
-		error = .badData(sourceData: nil)
-		let error3Str = "NetworkError: BadData (nil value)"
-		XCTAssertEqual(error3Str, error.debugDescription)
-	}
 }
