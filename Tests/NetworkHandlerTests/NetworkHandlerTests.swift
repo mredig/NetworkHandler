@@ -186,24 +186,16 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForMocking = expectation(description: "Wait for mocking")
 		let mockSession = NetworkMockingSession(mockData: nil, mockError: nil, mockResponseCode: 404)
 
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				_ = try result.get()
-				XCTFail("no error was thrown")
-			} catch {
-				guard case NetworkError.httpNon200StatusCode(code: 404, data: nil) = error else {
-					XCTFail("Recieved unexpected error: \(error)")
-					return
-				}
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
-			}
+
+		wait(for: [waitForMocking], timeout: 10)
+		XCTAssertThrowsError(try theResult?.get(), "No error when error expected") { error in
+			let expectedError = NetworkError.httpNon200StatusCode(code: 404, data: nil)
+			XCTAssertEqual(expectedError, error as? NetworkError)
 		}
 	}
 
