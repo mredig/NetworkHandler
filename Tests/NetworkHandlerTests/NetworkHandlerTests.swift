@@ -291,7 +291,7 @@ class NetworkHandlerTests: XCTestCase {
 	}
 
 	/// Tests that when expecting ONLY a 200 response code, a 200 code will be an expected success
-	func testRespect200Only200() {
+	func testRespect200OnlyAndGet200() {
 		let networkHandler = NetworkHandler()
 
 		// expected result
@@ -324,7 +324,7 @@ class NetworkHandlerTests: XCTestCase {
 	}
 
 	/// Tests that when expecting ONLY a 200 response code, even a 202 code will cause an error to be thrown
-	func testRespect200Only202() {
+	func testRespect200OnlyButGet202() {
 		let networkHandler = NetworkHandler()
 
 		// expected result
