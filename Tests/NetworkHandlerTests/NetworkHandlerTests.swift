@@ -117,19 +117,6 @@ class NetworkHandlerTests: XCTestCase {
 	}
 
 	func allErrorCases() -> [NetworkError] {
-		let dummyError = NSError(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil)
-		let allErrorCases: [NetworkError] = [.badData(sourceData: nil),
-											 .databaseFailure(specifically: dummyError),
-											 .dataCodingError(specifically: dummyError, sourceData: nil),
-											 .dataWasNull,
-											 .httpNon200StatusCode(code: 404, data: nil),
-											 .imageDecodeError,
-											 .noStatusCodeResponse,
-											 .otherError(error: dummyError),
-											 .urlInvalid(urlString: "he.ho.hum")]
-		return allErrorCases
-	}
-
 	func testMockDataErrors() {
 		let networkHandler = NetworkHandler()
 
@@ -143,7 +130,7 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathExtension("json")
 
 
-		var allErrors: [Error] = allErrorCases()
+		var allErrors: [Error] = NetworkError.allErrorCases()
 		allErrors.append(NSError(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil))
 
 		for testingError in allErrors {
@@ -294,19 +281,8 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
-	func testErrorEquatable() {
+	func testRespect200Only200() {
 		let allErrors = allErrorCases()
-		let dupErrors = allErrorCases()
-		var rotErrors = allErrorCases()
-		let rot1 = rotErrors.remove(at: 0)
-		rotErrors.append(rot1)
-
-		for (index, error) in allErrors.enumerated() {
-			XCTAssertEqual(error, dupErrors[index])
-			XCTAssertNotEqual(error, rotErrors[index])
-		}
-	}
-
 	func testRespect200Strict200() {
 		let networkHandler = NetworkHandler()
 
