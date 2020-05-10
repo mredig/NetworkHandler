@@ -31,59 +31,52 @@ class NetworkHandlerTests: XCTestCase {
 	}
 
 	// MARK: - Live Network Tests
-	/// Tests downloading over a live connection, caching the download, and subsequently downloading the cached file.
+	/// Tests downloading over a live connection, caching the download, and subsequently loading the file from cache.
 	func testImageDownloadAndCache() {
 		let waitForInitialDownload = expectation(description: "Waiting for things")
 		let networkHandler = NetworkHandler()
 
-		var image: TestImage?
 		let networkStart = CFAbsoluteTimeGetCurrent()
+
+		var image1Result: Result<Data, NetworkError>?
+		// retrieve from live server (placekitten as of writing)
 		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
-			do {
-				let imageData = try result.get()
-				image = TestImage(data: imageData)
-			} catch {
-				XCTFail("Failed getting image data: \(error)")
-			}
+			image1Result = result
 			waitForInitialDownload.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for download: \(error)")
-			}
-		}
+		wait(for: [waitForInitialDownload], timeout: 10)
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 
+		XCTAssertNoThrow(try image1Result?.get())
+
 		// now try retrieving from cache
-		var imageTwo: TestImage?
 		let waitForCacheLoad = expectation(description: "Watiting for cache")
 		let cacheStart = CFAbsoluteTimeGetCurrent()
+		var image2Result: Result<Data, NetworkError>?
 		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
-			do {
-				let imageData = try result.get()
-				imageTwo = TestImage(data: imageData)
-			} catch {
-				XCTFail("Failed getting image data: \(error)")
-			}
+			image2Result = result
 			waitForCacheLoad.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for download: \(error)")
-			}
-		}
+		wait(for: [waitForCacheLoad], timeout: 10)
 		let cacheFinish = CFAbsoluteTimeGetCurrent()
 
+		XCTAssertNoThrow(try image2Result?.get())
+
+		// calculate cache speed improvement, just for funsies
 		let networkDuration = networkFinish - networkStart
 		let cacheDuration = cacheFinish - cacheStart
 		let cacheRatio = cacheDuration / networkDuration
 		print("netDuration: \(networkDuration)\ncacheDuration: \(cacheDuration)\ncache took \(cacheRatio)x as long")
+		XCTAssertLessThan(cacheDuration, networkDuration * 0.5, "The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
 
-		let imageOneData = image?.pngData()
-		let imageTwoData = imageTwo?.pngData()
+		// assert cache and original match (and are in fact valid images)
+		let imageOneData = try? image1Result?.get()
+		let imageTwoData = try? image2Result?.get()
 		XCTAssertNotNil(imageOneData)
 		XCTAssertNotNil(imageTwoData)
 		XCTAssertEqual(imageOneData, imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
+
+		XCTAssertNotNil(TestImage(data: imageOneData!))
 	}
 
 	/// Tests using a Mock Session that is successful.
