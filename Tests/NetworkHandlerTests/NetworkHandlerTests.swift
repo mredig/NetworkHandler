@@ -437,22 +437,17 @@ class NetworkHandlerTests: XCTestCase {
 		let mockSession = NetworkMockingSession(mockData: mockData, mockError: nil)
 
 		let waitForMocking = expectation(description: "Wait for mocking")
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				_ = try result.get()
-			} catch {
-				guard case NetworkError.dataCodingError(specifically: _) = error else {
-					XCTFail("got unexpected error: \(error)")
-					return
-				}
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
+
+		wait(for: [waitForMocking], timeout: 10)
+		XCTAssertThrowsError(try theResult?.get(), "No error when error expected") { error in
+			guard case NetworkError.dataCodingError = error else {
+				XCTFail("Error other than data coding error: \(error)")
+				return
 			}
 		}
 	}
