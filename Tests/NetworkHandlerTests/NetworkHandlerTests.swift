@@ -289,7 +289,7 @@ class NetworkHandlerTests: XCTestCase {
 		XCTAssertEqual(try theResult?.get(), demoModel)
 	}
 
-	/// Tests that when expecting ONLY a 200 response code, even a 202 code will cause an error to be thrown
+	/// Tests using a Mock session that when expecting ONLY a 200 response code, even a 202 code will cause an error to be thrown
 	func testRespect200OnlyButGet202() {
 		let networkHandler = NetworkHandler()
 
@@ -323,7 +323,8 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
-	func testRespect200NotStrict200() {
+	/// Tests using a mock session that expected response ranges are respsected
+	func testRespectResponseRangeGetValidResponse() {
 		let networkHandler = NetworkHandler()
 
 		// expected result
@@ -343,25 +344,19 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
 		request.expectedResponseCodes.insertRange(200...299)
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				let model = try result.get()
-				XCTAssertEqual(model, demoModel)
-			} catch {
-				XCTFail("an error occured: \(error)")
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
-			}
-		}
+		wait(for: [waitForMocking], timeout: 10)
+
+		XCTAssertNoThrow(try theResult?.get())
+		XCTAssertEqual(demoModel, try theResult?.get())
 	}
 
-	func testRespect200NotStrict202() {
+	/// Tests using a mock session that values outside the expected response ranges are thrown
+	func testRespectResponseRangeGetInvalidResponse() {
 		let networkHandler = NetworkHandler()
 
 		// expected result
@@ -380,22 +375,17 @@ class NetworkHandlerTests: XCTestCase {
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
-		request.expectedResponseCodes.insertRange(200...299)
+		request.expectedResponseCodes.insertRange(200...201)
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				let model = try result.get()
-				XCTAssertEqual(model, demoModel)
-			} catch {
-				XCTFail("an error occured: \(error)")
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
-			}
+
+		wait(for: [waitForMocking], timeout: 10)
+		XCTAssertThrowsError(try theResult?.get(), "No error when error expected") { error in
+			let expectedError = NetworkError.httpNon200StatusCode(code: 202, data: mockData)
+			XCTAssertEqual(expectedError, error as? NetworkError)
 		}
 	}
 
