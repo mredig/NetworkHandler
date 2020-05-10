@@ -79,6 +79,45 @@ class NetworkHandlerTests: XCTestCase {
 		XCTAssertNotNil(TestImage(data: imageOneData!))
 	}
 
+	/// Tests a live server with GraphQL.
+	///
+	/// This test will only work so long as my school project is live and conforming. Would be better to make a
+	/// permanent test server to test this with.
+	func testGraphQLError() {
+		let networkHandler = NetworkHandler()
+		networkHandler.graphQLErrorSupport = true
+
+		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
+		let baseURL = URL(string: "https://lambda-labs-swaap-staging.herokuapp.com/")!
+
+		let waitForMocking = expectation(description: "Wait for mocking")
+
+		var request = baseURL.request
+
+		request.expectedResponseCodes.insertRange(0...1000)
+		request.httpMethod = .post
+		request.addValue(.contentType(type: .json), forHTTPHeaderField: .commonKey(key: .contentType))
+		request.httpBody = ##"{ "query": "{ userss { id authId name } }" }"##.data(using: .utf8)
+
+		var theResult: Result<DemoModel, NetworkError>?
+		networkHandler.transferMahCodableDatas(with: request) { (result: Result<DemoModel, NetworkError>) in
+			theResult = result
+			waitForMocking.fulfill()
+		}
+		wait(for: [waitForMocking], timeout: 10)
+
+		XCTAssertThrowsError(try theResult?.get(), "No error when error was expected") { error in
+			guard case NetworkError.graphQLError(error: let gqlError) = error else {
+				XCTFail("Got an unexpected error from server: \(error)")
+				return
+			}
+			XCTAssertEqual(##"Cannot query field "userss" on type "Query". Did you mean "user"?"##, gqlError.message)
+			XCTAssertEqual("GRAPHQL_VALIDATION_FAILED", gqlError.extensions.code)
+		}
+	}
+
+
+	// MARK: - Mock Network Tests
 	/// Tests using a Mock Session that is successful.
 	func testMockDataSuccess() {
 		let networkHandler = NetworkHandler()
@@ -219,44 +258,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
-	/// Tests a live server with GraphQL.
-	///
-	/// This test will only work so long as my school project is live and conforming. Would be better to make a
-	/// permanent test server to test this with.
-	func testGraphQLError() {
-		let networkHandler = NetworkHandler()
-		networkHandler.graphQLErrorSupport = true
-
-		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
-		let baseURL = URL(string: "https://lambda-labs-swaap-staging.herokuapp.com/")!
-
-		let waitForMocking = expectation(description: "Wait for mocking")
-
-		var request = baseURL.request
-
-		request.expectedResponseCodes.insertRange(0...1000)
-		request.httpMethod = .post
-		request.addValue(.contentType(type: .json), forHTTPHeaderField: .commonKey(key: .contentType))
-		request.httpBody = ##"{ "query": "{ userss { id authId name } }" }"##.data(using: .utf8)
-
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: request) { (result: Result<DemoModel, NetworkError>) in
-			theResult = result
-			waitForMocking.fulfill()
-		}
-		wait(for: [waitForMocking], timeout: 10)
-
-		XCTAssertThrowsError(try theResult?.get(), "No error when error was expected") { error in
-			guard case NetworkError.graphQLError(error: let gqlError) = error else {
-				XCTFail("Got an unexpected error from server: \(error)")
-				return
-			}
-			XCTAssertEqual(##"Cannot query field "userss" on type "Query". Did you mean "user"?"##, gqlError.message)
-			XCTAssertEqual("GRAPHQL_VALIDATION_FAILED", gqlError.extensions.code)
-		}
-	}
-
-	/// Tests that when expecting ONLY a 200 response code, a 200 code will be an expected success
+	/// Tests using a mock session that when expecting ONLY a 200 response code, a 200 code will be an expected success
 	func testRespect200OnlyAndGet200() {
 		let networkHandler = NetworkHandler()
 
@@ -419,6 +421,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	/// Tests using a mock session that corrupt data is properly reported as NetworkError.dataCodingError
 	func testBadData() {
 		let networkHandler = NetworkHandler()
 
@@ -452,6 +455,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	/// Tests using a mock session that nil data is reported as NetworkError.badData
 	func testNoData() {
 		let networkHandler = NetworkHandler()
 
@@ -479,6 +483,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	/// Tests encoding and decoding a request body
 	func testEncodingGeneric() {
 		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
 
