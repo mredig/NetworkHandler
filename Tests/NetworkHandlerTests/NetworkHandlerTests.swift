@@ -292,8 +292,6 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests that when expecting ONLY a 200 response code, a 200 code will be an expected success
 	func testRespect200Only200() {
-		let allErrors = allErrorCases()
-	func testRespect200Strict200() {
 		let networkHandler = NetworkHandler()
 
 		// expected result
@@ -312,26 +310,21 @@ class NetworkHandlerTests: XCTestCase {
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
-		request.expectedResponseCodes.insertRange(200...299)
+		request.expectedResponseCodes = 200
+
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				let model = try result.get()
-				XCTAssertEqual(model, demoModel)
-			} catch {
-				XCTFail("an error occured: \(error)")
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
-			}
-		}
+		wait(for: [waitForMocking], timeout: 10)
+
+		XCTAssertNoThrow(try theResult?.get())
+		XCTAssertEqual(try theResult?.get(), demoModel)
 	}
 
 	/// Tests that when expecting ONLY a 200 response code, even a 202 code will cause an error to be thrown
+	func testRespect200Only202() {
 		let networkHandler = NetworkHandler()
 
 		// expected result
@@ -350,24 +343,17 @@ class NetworkHandlerTests: XCTestCase {
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
-		request.expectedResponseCodes.insertRange(200...299)
+		request.expectedResponseCodes = 200
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				_ = try result.get()
-			} catch {
-				guard case NetworkError.httpNon200StatusCode(code: 202, data: mockData) = error else {
-					XCTFail("Recieved unexpected error: \(error)")
-					return
-				}
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
-			}
+
+		wait(for: [waitForMocking], timeout: 10)
+
+		XCTAssertThrowsError(try theResult?.get(), "Got unexpected error") { error in
+			XCTAssertEqual(NetworkError.httpNon200StatusCode(code: 202, data: mockData), error as? NetworkError)
 		}
 	}
 
