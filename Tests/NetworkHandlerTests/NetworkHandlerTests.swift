@@ -20,14 +20,18 @@ typealias TestImage = UIImage
 /// Obviously dependent on network conditions
 class NetworkHandlerTests: XCTestCase {
 
+	// MARK: - Properties
 	var demoModelController: DemoModelController?
 	let imageURL = URL(string: "https://placekitten.com/300/300")!
 
+	// MARK: - Lifecycle
 	override func setUp() {
 		super.setUp()
 		demoModelController = DemoModelController()
 	}
 
+	// MARK: - Live Network Tests
+	/// Tests downloading over a live connection, caching the download, and subsequently downloading the cached file.
 	func testImageDownloadAndCache() {
 		let waitForInitialDownload = expectation(description: "Waiting for things")
 		let networkHandler = NetworkHandler()
@@ -82,6 +86,7 @@ class NetworkHandlerTests: XCTestCase {
 		XCTAssertEqual(imageOneData, imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
 	}
 
+	/// Tests using a Mock Session that is successful.
 	func testMockDataSuccess() {
 		let networkHandler = NetworkHandler()
 		let waitForMocking = expectation(description: "Wait for mocking")
@@ -116,7 +121,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
-	func allErrorCases() -> [NetworkError] {
+	/// Tests using a Mock session that provides an error.
 	func testMockDataErrors() {
 		let networkHandler = NetworkHandler()
 
@@ -165,6 +170,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	/// Tests a Mock session giving a 404 response code
 	func testMock404Response() {
 		let networkHandler = NetworkHandler()
 
@@ -201,6 +207,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	/// Tests (using a Mock session) receiving a GraphQL error from the server.
 	func testMockGraphQLError() {
 		let networkHandler = NetworkHandler()
 		networkHandler.graphQLErrorSupport = true
@@ -241,6 +248,8 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	/// Tests a live server with GraphQL.
+	///
 	/// This test will only work so long as my school project is live and conforming. Would be better to make a
 	/// permanent test server to test this with.
 	func testGraphQLError() {
@@ -281,6 +290,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	/// Tests that when expecting ONLY a 200 response code, a 200 code will be an expected success
 	func testRespect200Only200() {
 		let allErrors = allErrorCases()
 	func testRespect200Strict200() {
@@ -321,7 +331,7 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
-	func testRespect200Strict202() {
+	/// Tests that when expecting ONLY a 200 response code, even a 202 code will cause an error to be thrown
 		let networkHandler = NetworkHandler()
 
 		// expected result
