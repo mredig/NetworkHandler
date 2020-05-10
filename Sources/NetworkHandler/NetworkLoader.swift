@@ -13,14 +13,21 @@ import FoundationNetworking
 
 /// Provides an abstracted method to create a url network request to make testing easier.
 public protocol NetworkLoader {
-	func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask?
+	func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTask
 }
 
 extension URLSession: NetworkLoader {
-	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask? {
+	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTask {
 		let task = self.dataTask(with: request) { data, response, error in
 			completion(data, response, error)
 		}
 		return task
 	}
 }
+
+public protocol NetworkLoadingTask {
+	func resume()
+	func cancel()
+}
+
+extension URLSessionDataTask: NetworkLoadingTask {}

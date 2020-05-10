@@ -48,8 +48,12 @@ public struct NetworkMockingSession: NetworkLoader {
 	}
 
 	// MARK: - Public
-	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask? {
-		guard let url = request.url else { completion(nil, nil, nil); return nil }
+	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTask {
+		guard let url = request.url else {
+			return NetworkDataTask(mockDelay: mockDelay) {
+				completion(nil, nil, nil)
+			}
+		}
 		let mockResponse: HTTPURLResponse?
 		let returnData: Data?
 		let returnError: Error?
@@ -64,10 +68,56 @@ public struct NetworkMockingSession: NetworkLoader {
 			returnError = mockError
 		}
 
-		DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) {
+		return NetworkDataTask(mockDelay: mockDelay) {
 			completion(returnData, mockResponse, returnError)
 		}
-
-		return nil
 	}
+}
+
+public class NetworkDataTask: NetworkLoadingTask {
+	typealias ServerSideSimulationHandler = NetworkMockingSession.ServerSideSimulationHandler
+
+	private let simHandler: () -> Void
+
+	private let queue = DispatchQueue(label: "finishedQueue")
+	private var _isResumed = false
+	private(set) var isResumed: Bool {
+		get {
+			queue.sync { _isResumed }
+		}
+		set {
+			queue.sync { _isResumed = newValue }
+		}
+	}
+	private var _isFinished = false
+	private var isFinished: Bool {
+		get {
+			queue.sync { _isFinished }
+		}
+		set {
+			queue.sync { _isFinished = newValue }
+		}
+	}
+
+	public let mockDelay: TimeInterval
+
+	init(mockDelay: TimeInterval, simHandler: @escaping () -> Void) {
+		self.simHandler = simHandler
+		self.mockDelay = mockDelay
+	}
+
+	public func resume() {
+		isResumed = true
+
+		DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) {
+			guard !self.isFinished, self.isResumed else { return }
+			self.simHandler()
+			self.isFinished = true
+		}
+	}
+
+	public func cancel() {
+		isResumed = false
+	}
+
 }

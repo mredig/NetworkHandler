@@ -13,7 +13,7 @@ class DemoViewController: UITableViewController {
 
 	// MARK: - Properties
 	let demoModelController = DemoModelController()
-	private var tasks = [UITableViewCell: URLSessionDataTask]()
+	private var tasks = [UITableViewCell: NetworkLoadingTask]()
 
 	// MARK: - Outlets
 	@IBOutlet private var generateDemoDataButton: UIButton!
