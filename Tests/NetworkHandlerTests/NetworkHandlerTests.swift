@@ -227,24 +227,16 @@ class NetworkHandlerTests: XCTestCase {
 
 		var request = dummyBaseURL.request
 		request.expectedResponseCodes = 200
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
-			defer {
-				waitForMocking.fulfill()
-			}
-			do {
-				_ = try result.get()
-				XCTFail("no error was thrown")
-			} catch NetworkError.graphQLError(let gqlError) {
-				XCTAssertEqual(mockDataModel, gqlError)
-				return
-			} catch {
-				XCTFail("Recieved unexpected error: \(error)")
-			}
+			theResult = result
+			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
-			}
+
+		wait(for: [waitForMocking], timeout: 10)
+		XCTAssertThrowsError(try theResult?.get(), "No error when error expected") { error in
+			let expectedError = NetworkError.graphQLError(error: mockDataModel)
+			XCTAssertEqual(expectedError, error as? NetworkError)
 		}
 	}
 
