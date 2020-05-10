@@ -105,20 +105,16 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathComponent(demoModel.id.uuidString)
 			.appendingPathExtension("json")
 
+		var theResult: Result<DemoModel, NetworkError>?
 		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
-			do {
-				let model = try result.get()
-				XCTAssertEqual(model, demoModel)
-			} catch {
-				XCTFail("Error getting mock data: \(error)")
-			}
+			theResult = result
 			waitForMocking.fulfill()
 		}
-		waitForExpectations(timeout: 10) { error in
-			if let error = error {
-				XCTFail("Timed out waiting for mocking: \(error)")
-			}
-		}
+
+		wait(for: [waitForMocking], timeout: 10)
+
+		XCTAssertNoThrow(try theResult?.get())
+		XCTAssertEqual(demoModel, try theResult?.get())
 	}
 
 	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
