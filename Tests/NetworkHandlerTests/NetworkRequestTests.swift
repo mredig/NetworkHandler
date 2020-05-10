@@ -46,9 +46,76 @@ class NetworkRequestTests: XCTestCase {
 		request.setValue(.other(value: "Arbitrary Value"), forHTTPHeaderField: .other(key: "Arbitrary Key"))
 		XCTAssertEqual(["Content-Type": "application/xml", "Arbitrary Key": "Arbitrary Value"], request.allHeaderFields)
 
+		let allFields = ["Content-Type": "application/xml", "Authorization": "Bearer: 12345", "Arbitrary Key": "Arbitrary Value"]
+		request.allHeaderFields = allFields
+		XCTAssertEqual(allFields, request.allHeaderFields)
+
 		var request2 = dummyURL.request
 		request2.setValue(.contentType(type: .audioMp4), forHTTPHeaderField: .commonKey(key: .contentType))
 		XCTAssertEqual("audio/mp4", request2.value(forHTTPHeaderField: .commonKey(key: .contentType)))
+	}
+
+	func testURLRequestMirroredProperties() {
+		let dummyURL = URL(string: "https://redeggproductions.com")!
+		var request = dummyURL.request
+
+		request.cachePolicy = .returnCacheDataDontLoad
+		XCTAssertEqual(.returnCacheDataDontLoad, request.cachePolicy)
+		request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+		XCTAssertEqual(.reloadIgnoringLocalAndRemoteCacheData, request.cachePolicy)
+
+		XCTAssertEqual(dummyURL, request.url)
+		let otherURL = URL(string: "https://redeggproductions.com/otherURL")
+		request.url = otherURL
+		XCTAssertEqual(otherURL, request.url)
+
+		let dummyStream = InputStream(data: Data([1, 2, 3, 4, 5]))
+
+		XCTAssertNil(request.httpBodyStream)
+		request.httpBodyStream = dummyStream
+		XCTAssertEqual(dummyStream, request.httpBodyStream)
+
+		XCTAssertNil(request.mainDocumentURL)
+		request.mainDocumentURL = dummyURL
+		XCTAssertEqual(dummyURL, request.mainDocumentURL)
+
+		XCTAssertEqual(60, request.timeoutInterval)
+		request.timeoutInterval = 120
+		XCTAssertEqual(120, request.timeoutInterval)
+
+		request.httpShouldHandleCookies = false
+		XCTAssertFalse(request.httpShouldHandleCookies)
+		request.httpShouldHandleCookies = true
+		XCTAssertTrue(request.httpShouldHandleCookies)
+
+		request.httpShouldUsePipelining = false
+		XCTAssertFalse(request.httpShouldUsePipelining)
+		request.httpShouldUsePipelining = true
+		XCTAssertTrue(request.httpShouldUsePipelining)
+
+		request.allowsCellularAccess = false
+		XCTAssertFalse(request.allowsCellularAccess)
+		request.allowsCellularAccess = true
+		XCTAssertTrue(request.allowsCellularAccess)
+
+		request.networkServiceType = .avStreaming
+		XCTAssertEqual(.avStreaming, request.networkServiceType)
+		request.networkServiceType = .responsiveData
+		XCTAssertEqual(.responsiveData, request.networkServiceType)
+
+		#if !os(Linux)
+		if #available(iOS 13.0, OSX 10.15, *) {
+			request.allowsExpensiveNetworkAccess = false
+			XCTAssertFalse(request.allowsExpensiveNetworkAccess)
+			request.allowsExpensiveNetworkAccess = true
+			XCTAssertTrue(request.allowsExpensiveNetworkAccess)
+
+			request.allowsConstrainedNetworkAccess = false
+			XCTAssertFalse(request.allowsConstrainedNetworkAccess)
+			request.allowsConstrainedNetworkAccess = true
+			XCTAssertTrue(request.allowsConstrainedNetworkAccess)
+		}
+		#endif
 	}
 
 }
