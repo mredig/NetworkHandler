@@ -12,8 +12,6 @@ import XCTest
 class NetworkErrorTests: XCTestCase {
 
 	// MARK: - Template/Prototype Objects
-
-
 	/// Tests Equatability on NetworkError cases
 	func testErrorEquatable() {
 		let allErrors = NetworkError.allErrorCases()
