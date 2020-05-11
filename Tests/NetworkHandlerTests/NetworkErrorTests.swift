@@ -63,7 +63,13 @@ extension NetworkError {
 											 .imageDecodeError,
 											 .noStatusCodeResponse,
 											 .otherError(error: dummyError),
-											 .urlInvalid(urlString: "he.ho.hum")]
+											 .urlInvalid(urlString: "he.ho.hum"),
+											 .unspecifiedError(reason: "Who know's what the error might be?!"),
+											 .graphQLError(error: GQLError(message: "much error",
+																		   path: nil,
+																		   locations: nil,
+																		   extensions: .init(code: "Such Extension", exception: nil)))
+		]
 		return allErrorCases
 	}
 }
