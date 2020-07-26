@@ -158,6 +158,12 @@ public class NetworkHandler {
 
 		let task = session.loadData(with: request.urlRequest) { [weak self] data, response, error in
 			guard let self = self else { return }
+			if let error = error {
+				self.printToConsole("An error was encountered: \(error) in \(#file) line: \(#line)")
+				completion(.failure(error as? NetworkError ?? .otherError(error: error)))
+				return
+			}
+
 			if let response = response as? HTTPURLResponse {
 				if !request.expectedResponseCodes.contains(response.statusCode) {
 					self.printToConsole("Received an unexpected http response: \(response.statusCode) in \(#file) line: \(#line)")
@@ -175,12 +181,6 @@ public class NetworkHandler {
 				let errorContainer = try? JSONDecoder().decode(GQLErrorContainer.self, from: data),
 				let error = errorContainer.errors.first {
 				completion(.failure(.graphQLError(error: error)))
-				return
-			}
-
-			if let error = error {
-				self.printToConsole("An error was encountered: \(error) in \(#file) line: \(#line)")
-				completion(.failure(error as? NetworkError ?? .otherError(error: error)))
 				return
 			}
 
