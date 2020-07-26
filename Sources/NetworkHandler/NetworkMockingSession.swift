@@ -18,17 +18,17 @@ public struct NetworkMockingSession: NetworkLoader {
 	/// The error returned by the mocking session. Provide `nil` to simulate successful transactions.
 	public let mockError: Error?
 	/// The response code the mock session returns.
-	public let mockResponseCode: Int
+	public let mockResponseCode: Int?
 	/// How many seconds the mock session should artificially delay before completing. Default is `0.1` seconds.
 	public var mockDelay: TimeInterval
 	public var httpVersion = "HTTP/2"
 
-	public typealias ServerSideSimulationHandler = (URLRequest) -> (Data?, Int, Error?)
+	public typealias ServerSideSimulationHandler = (URLRequest) -> (Data?, Int?, Error?)
 	/// Allows you to simulate server side logic. Allows you to confirm you are sending consistent, valid data to the server.
 	let serverSideSimulatorHandler: ServerSideSimulationHandler?
 
 	// MARK: - Init
-	public init(mockData: Data?, mockError: Error?, mockResponseCode: Int = 200, mockDelay: TimeInterval = 0.1) {
+	public init(mockData: Data?, mockError: Error?, mockResponseCode: Int? = 200, mockDelay: TimeInterval = 0.1) {
 		self.mockData = mockData
 		self.mockError = mockError
 		self.mockResponseCode = mockResponseCode
@@ -43,7 +43,7 @@ public struct NetworkMockingSession: NetworkLoader {
 		self.serverSideSimulatorHandler = serverSideSimulatorHandler
 		self.mockData = nil
 		self.mockError = nil
-		self.mockResponseCode = -1
+		self.mockResponseCode = nil
 		self.mockDelay = mockDelay
 	}
 
@@ -54,18 +54,25 @@ public struct NetworkMockingSession: NetworkLoader {
 				completion(nil, nil, nil)
 			}
 		}
-		let mockResponse: HTTPURLResponse?
+		let responseCode: Int?
 		let returnData: Data?
 		let returnError: Error?
 		if let handler = serverSideSimulatorHandler {
 			let (verificationData, verificationResponse, verificationError) = handler(request)
-			mockResponse = HTTPURLResponse(url: url, statusCode: verificationResponse, httpVersion: httpVersion, headerFields: nil)
+			responseCode = verificationResponse
 			returnData = verificationData
 			returnError = verificationError
 		} else {
-			mockResponse = HTTPURLResponse(url: url, statusCode: mockResponseCode, httpVersion: httpVersion, headerFields: nil)
+			responseCode = mockResponseCode
 			returnData = mockData
 			returnError = mockError
+		}
+		// check response code and create appropriate HTTPURLResponse
+		let mockResponse: HTTPURLResponse?
+		if let responseCode = responseCode {
+			mockResponse = HTTPURLResponse(url: url, statusCode: responseCode, httpVersion: httpVersion, headerFields: nil)
+		} else {
+			mockResponse = nil
 		}
 
 		return NetworkDataTask(mockDelay: mockDelay) {
