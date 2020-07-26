@@ -485,4 +485,25 @@ class NetworkHandlerTests: XCTestCase {
 		}
 	}
 
+	func testUpstreamErrorOccured() {
+		let errorValue = "Arbitrary upstream error!"
+		let mock = NetworkMockingSession(mockData: nil, mockError: errorValue, mockResponseCode: nil)
+		let networkHandler = NetworkHandler()
+
+		let dummyURL = URL(string: "https://networkhandlertestbase.firebaseio.com/")!
+
+		let waitForMock = expectation(description: "Wait for mocking")
+		var theResult: Result<Data?, NetworkError>?
+		networkHandler.transferMahOptionalDatas(with: dummyURL.request, session: mock) { result in
+			theResult = result
+			waitForMock.fulfill()
+		}
+
+		wait(for: [waitForMock], timeout: 10)
+		XCTAssertThrowsError(try theResult?.get(), "No error when error expected") { error in
+			XCTAssertEqual(NetworkError.otherError(error: errorValue), error as? NetworkError)
+		}
+	}
 }
+
+extension String: Error {}
