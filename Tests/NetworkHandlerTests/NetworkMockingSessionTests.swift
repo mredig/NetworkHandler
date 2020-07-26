@@ -40,7 +40,7 @@ class NetworkMockingSessionTests: XCTestCase {
 		let dummyURL = url1!
 
 		var theResult: Result<Data, NetworkError>?
-		networkHandler.transferMahDatas(with: dummyURL.request, session: mockSession) { result in
+		let handle = networkHandler.transferMahDatas(with: dummyURL.request, session: mockSession) { result in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -49,6 +49,7 @@ class NetworkMockingSessionTests: XCTestCase {
 
 		XCTAssertNoThrow(try theResult?.get())
 		XCTAssertEqual(resource1, try theResult?.get())
+		XCTAssertEqual(handle.status, .completed)
 	}
 
 	/// Tests the server side simulator closure - more of a demo than really testing anything
@@ -87,11 +88,13 @@ class NetworkMockingSessionTests: XCTestCase {
 		let handle = networkHandler.transferMahDatas(with: dummyURL.request, session: mockSession) { result in
 			theResult = result
 		}
+		XCTAssertEqual(handle.status, .running)
 		handle.cancel()
 
 		sleep(1)
 
 		XCTAssertNil(theResult)
+		XCTAssertEqual(handle.status, .canceling)
 	}
 
 	/// Tests NetworkMockingSession in the scenario of a url request with no url
