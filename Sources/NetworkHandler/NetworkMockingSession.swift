@@ -84,27 +84,14 @@ public struct NetworkMockingSession: NetworkLoader {
 public class NetworkDataTask: NetworkLoadingTask {
 	typealias ServerSideSimulationHandler = NetworkMockingSession.ServerSideSimulationHandler
 
-	private let simHandler: () -> Void
+	private static let queue = DispatchQueue(label: "finishedQueue")
+	@NH.ThreadSafe(queue: NetworkDataTask.queue) private var _status: NetworkLoadingTaskStatus = .suspended
+	public private(set) var status: NetworkLoadingTaskStatus {
+		get { _status }
+		set { _status = newValue }
+	}
 
-	private let queue = DispatchQueue(label: "finishedQueue")
-	private var _isResumed = false
-	private(set) var isResumed: Bool {
-		get {
-			queue.sync { _isResumed }
-		}
-		set {
-			queue.sync { _isResumed = newValue }
-		}
-	}
-	private var _isFinished = false
-	private var isFinished: Bool {
-		get {
-			queue.sync { _isFinished }
-		}
-		set {
-			queue.sync { _isFinished = newValue }
-		}
-	}
+	private let simHandler: () -> Void
 
 	public let mockDelay: TimeInterval
 
@@ -114,17 +101,17 @@ public class NetworkDataTask: NetworkLoadingTask {
 	}
 
 	public func resume() {
-		isResumed = true
+		status = .running
 
 		DispatchQueue.global().asyncAfter(deadline: .now() + mockDelay) {
-			guard !self.isFinished, self.isResumed else { return }
-			self.isFinished = true
+			guard self.status == .running else { return }
+			self.status = .completed
 			self.simHandler()
 		}
 	}
 
 	public func cancel() {
-		isResumed = false
+		status = .canceling
 	}
 
 }
