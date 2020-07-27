@@ -18,10 +18,10 @@ public protocol NetworkLoader {
 
 extension URLSession: NetworkLoader {
 	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTask {
-		let task = self.dataTask(with: request) { data, response, error in
+		let urlSessionTask = self.dataTask(with: request) { data, response, error in
 			completion(data, response, error)
 		}
-		return task
+		return NetworkHandlerDataTask(urlSessionTask)
 	}
 }
 
@@ -32,24 +32,13 @@ public enum NetworkLoadingTaskStatus {
 public protocol NetworkLoadingTask {
 	var status: NetworkLoadingTaskStatus { get }
 
+	var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? { get set }
+	var countOfBytesExpectedToReceive: Int64 { get }
+	var countOfBytesReceived: Int64 { get }
+	var countOfBytesExpectedToSend: Int64 { get }
+	var countOfBytesSent: Int64 { get }
+
 	func resume()
 	func cancel()
-}
-
-extension URLSessionDataTask: NetworkLoadingTask {
-	public var status: NetworkLoadingTaskStatus {
-		switch state {
-		case .running:
-			return .running
-		case .canceling:
-			return .canceling
-		case .suspended:
-			return .suspended
-		case .completed:
-			return .completed
-		@unknown default:
-			fatalError("Unknown network loading status! \(state)")
-		}
-	}
-
+	func suspend()
 }

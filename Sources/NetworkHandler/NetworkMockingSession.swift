@@ -82,6 +82,12 @@ public struct NetworkMockingSession: NetworkLoader {
 }
 
 public class NetworkDataTask: NetworkLoadingTask {
+	public var countOfBytesExpectedToReceive: Int64 = 0
+	public var countOfBytesReceived: Int64 = 0
+	public var countOfBytesExpectedToSend: Int64 = 0
+	public var countOfBytesSent: Int64 = 0
+	public var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
+
 	typealias ServerSideSimulationHandler = NetworkMockingSession.ServerSideSimulationHandler
 
 	private static let queue = DispatchQueue(label: "finishedQueue")
@@ -114,4 +120,7 @@ public class NetworkDataTask: NetworkLoadingTask {
 		status = .canceling
 	}
 
+	public func suspend() {
+		status = .suspended
+	}
 }
