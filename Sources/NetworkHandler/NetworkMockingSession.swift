@@ -87,6 +87,7 @@ public class NetworkDataTask: NetworkLoadingTask {
 	public var countOfBytesExpectedToSend: Int64 = 0
 	public var countOfBytesSent: Int64 = 0
 	public var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
+	public var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
 
 	typealias ServerSideSimulationHandler = NetworkMockingSession.ServerSideSimulationHandler
 

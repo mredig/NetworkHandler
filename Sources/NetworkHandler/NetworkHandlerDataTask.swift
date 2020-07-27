@@ -1,7 +1,6 @@
 import Foundation
 
 public class NetworkHandlerDataTask: NetworkLoadingTask {
-
 	public let dataTask: URLSessionDataTask
 	public var status: NetworkLoadingTaskStatus { dataTask.status }
 	public var countOfBytesExpectedToReceive: Int64 { dataTask.countOfBytesExpectedToReceive }
@@ -14,8 +13,14 @@ public class NetworkHandlerDataTask: NetworkLoadingTask {
 			updateDownloadObserver()
 		}
 	}
+	public var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? {
+		didSet {
+			updateUploadObserver()
+		}
+	}
 
-	private var observer: NSKeyValueObservation?
+	private var downloadObserver: NSKeyValueObservation?
+	private var uploadObserver: NSKeyValueObservation?
 
 	public init(_ dataTask: URLSessionDataTask, downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? = nil) {
 		self.dataTask = dataTask
@@ -25,17 +30,31 @@ public class NetworkHandlerDataTask: NetworkLoadingTask {
 
 	private func updateObservers() {
 		updateDownloadObserver()
+		updateUploadObserver()
 	}
 
 	private func updateDownloadObserver() {
 		if downloadProgressUpdatedClosure == nil {
-			observer?.invalidate()
-			observer = nil
+			downloadObserver?.invalidate()
+			downloadObserver = nil
 		} else {
-			guard observer == nil else { return }
-			observer = dataTask.observe(\.countOfBytesReceived, options: .new, changeHandler: { [weak self] (task, change) in
+			guard downloadObserver == nil else { return }
+			downloadObserver = dataTask.observe(\.countOfBytesReceived, options: .new, changeHandler: { [weak self] (task, change) in
 				guard let self = self else { return }
-				self.handleUpdate()
+				self.handleDownloadUpdate()
+			})
+		}
+	}
+
+	private func updateUploadObserver() {
+		if uploadProgressUpdatedClosure == nil {
+			uploadObserver?.invalidate()
+			uploadObserver = nil
+		} else {
+			guard uploadObserver == nil else { return }
+			uploadObserver = dataTask.observe(\.countOfBytesSent, options: .new, changeHandler: { [weak self] (task, change) in
+				guard let self = self else { return }
+				self.handleUploadUpdate()
 			})
 		}
 	}
@@ -44,12 +63,14 @@ public class NetworkHandlerDataTask: NetworkLoadingTask {
 	public func cancel() { dataTask.cancel() }
 	public func suspend() { dataTask.suspend() }
 
-	private func handleUpdate() {
+	private func handleDownloadUpdate() {
 		downloadProgressUpdatedClosure?(self)
 	}
+
+	private func handleUploadUpdate() {
+		uploadProgressUpdatedClosure?(self)
+	}
 }
-
-
 
 extension URLSessionDataTask {
 	var status: NetworkLoadingTaskStatus {

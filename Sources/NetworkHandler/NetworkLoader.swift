@@ -33,6 +33,7 @@ public protocol NetworkLoadingTask {
 	var status: NetworkLoadingTaskStatus { get }
 
 	var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? { get set }
+	var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? { get set }
 	var countOfBytesExpectedToReceive: Int64 { get }
 	var countOfBytesReceived: Int64 { get }
 	var countOfBytesExpectedToSend: Int64 { get }
