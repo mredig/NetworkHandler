@@ -29,7 +29,7 @@ public enum NetworkLoadingTaskStatus {
 	case running, suspended, canceling, completed
 }
 
-public protocol NetworkLoadingTask {
+public protocol NetworkLoadingTask: AnyObject {
 	var status: NetworkLoadingTaskStatus { get }
 
 	var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? { get set }
