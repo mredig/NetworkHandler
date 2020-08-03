@@ -49,10 +49,15 @@ public struct NetworkMockingSession: NetworkLoader {
 
 	// MARK: - Public
 	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTask {
+		return NetworkDataTask(mockDelay: mockDelay) {
+			let tuple = synchronousLoadData(with: request)
+			completion(tuple.0, tuple.1, tuple.2)
+		}
+	}
+
+	public func synchronousLoadData(with request: URLRequest) -> (Data?, URLResponse?, Error?) {
 		guard let url = request.url else {
-			return NetworkDataTask(mockDelay: mockDelay) {
-				completion(nil, nil, nil)
-			}
+			return (nil, nil, nil)
 		}
 		let responseCode: Int?
 		let returnData: Data?
@@ -75,9 +80,7 @@ public struct NetworkMockingSession: NetworkLoader {
 			mockResponse = nil
 		}
 
-		return NetworkDataTask(mockDelay: mockDelay) {
-			completion(returnData, mockResponse, returnError)
-		}
+		return (returnData, mockResponse, returnError)
 	}
 }
 
