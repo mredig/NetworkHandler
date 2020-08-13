@@ -34,6 +34,7 @@ public protocol NetworkLoadingTask: AnyObject {
 
 	var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? { get set }
 	var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? { get set }
+	var onCompletion: ((NetworkLoadingTask) -> Void)? { get set }
 	var countOfBytesExpectedToReceive: Int64 { get }
 	var countOfBytesReceived: Int64 { get }
 	var countOfBytesExpectedToSend: Int64 { get }

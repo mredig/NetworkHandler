@@ -21,9 +21,18 @@ public class NetworkHandlerDataTask: NetworkLoadingTask {
 			updateUploadObserver()
 		}
 	}
+	public var onCompletion: ((NetworkLoadingTask) -> Void)? {
+		didSet {
+			hasRunCompletion = false
+			updateCompletionObserver()
+			runCompletion()
+		}
+	}
+	private var hasRunCompletion = false
 
 	private var downloadObserver: NSKeyValueObservation?
 	private var uploadObserver: NSKeyValueObservation?
+	private var completionObserver: NSKeyValueObservation?
 
 	public init(_ dataTask: URLSessionDataTask, downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? = nil) {
 		self.dataTask = dataTask
@@ -34,6 +43,7 @@ public class NetworkHandlerDataTask: NetworkLoadingTask {
 	private func updateObservers() {
 		updateDownloadObserver()
 		updateUploadObserver()
+		updateCompletionObserver()
 	}
 
 	private func updateDownloadObserver() {
@@ -62,6 +72,19 @@ public class NetworkHandlerDataTask: NetworkLoadingTask {
 		}
 	}
 
+	private func updateCompletionObserver() {
+		if onCompletion == nil {
+			completionObserver?.invalidate()
+			completionObserver = nil
+		} else {
+			guard completionObserver == nil else { return }
+			completionObserver = dataTask.observe(\.state, options: .new, changeHandler: { [weak self] (task, change) in
+				guard let self = self else { return }
+				self.runCompletion()
+			})
+		}
+	}
+
 	public func resume() { dataTask.resume() }
 	public func cancel() { dataTask.cancel() }
 	public func suspend() { dataTask.suspend() }
@@ -72,6 +95,12 @@ public class NetworkHandlerDataTask: NetworkLoadingTask {
 
 	private func handleUploadUpdate() {
 		uploadProgressUpdatedClosure?(self)
+	}
+
+	private func runCompletion() {
+		guard status == .completed, hasRunCompletion == false else { return }
+		hasRunCompletion = true
+		onCompletion?(self)
 	}
 }
 

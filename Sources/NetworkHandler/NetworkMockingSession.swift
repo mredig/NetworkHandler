@@ -85,6 +85,7 @@ public struct NetworkMockingSession: NetworkLoader {
 }
 
 public class NetworkDataTask: NetworkLoadingTask {
+
 	public var countOfBytesExpectedToReceive: Int64 = 0
 	public var countOfBytesReceived: Int64 = 0
 	public var countOfBytesExpectedToSend: Int64 = 0
@@ -92,6 +93,11 @@ public class NetworkDataTask: NetworkLoadingTask {
 	public var priority: Float = 0.5
 	public var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
 	public var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
+	public var onCompletion: ((NetworkLoadingTask) -> Void)? {
+		didSet {
+			runCompletion()
+		}
+	}
 
 	typealias ServerSideSimulationHandler = NetworkMockingSession.ServerSideSimulationHandler
 
@@ -99,7 +105,10 @@ public class NetworkDataTask: NetworkLoadingTask {
 	@NH.ThreadSafe(queue: NetworkDataTask.queue) private var _status: NetworkLoadingTaskStatus = .suspended
 	public private(set) var status: NetworkLoadingTaskStatus {
 		get { _status }
-		set { _status = newValue }
+		set {
+			_status = newValue
+			runCompletion()
+		}
 	}
 
 	private let simHandler: () -> Void
@@ -109,6 +118,11 @@ public class NetworkDataTask: NetworkLoadingTask {
 	init(mockDelay: TimeInterval, simHandler: @escaping () -> Void) {
 		self.simHandler = simHandler
 		self.mockDelay = mockDelay
+	}
+
+	private func runCompletion() {
+		guard status == .completed else { return }
+		onCompletion?(self)
 	}
 
 	public func resume() {
