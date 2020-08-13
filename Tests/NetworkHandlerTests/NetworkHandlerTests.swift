@@ -38,9 +38,9 @@ class NetworkHandlerTests: XCTestCase {
 
 		let networkStart = CFAbsoluteTimeGetCurrent()
 
-		var image1Result: Result<Data, NetworkError>?
+		var image1Result: Result<Data, Error>?
 		// retrieve from live server (placekitten as of writing)
-		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
+		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, Error>) in
 			image1Result = result
 			waitForInitialDownload.fulfill()
 		}
@@ -52,8 +52,8 @@ class NetworkHandlerTests: XCTestCase {
 		// now try retrieving from cache
 		let waitForCacheLoad = expectation(description: "Watiting for cache")
 		let cacheStart = CFAbsoluteTimeGetCurrent()
-		var image2Result: Result<Data, NetworkError>?
-		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, NetworkError>) in
+		var image2Result: Result<Data, Error>?
+		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, Error>) in
 			image2Result = result
 			waitForCacheLoad.fulfill()
 		}
@@ -101,8 +101,8 @@ class NetworkHandlerTests: XCTestCase {
 		request.addValue(.contentType(type: .json), forHTTPHeaderField: .commonKey(key: .contentType))
 		request.httpBody = ##"{ "query": "{ userss { id authId name } }" }"##.data(using: .utf8)
 
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: request) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: request) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -139,8 +139,8 @@ class NetworkHandlerTests: XCTestCase {
 			.appendingPathComponent(demoModel.id.uuidString)
 			.appendingPathExtension("json")
 
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -171,8 +171,8 @@ class NetworkHandlerTests: XCTestCase {
 			let waitForMocking = expectation(description: "Wait for mocking")
 			let mockSession = NetworkMockingSession(mockData: nil, mockError: originalError)
 
-			var theResult: Result<DemoModel, NetworkError>?
-			networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
+			var theResult: Result<DemoModel, Error>?
+			networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
 				theResult = result
 				waitForMocking.fulfill()
 			}
@@ -214,8 +214,8 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForMocking = expectation(description: "Wait for mocking")
 		let mockSession = NetworkMockingSession(mockData: nil, mockError: nil, mockResponseCode: 404)
 
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -247,8 +247,8 @@ class NetworkHandlerTests: XCTestCase {
 
 		var request = dummyBaseURL.request
 		request.expectedResponseCodes = 200
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: request, session: mockSession) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -282,8 +282,8 @@ class NetworkHandlerTests: XCTestCase {
 		var request = dummyModelURL.request
 		request.expectedResponseCodes = 200
 
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -314,8 +314,8 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
 		request.expectedResponseCodes = 200
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -348,8 +348,8 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
 		request.expectedResponseCodes.insertRange(200...299)
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -380,8 +380,8 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForMocking = expectation(description: "Wait for mocking")
 		var request = dummyModelURL.request
 		request.expectedResponseCodes.insertRange(200...201)
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -410,8 +410,8 @@ class NetworkHandlerTests: XCTestCase {
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -442,8 +442,8 @@ class NetworkHandlerTests: XCTestCase {
 		let mockSession = NetworkMockingSession(mockData: mockData, mockError: nil)
 
 		let waitForMocking = expectation(description: "Wait for mocking")
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -473,8 +473,8 @@ class NetworkHandlerTests: XCTestCase {
 		let mockSession = NetworkMockingSession(mockData: nil, mockError: nil)
 
 		let waitForMocking = expectation(description: "Wait for mocking")
-		var theResult: Result<DemoModel, NetworkError>?
-		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, NetworkError>) in
+		var theResult: Result<DemoModel, Error>?
+		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
 			theResult = result
 			waitForMocking.fulfill()
 		}
@@ -493,7 +493,7 @@ class NetworkHandlerTests: XCTestCase {
 		let dummyURL = URL(string: "https://networkhandlertestbase.firebaseio.com/")!
 
 		let waitForMock = expectation(description: "Wait for mocking")
-		var theResult: Result<Data?, NetworkError>?
+		var theResult: Result<Data?, Error>?
 		networkHandler.transferMahOptionalDatas(with: dummyURL.request, session: mock) { result in
 			theResult = result
 			waitForMock.fulfill()

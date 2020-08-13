@@ -39,7 +39,7 @@ class NetworkMockingSessionTests: XCTestCase {
 
 		let dummyURL = url1!
 
-		var theResult: Result<Data, NetworkError>?
+		var theResult: Result<Data, Error>?
 		let handle = networkHandler.transferMahDatas(with: dummyURL.request, session: mockSession) { result in
 			theResult = result
 			waitForMocking.fulfill()
@@ -62,7 +62,7 @@ class NetworkMockingSessionTests: XCTestCase {
 
 		let dummyURL = URL(string: "https://fakeurl.com/webresource/nonexisting")!
 
-		var theResult: Result<Data, NetworkError>?
+		var theResult: Result<Data, Error>?
 		networkHandler.transferMahDatas(with: dummyURL.request, session: mockSession) { result in
 			theResult = result
 			waitForMocking.fulfill()
@@ -84,7 +84,7 @@ class NetworkMockingSessionTests: XCTestCase {
 
 		let dummyURL = URL(string: "https://fakeurl.com/webresource/nonexisting")!
 
-		var theResult: Result<Data, NetworkError>?
+		var theResult: Result<Data, Error>?
 		let handle = networkHandler.transferMahDatas(with: dummyURL.request, session: mockSession) { result in
 			theResult = result
 		}

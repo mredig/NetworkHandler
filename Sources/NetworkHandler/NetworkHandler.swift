@@ -66,7 +66,7 @@ public class NetworkHandler {
 	you're either mocking or have `usingCache` flagged `true` and there is cached
 	data, returns nil.
 	*/
-	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<DecodableType, NetworkError>) -> Void) -> NetworkLoadingTask {
+	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<DecodableType, Error>) -> Void) -> NetworkLoadingTask {
 
 		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] result in
 			guard let self = self else { return }
@@ -86,11 +86,11 @@ public class NetworkHandler {
 			} catch {
 				let nullData = "null".data(using: .utf8)!
 				if data == nullData {
-					completion(.failure(.dataWasNull))
+					completion(.failure(NetworkError.dataWasNull))
 					return
 				}
 				self.printToConsole("Error decoding data in \(#file) line: \(#line): \(error)")
-				completion(.failure(.dataCodingError(specifically: error, sourceData: data)))
+				completion(.failure(NetworkError.dataCodingError(specifically: error, sourceData: data)))
 			}
 		}
 		return task
@@ -111,13 +111,13 @@ public class NetworkHandler {
 	you're either mocking or have `usingCache` flagged `true` and there is cached
 	data, returns nil.
 	*/
-	@discardableResult public func transferMahDatas(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data, NetworkError>) -> Void) -> NetworkLoadingTask {
-		let task = transferMahOptionalDatas(with: request, usingCache: useCache, session: session) { (result: Result<Data?, NetworkError>) in
+	@discardableResult public func transferMahDatas(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data, Error>) -> Void) -> NetworkLoadingTask {
+		let task = transferMahOptionalDatas(with: request, usingCache: useCache, session: session) { (result: Result<Data?, Error>) in
 			do {
 				let optData = try result.get()
 				guard let data = optData else {
 					self.printToConsole("\(String(describing: NetworkError.badData))")
-					completion(.failure(.badData(sourceData: optData)))
+					completion(.failure(NetworkError.badData(sourceData: optData)))
 					return
 				}
 				completion(.success(data))
@@ -145,7 +145,12 @@ public class NetworkHandler {
 		you're either mocking or have `usingCache` flagged `true` and there is cached
 		data, returns nil.
 	*/
-	@discardableResult public func transferMahOptionalDatas(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data?, NetworkError>) -> Void) -> NetworkLoadingTask {
+	@discardableResult public func transferMahOptionalDatas(
+		with request: NetworkRequest,
+		usingCache useCache: Bool = false,
+		session: NetworkLoader = URLSession.shared,
+		completion: @escaping (Result<Data?, Error>) -> Void) -> NetworkLoadingTask {
+
 		if useCache {
 			if let url = request.url, let data = cache[url] {
 				let task = NetworkDataTask(mockDelay: 0) {

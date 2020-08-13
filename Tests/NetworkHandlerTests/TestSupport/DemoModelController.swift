@@ -24,10 +24,10 @@ class DemoModelController {
 	@discardableResult func create(modelWithTitle title: String,
 								   andSubtitle subtitle: String,
 								   imageURL: URL,
-								   completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel {
+								   completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel {
 		let model = DemoModel(title: title, subtitle: subtitle, imageURL: imageURL)
 		demoModels.append(model)
-		put(model: model) { (result: Result<DemoModel, NetworkError>) in
+		put(model: model) { (result: Result<DemoModel, Error>) in
 			do {
 				_ = try result.get()
 				completion(nil)
@@ -43,14 +43,14 @@ class DemoModelController {
 								   withTitle title: String,
 								   subtitle: String,
 								   imageURL: URL,
-								   completion: @escaping (NetworkError?) -> Void = { _ in }) -> DemoModel? {
+								   completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel? {
 		guard let index = demoModels.firstIndex(of: model) else { return nil }
 		var updatedModel = demoModels[index]
 		updatedModel.title = title
 		updatedModel.subtitle = subtitle
 		updatedModel.imageURL = imageURL
 		demoModels[index] = updatedModel
-		put(model: updatedModel) { (result: Result<DemoModel, NetworkError>) in
+		put(model: updatedModel) { (result: Result<DemoModel, Error>) in
 			do {
 				_ = try result.get()
 				completion(nil)
@@ -65,7 +65,7 @@ class DemoModelController {
 	func delete(model: DemoModel, completion: @escaping (NetworkError?) -> Void = { _ in }) {
 		guard let index = demoModels.firstIndex(of: model) else { return }
 		demoModels.remove(at: index)
-		deleteFromServer(model: model) { (result: Result<Data?, NetworkError>) in
+		deleteFromServer(model: model) { (result: Result<Data?, Error>) in
 			do {
 				_ = try result.get()
 				completion(nil)
@@ -88,7 +88,7 @@ class DemoModelController {
 		let getURL = baseURL.appendingPathExtension("json")
 
 		let request = getURL.request
-		NetworkHandler.default.transferMahCodableDatas(with: request) { [weak self] (result: Result<[String: DemoModel], NetworkError>) in
+		NetworkHandler.default.transferMahCodableDatas(with: request) { [weak self] (result: Result<[String: DemoModel], Error>) in
 			do {
 				let results = try result.get()
 				self?.demoModels = Array(results.values)
@@ -103,7 +103,7 @@ class DemoModelController {
 		}
 	}
 
-	func put(model: DemoModel, completion: @escaping (Result<DemoModel, NetworkError>) -> Void) {
+	func put(model: DemoModel, completion: @escaping (Result<DemoModel, Error>) -> Void) {
 		let putURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
@@ -121,7 +121,7 @@ class DemoModelController {
 		NetworkHandler.default.transferMahCodableDatas(with: request, completion: completion)
 	}
 
-	func deleteFromServer(model: DemoModel, completion: @escaping (Result<Data?, NetworkError>) -> Void) {
+	func deleteFromServer(model: DemoModel, completion: @escaping (Result<Data?, Error>) -> Void) {
 		let deleteURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
