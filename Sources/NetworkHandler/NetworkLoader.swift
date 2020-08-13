@@ -39,6 +39,8 @@ public protocol NetworkLoadingTask: AnyObject {
 	var countOfBytesExpectedToSend: Int64 { get }
 	var countOfBytesSent: Int64 { get }
 
+	var priority: Float { get set }
+
 	func resume()
 	func cancel()
 	func suspend()

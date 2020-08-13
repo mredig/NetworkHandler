@@ -89,6 +89,7 @@ public class NetworkDataTask: NetworkLoadingTask {
 	public var countOfBytesReceived: Int64 = 0
 	public var countOfBytesExpectedToSend: Int64 = 0
 	public var countOfBytesSent: Int64 = 0
+	public var priority: Float = 0.5
 	public var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
 	public var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
 

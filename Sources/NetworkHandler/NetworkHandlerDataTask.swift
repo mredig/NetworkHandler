@@ -1,12 +1,15 @@
 import Foundation
 
 public class NetworkHandlerDataTask: NetworkLoadingTask {
+
 	public let dataTask: URLSessionDataTask
 	public var status: NetworkLoadingTaskStatus { dataTask.status }
 	public var countOfBytesExpectedToReceive: Int64 { dataTask.countOfBytesExpectedToReceive }
 	public var countOfBytesReceived: Int64 { dataTask.countOfBytesReceived }
 	public var countOfBytesExpectedToSend: Int64 { dataTask.countOfBytesExpectedToSend }
 	public var countOfBytesSent: Int64 { dataTask.countOfBytesSent }
+
+	public var priority: Float = 0.5
 
 	public var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? {
 		didSet {
