@@ -1,7 +1,12 @@
 import Foundation
 
-public class NetworkHandlerDataTask: NetworkLoadingTask {
+public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 
+	public var result: Result<Data?, Error>? {
+		didSet {
+			runCompletion()
+		}
+	}
 	public let dataTask: URLSessionDataTask
 	public var status: NetworkLoadingTaskStatus { dataTask.status }
 	public var countOfBytesExpectedToReceive: Int64 { dataTask.countOfBytesExpectedToReceive }
@@ -98,7 +103,7 @@ public class NetworkHandlerDataTask: NetworkLoadingTask {
 	}
 
 	private func runCompletion() {
-		guard status == .completed, hasRunCompletion == false else { return }
+		guard status == .completed, result != nil, hasRunCompletion == false else { return }
 		hasRunCompletion = true
 		onCompletion?(self)
 	}

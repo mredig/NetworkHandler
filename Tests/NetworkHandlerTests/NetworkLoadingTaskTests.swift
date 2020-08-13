@@ -89,4 +89,26 @@ class NetworkLoadingTaskTests: XCTestCase {
 
 		wait(for: [runCompletedAfterwards], timeout: 10)
 	}
+
+	func testDataAfterCompletion() {
+		let networkHandler = NetworkHandler()
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+
+		let waitForMocking = expectation(description: "Wait for mocking")
+		let handle = networkHandler.transferMahDatas(with: url.request) { _ in
+			waitForMocking.fulfill()
+		}
+		XCTAssertNil(handle.result)
+
+		let waitForCompletion = expectation(description: "wait for completion handler")
+		handle.onCompletion = { task in
+			XCTAssertNotNil(task.result)
+			waitForCompletion.fulfill()
+		}
+
+		wait(for: [waitForMocking, waitForCompletion], timeout: 10)
+
+		XCTAssertNotNil(handle.result)
+	}
 }

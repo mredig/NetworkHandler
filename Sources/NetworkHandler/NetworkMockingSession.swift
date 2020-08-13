@@ -48,7 +48,7 @@ public struct NetworkMockingSession: NetworkLoader {
 	}
 
 	// MARK: - Public
-	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTask {
+	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTaskEditor {
 		return NetworkDataTask(mockDelay: mockDelay) {
 			let tuple = synchronousLoadData(with: request)
 			completion(tuple.0, tuple.1, tuple.2)
@@ -84,7 +84,7 @@ public struct NetworkMockingSession: NetworkLoader {
 	}
 }
 
-public class NetworkDataTask: NetworkLoadingTask {
+public class NetworkDataTask: NetworkLoadingTaskEditor {
 
 	public var countOfBytesExpectedToReceive: Int64 = 0
 	public var countOfBytesReceived: Int64 = 0
@@ -98,6 +98,7 @@ public class NetworkDataTask: NetworkLoadingTask {
 			runCompletion()
 		}
 	}
+	public var result: Result<Data?, Error>?
 
 	typealias ServerSideSimulationHandler = NetworkMockingSession.ServerSideSimulationHandler
 

@@ -46,6 +46,9 @@ public class NetworkHandler {
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
 	public static let `default` = NetworkHandler()
 
+	@NH.ThreadSafe
+	private var inProgressTasks = [UUID: NetworkLoadingTaskEditor]()
+
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
 	public init() {}
@@ -161,23 +164,31 @@ public class NetworkHandler {
 			}
 		}
 
+		let trackingID = UUID()
 		let task = session.loadData(with: request.urlRequest) { [weak self] data, response, error in
 			guard let self = self else { return }
+
+			let result: Result<Data?, Error>
+			defer {
+				self.cleanUpTaskTracking(id: trackingID, result: result)
+				completion(result)
+			}
+
 			if let error = error {
 				self.printToConsole("An error was encountered: \(error) in \(#file) line: \(#line)")
-				completion(.failure(error as? NetworkError ?? .otherError(error: error)))
+				result = .failure(error as? NetworkError ?? .otherError(error: error))
 				return
 			}
 
 			if let response = response as? HTTPURLResponse {
 				if !request.expectedResponseCodes.contains(response.statusCode) {
 					self.printToConsole("Received an unexpected http response: \(response.statusCode) in \(#file) line: \(#line)")
-					completion(.failure(.httpNon200StatusCode(code: response.statusCode, data: data)))
+					result = .failure(NetworkError.httpNon200StatusCode(code: response.statusCode, data: data))
 					return
 				}
 			} else {
 				self.printToConsole("Did not receive a proper response code in \(#file) line: \(#line)")
-				completion(.failure(.noStatusCodeResponse))
+				result = .failure(NetworkError.noStatusCodeResponse)
 				return
 			}
 
@@ -185,11 +196,12 @@ public class NetworkHandler {
 				let data = data,
 				let errorContainer = try? JSONDecoder().decode(GQLErrorContainer.self, from: data),
 				let error = errorContainer.errors.first {
-				completion(.failure(.graphQLError(error: error)))
+				result = .failure(NetworkError.graphQLError(error: error))
 				return
 			}
 
-			completion(.success(data))
+			result = .success(data)
+
 			if useCache, let url = request.url, let data = data {
 				// save into cache
 				self.cache[url] = data
@@ -197,6 +209,7 @@ public class NetworkHandler {
 				URLCache.shared.removeCachedResponse(for: request.urlRequest)
 			}
 		}
+		inProgressTasks[trackingID] = task
 		task.resume()
 		return task
 	}
@@ -205,5 +218,11 @@ public class NetworkHandler {
 		if printErrorsToConsole {
 			print(string)
 		}
+	}
+
+	private func cleanUpTaskTracking(id: UUID, result: Result<Data?, Error>?) {
+		let task = inProgressTasks[id]
+		task?.result = result
+		inProgressTasks[id] = nil
 	}
 }
