@@ -85,19 +85,18 @@ public struct NetworkMockingSession: NetworkLoader {
 }
 
 public class NetworkDataTask: NetworkLoadingTaskEditor {
-
 	public var countOfBytesExpectedToReceive: Int64 = 0
 	public var countOfBytesReceived: Int64 = 0
 	public var countOfBytesExpectedToSend: Int64 = 0
 	public var countOfBytesSent: Int64 = 0
 	public var priority: Float = 0.5
-	public var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
-	public var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)?
-	public var onCompletion: ((NetworkLoadingTask) -> Void)? {
+
+	private var completionClosures: [NetworkLoadingClosure] = [] {
 		didSet {
 			runCompletion()
 		}
 	}
+
 	public var result: Result<Data?, Error>?
 
 	typealias ServerSideSimulationHandler = NetworkMockingSession.ServerSideSimulationHandler
@@ -123,7 +122,7 @@ public class NetworkDataTask: NetworkLoadingTaskEditor {
 
 	private func runCompletion() {
 		guard status == .completed else { return }
-		onCompletion?(self)
+		completionClosures.forEach { $0(self) }
 	}
 
 	public func resume() {
@@ -142,5 +141,14 @@ public class NetworkDataTask: NetworkLoadingTaskEditor {
 
 	public func suspend() {
 		status = .suspended
+	}
+
+	public func onUploadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self { self }
+
+	public func onDownloadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self { self }
+
+	public func onCompletion(_ perform: @escaping NetworkLoadingClosure) -> Self {
+		completionClosures.append(perform)
+		return self
 	}
 }

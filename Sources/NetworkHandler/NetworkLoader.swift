@@ -29,13 +29,12 @@ public enum NetworkLoadingTaskStatus {
 	case running, suspended, canceling, completed
 }
 
+public typealias NetworkLoadingClosure = (NetworkLoadingTask) -> Void
 public protocol NetworkLoadingTask: AnyObject {
 	var status: NetworkLoadingTaskStatus { get }
 
 	var result: Result<Data?, Error>? { get }
-	var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? { get set }
-	var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? { get set }
-	var onCompletion: ((NetworkLoadingTask) -> Void)? { get set }
+
 	var countOfBytesExpectedToReceive: Int64 { get }
 	var countOfBytesReceived: Int64 { get }
 	var countOfBytesExpectedToSend: Int64 { get }
@@ -46,6 +45,10 @@ public protocol NetworkLoadingTask: AnyObject {
 	func resume()
 	func cancel()
 	func suspend()
+
+	@discardableResult func onUploadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self
+	@discardableResult func onDownloadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self
+	@discardableResult func onCompletion(_ perform: @escaping NetworkLoadingClosure) -> Self
 }
 
 public protocol NetworkLoadingTaskEditor: NetworkLoadingTask {

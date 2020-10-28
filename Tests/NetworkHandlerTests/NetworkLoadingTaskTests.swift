@@ -18,7 +18,7 @@ class NetworkLoadingTaskTests: XCTestCase {
 		}
 
 		var progress: Int64 = 0
-		handle.downloadProgressUpdatedClosure = { task in
+		handle.onDownloadProgressUpdated { task in
 			XCTAssertGreaterThanOrEqual(task.countOfBytesSent, progress)
 			progress = task.countOfBytesSent
 		}
@@ -57,7 +57,7 @@ class NetworkLoadingTaskTests: XCTestCase {
 		}
 
 		var progress: Int64 = 0
-		handle.uploadProgressUpdatedClosure = { task in
+		handle.onUploadProgressUpdated { task in
 			XCTAssertGreaterThanOrEqual(task.countOfBytesSent, progress)
 			progress = task.countOfBytesSent
 		}
@@ -76,14 +76,14 @@ class NetworkLoadingTaskTests: XCTestCase {
 		}
 
 		let waitForCompletion = expectation(description: "wait for completion handler")
-		handle.onCompletion = { task in
+		handle.onCompletion { task in
 			waitForCompletion.fulfill()
 		}
 
 		wait(for: [waitForMocking, waitForCompletion], timeout: 10)
 
 		let runCompletedAfterwards = expectation(description: "run again")
-		handle.onCompletion = { task in
+		handle.onCompletion { task in
 			runCompletedAfterwards.fulfill()
 		}
 
@@ -102,7 +102,7 @@ class NetworkLoadingTaskTests: XCTestCase {
 		XCTAssertNil(handle.result)
 
 		let waitForCompletion = expectation(description: "wait for completion handler")
-		handle.onCompletion = { task in
+		handle.onCompletion { task in
 			XCTAssertNotNil(task.result)
 			waitForCompletion.fulfill()
 		}
