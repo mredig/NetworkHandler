@@ -100,19 +100,26 @@ extension DemoViewController {
 
 		let demoModel = demoModelController.demoModels[indexPath.row]
 
-		tasks[cell] = NetworkHandler.default.transferMahDatas(with: demoModel.imageURL.request,
-															  usingCache: true,
-															  completion: { [weak self] (result: Result<Data, NetworkError>) in
-			DispatchQueue.main.async {
-				do {
-					let imageData = try result.get()
-					cell.imageView?.image = UIImage(data: imageData)
-					cell.layoutSubviews()
-					self?.tasks[cell] = nil
-				} catch {
-					NSLog("error loading image from url '\(demoModel.imageURL)': \(error)")
+		tasks[cell] = NetworkHandler.default.transferMahDatas(
+			with: demoModel.imageURL.request,
+			usingCache: true,
+			completion: { [weak self] (result: Result<Data, Error>) in
+				DispatchQueue.main.async {
+					do {
+						let imageData = try result.get()
+						cell.imageView?.image = UIImage(data: imageData)
+						cell.layoutSubviews()
+						self?.tasks[cell] = nil
+					} catch {
+						if case NetworkError.otherError(error: let otherError) = error {
+							if (otherError as NSError).code == -999 {
+								// cancelled
+								return
+							}
+						}
+						NSLog("error loading image from url '\(demoModel.imageURL)': \(error)")
+					}
 				}
-			}
-		})
+			})
 	}
 }

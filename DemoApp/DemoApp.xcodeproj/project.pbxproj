@@ -3,74 +3,28 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		330BD6DF240A4C1700FCD96C /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6DC240A4C1700FCD96C /* DemoModel.swift */; };
-		330BD6E0240A4C1700FCD96C /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6DD240A4C1700FCD96C /* DemoModelController.swift */; };
-		330BD6E1240A4C1700FCD96C /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330BD6DE240A4C1700FCD96C /* DemoText.swift */; };
+		337B32852548ED2100967741 /* NetworkHandler in Frameworks */ = {isa = PBXBuildFile; productRef = 337B32842548ED2100967741 /* NetworkHandler */; };
+		337B328A2548ED6C00967741 /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337B32872548ED6C00967741 /* DemoText.swift */; };
+		337B328B2548ED6C00967741 /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337B32882548ED6C00967741 /* DemoModelController.swift */; };
+		337B328C2548ED6C00967741 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337B32892548ED6C00967741 /* DemoModel.swift */; };
 		33C92E572357E9400061B0F8 /* CreateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E4D2357E9400061B0F8 /* CreateViewController.swift */; };
 		33C92E592357E9400061B0F8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E4F2357E9400061B0F8 /* AppDelegate.swift */; };
 		33C92E5A2357E9400061B0F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33C92E502357E9400061B0F8 /* Assets.xcassets */; };
 		33C92E5D2357E9400061B0F8 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E562357E9400061B0F8 /* DemoViewController.swift */; };
-		33C92E672357E9AC0061B0F8 /* NetworkHandler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 33C92E462357E8EC0061B0F8 /* NetworkHandler.framework */; };
-		33C92E682357E9AC0061B0F8 /* NetworkHandler.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 33C92E462357E8EC0061B0F8 /* NetworkHandler.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		33C92E712357EA800061B0F8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 33C92E732357EA800061B0F8 /* Main.storyboard */; };
 		33C92E742357EA8A0061B0F8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 33C92E762357EA8A0061B0F8 /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		330BD6D8240A4C0600FCD96C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 33C92E992357F8350061B0F8;
-			remoteInfo = "NetworkHandler-MacOS";
-		};
-		330BD6DA240A4C0600FCD96C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 33C92EA12357F8350061B0F8;
-			remoteInfo = "NetworkHandler-MacOSTests";
-		};
-		33C92E452357E8EC0061B0F8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 335D7D27229F4ABA005D5A20;
-			remoteInfo = NetworkHandler;
-		};
-		33C92E472357E8EC0061B0F8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 335D7D30229F4ABB005D5A20;
-			remoteInfo = NetworkHandlerTests;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		33C92E692357E9AC0061B0F8 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				33C92E682357E9AC0061B0F8 /* NetworkHandler.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		330BD6DC240A4C1700FCD96C /* DemoModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModel.swift; path = ../Tests/NetworkHandlerTests/DemoModel.swift; sourceTree = "<group>"; };
-		330BD6DD240A4C1700FCD96C /* DemoModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModelController.swift; path = ../Tests/NetworkHandlerTests/DemoModelController.swift; sourceTree = "<group>"; };
-		330BD6DE240A4C1700FCD96C /* DemoText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoText.swift; path = ../Tests/NetworkHandlerTests/DemoText.swift; sourceTree = "<group>"; };
+		337B327B2548ED0E00967741 /* NetworkHandler */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetworkHandler; path = ..; sourceTree = "<group>"; };
+		337B32872548ED6C00967741 /* DemoText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoText.swift; path = ../Tests/NetworkHandlerTests/TestSupport/DemoText.swift; sourceTree = "<group>"; };
+		337B32882548ED6C00967741 /* DemoModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModelController.swift; path = ../Tests/NetworkHandlerTests/TestSupport/DemoModelController.swift; sourceTree = "<group>"; };
+		337B32892548ED6C00967741 /* DemoModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModel.swift; path = ../Tests/NetworkHandlerTests/TestSupport/DemoModel.swift; sourceTree = "<group>"; };
 		33C92E282357E8D40061B0F8 /* DemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = NetworkHandler.xcodeproj; path = ../NetworkHandler.xcodeproj; sourceTree = "<group>"; };
 		33C92E4D2357E9400061B0F8 /* CreateViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateViewController.swift; sourceTree = "<group>"; };
 		33C92E4E2357E9400061B0F8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		33C92E4F2357E9400061B0F8 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -85,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				33C92E672357E9AC0061B0F8 /* NetworkHandler.framework in Frameworks */,
+				337B32852548ED2100967741 /* NetworkHandler in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,9 +49,9 @@
 		330BD6D3240A4C0600FCD96C /* Shared With Tests */ = {
 			isa = PBXGroup;
 			children = (
-				330BD6DC240A4C1700FCD96C /* DemoModel.swift */,
-				330BD6DD240A4C1700FCD96C /* DemoModelController.swift */,
-				330BD6DE240A4C1700FCD96C /* DemoText.swift */,
+				337B32892548ED6C00967741 /* DemoModel.swift */,
+				337B32882548ED6C00967741 /* DemoModelController.swift */,
+				337B32872548ED6C00967741 /* DemoText.swift */,
 			);
 			name = "Shared With Tests";
 			sourceTree = "<group>";
@@ -105,10 +59,10 @@
 		33C92E1F2357E8D40061B0F8 = {
 			isa = PBXGroup;
 			children = (
+				337B327B2548ED0E00967741 /* NetworkHandler */,
 				33C92E4B2357E9100061B0F8 /* DemoApp */,
 				330BD6D3240A4C0600FCD96C /* Shared With Tests */,
 				33C92E292357E8D40061B0F8 /* Products */,
-				33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */,
 				33C92E662357E9AC0061B0F8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -117,17 +71,6 @@
 			isa = PBXGroup;
 			children = (
 				33C92E282357E8D40061B0F8 /* DemoApp.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		33C92E402357E8EC0061B0F8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				33C92E462357E8EC0061B0F8 /* NetworkHandler.framework */,
-				33C92E482357E8EC0061B0F8 /* NetworkHandlerTests-iOS.xctest */,
-				330BD6D9240A4C0600FCD96C /* NetworkHandler.framework */,
-				330BD6DB240A4C0600FCD96C /* NetworkHandler-MacOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -163,13 +106,15 @@
 				33C92E242357E8D40061B0F8 /* Sources */,
 				33C92E252357E8D40061B0F8 /* Frameworks */,
 				33C92E262357E8D40061B0F8 /* Resources */,
-				33C92E692357E9AC0061B0F8 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = DemoApp;
+			packageProductDependencies = (
+				337B32842548ED2100967741 /* NetworkHandler */,
+			);
 			productName = DemoApp;
 			productReference = 33C92E282357E8D40061B0F8 /* DemoApp.app */;
 			productType = "com.apple.product-type.application";
@@ -201,49 +146,12 @@
 			mainGroup = 33C92E1F2357E8D40061B0F8;
 			productRefGroup = 33C92E292357E8D40061B0F8 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 33C92E402357E8EC0061B0F8 /* Products */;
-					ProjectRef = 33C92E3F2357E8EC0061B0F8 /* NetworkHandler.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				33C92E272357E8D40061B0F8 /* DemoApp */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		330BD6D9240A4C0600FCD96C /* NetworkHandler.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = NetworkHandler.framework;
-			remoteRef = 330BD6D8240A4C0600FCD96C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		330BD6DB240A4C0600FCD96C /* NetworkHandler-MacOSTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = "NetworkHandler-MacOSTests.xctest";
-			remoteRef = 330BD6DA240A4C0600FCD96C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		33C92E462357E8EC0061B0F8 /* NetworkHandler.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = NetworkHandler.framework;
-			remoteRef = 33C92E452357E8EC0061B0F8 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		33C92E482357E8EC0061B0F8 /* NetworkHandlerTests-iOS.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = "NetworkHandlerTests-iOS.xctest";
-			remoteRef = 33C92E472357E8EC0061B0F8 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		33C92E262357E8D40061B0F8 /* Resources */ = {
@@ -264,11 +172,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				33C92E5D2357E9400061B0F8 /* DemoViewController.swift in Sources */,
+				337B328C2548ED6C00967741 /* DemoModel.swift in Sources */,
 				33C92E592357E9400061B0F8 /* AppDelegate.swift in Sources */,
-				330BD6DF240A4C1700FCD96C /* DemoModel.swift in Sources */,
+				337B328A2548ED6C00967741 /* DemoText.swift in Sources */,
 				33C92E572357E9400061B0F8 /* CreateViewController.swift in Sources */,
-				330BD6E1240A4C1700FCD96C /* DemoText.swift in Sources */,
-				330BD6E0240A4C1700FCD96C /* DemoModelController.swift in Sources */,
+				337B328B2548ED6C00967741 /* DemoModelController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,6 +385,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		337B32842548ED2100967741 /* NetworkHandler */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkHandler;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 33C92E202357E8D40061B0F8 /* Project object */;
 }
