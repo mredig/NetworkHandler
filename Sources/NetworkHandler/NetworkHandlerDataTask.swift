@@ -14,12 +14,14 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 	public var countOfBytesExpectedToSend: Int64 { dataTask.countOfBytesExpectedToSend }
 	public var countOfBytesSent: Int64 { dataTask.countOfBytesSent }
 
-	public var priority: Float = 0.5
 
 	public var downloadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? {
 		didSet {
 			updateDownloadObserver()
 		}
+	public var priority: Float {
+		get { dataTask.priority }
+		set { dataTask.priority = newValue }
 	}
 	public var uploadProgressUpdatedClosure: ((NetworkLoadingTask) -> Void)? {
 		didSet {
