@@ -36,7 +36,7 @@ extension URLSession: NetworkLoader {
 			response = innerResponse
 			error = innerError
 			sem.signal()
-		}
+		}.resume()
 		sem.wait()
 		return (data, response, error)
 	}
