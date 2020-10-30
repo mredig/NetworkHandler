@@ -13,6 +13,8 @@ import FoundationNetworking
 
 public struct NetworkMockingSession: NetworkLoader {
 	// MARK: - Properties
+	/// Only used internally for equality checks
+	private let id = UUID()
 	/// The data returned by the mocking session. This value is superceded by the return value of `serverSideSimulatorHanler`, if set.
 	public let mockData: Data?
 	/// The error returned by the mocking session. Provide `nil` to simulate successful transactions.
@@ -81,6 +83,26 @@ public struct NetworkMockingSession: NetworkLoader {
 		}
 
 		return (returnData, mockResponse, returnError)
+	}
+}
+
+extension NetworkMockingSession: Hashable {
+	/// the logic here is that, since closures CANNOT be compared for equality, we instead have to compare this parent
+	/// object for equality. The closure itself is a constant of `NetworkMockingSession` and cannot be changed once created.
+	/// Following that logic, other constant properties do not need to be compared apart from the ID. Since there are a
+	/// couple mutable properties, those also have to be compared for equality, which means this method needs updating
+	/// whenever variable properties change on this struct. The catch with this approach is that if two `NetworkMockingSession`s are created identically, they will not equate to each other, but instead will only equate `true` when comparing copies of the same original. This approach should work fine for the purpose of storing in a collection and checking to confirm uniqueness.
+	public static func == (lhs: NetworkMockingSession, rhs: NetworkMockingSession) -> Bool {
+		lhs.id == rhs.id &&
+		lhs.mockDelay == rhs.mockDelay &&
+		lhs.httpVersion == rhs.httpVersion
+	}
+
+	/// See documentation for `static ==` of `NetworkMockingSession` for logic behind this.
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(id)
+		hasher.combine(mockDelay)
+		hasher.combine(httpVersion)
 	}
 }
 
