@@ -14,6 +14,7 @@ import FoundationNetworking
 /// Provides an abstracted method to create a url network request to make testing easier.
 public protocol NetworkLoader {
 	func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTaskEditor
+	func synchronousLoadData(with request: URLRequest) -> (Data?, URLResponse?, Error?)
 }
 
 extension URLSession: NetworkLoader {
@@ -22,6 +23,22 @@ extension URLSession: NetworkLoader {
 			completion(data, response, error)
 		}
 		return NetworkHandlerDataTask(urlSessionTask)
+	}
+
+	public func synchronousLoadData(with request: URLRequest) -> (Data?, URLResponse?, Error?) {
+		var data: Data?
+		var response: URLResponse?
+		var error: Error?
+
+		let sem = DispatchSemaphore(value: 0)
+		self.dataTask(with: request) { innerData, innerResponse, innerError in
+			data = innerData
+			response = innerResponse
+			error = innerError
+			sem.signal()
+		}
+		sem.wait()
+		return (data, response, error)
 	}
 }
 
