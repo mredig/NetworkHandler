@@ -15,7 +15,7 @@ public struct HTTPHeader: Hashable {
 
 /// Pre-typed strings for use with formatting headers
 public struct HTTPHeaderKey: Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
-	let key: String
+	public let key: String
 
 	public init(stringLiteral value: StringLiteralType) {
 		self.key = value
@@ -49,10 +49,18 @@ public struct HTTPHeaderKey: Hashable, ExpressibleByStringLiteral, ExpressibleBy
 	public static let frontEndHttps: HTTPHeaderKey = "Front-End-Https"
 	public static let cookie: HTTPHeaderKey = "Cookie"
 	public static let expect: HTTPHeaderKey = "Expect"
+
+	public static func ==(lhs: HTTPHeaderKey, rhs: String) -> Bool {
+		lhs.key == rhs
+	}
+
+	public static func ==(lhs: String, rhs: HTTPHeaderKey) -> Bool {
+		rhs == lhs
+	}
 }
 
 public struct HTTPHeaderValue: Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
-	let value: String
+	public let value: String
 
 	public init(stringLiteral value: StringLiteralType) {
 		self.value = value
@@ -91,5 +99,13 @@ public struct HTTPHeaderValue: Hashable, ExpressibleByStringLiteral, Expressible
 	public static let plain: HTTPHeaderValue = "text/plain"
 	public static let zip: HTTPHeaderValue = "application/zip"
 	public static let plist: HTTPHeaderValue = "application/x-plist"
+
+	public static func ==(lhs: HTTPHeaderValue, rhs: String) -> Bool {
+		lhs.value == rhs
+	}
+
+	public static func ==(lhs: String, rhs: HTTPHeaderValue) -> Bool {
+		rhs == lhs
+	}
 }
 

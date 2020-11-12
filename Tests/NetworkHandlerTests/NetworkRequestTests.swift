@@ -62,6 +62,23 @@ class NetworkRequestTests: XCTestCase {
 		XCTAssertEqual("Bearer asdlkqf", request2.value(forHTTPHeaderField: .authorization))
 	}
 
+	func testHeaderEquals() {
+		let contentKey = HTTPHeaderKey.contentType
+
+		XCTAssertTrue("Content-Type" == contentKey)
+		XCTAssertTrue(contentKey == "Content-Type")
+		XCTAssertTrue("Content-Typo" != contentKey)
+		XCTAssertTrue(contentKey != "Content-Typo")
+
+		let gif = HTTPHeaderValue.gif
+
+		XCTAssertTrue("image/gif" == gif)
+		XCTAssertTrue(gif == "image/gif")
+		XCTAssertTrue("image/jif" != gif)
+		XCTAssertTrue(gif != "image/jif")
+
+	}
+
 	func testURLRequestMirroredProperties() {
 		let dummyURL = URL(string: "https://redeggproductions.com")!
 		var request = dummyURL.request
