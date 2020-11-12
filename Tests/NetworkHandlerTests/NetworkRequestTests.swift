@@ -33,18 +33,18 @@ class NetworkRequestTests: XCTestCase {
 		let dummyURL = URL(string: "https://redeggproductions.com")!
 		var request = dummyURL.request
 
-		request.addValue(.contentType(type: .json), forHTTPHeaderField: .commonKey(key: .contentType))
-		XCTAssertEqual("application/json", request.value(forHTTPHeaderField: .commonKey(key: .contentType)))
-		request.setValue(.contentType(type: .xml), forHTTPHeaderField: .commonKey(key: .contentType))
-		XCTAssertEqual("application/xml", request.value(forHTTPHeaderField: .commonKey(key: .contentType)))
-		request.setValue(.other(value: "Bearer: 12345"), forHTTPHeaderField: .commonKey(key: .authorization))
+		request.addValue(.json, forHTTPHeaderField: .contentType)
+		XCTAssertEqual("application/json", request.value(forHTTPHeaderField: .contentType))
+		request.setValue(.xml, forHTTPHeaderField: .contentType)
+		XCTAssertEqual("application/xml", request.value(forHTTPHeaderField: .contentType))
+		request.setValue("Bearer: 12345", forHTTPHeaderField: .authorization)
 		XCTAssertEqual(["Content-Type": "application/xml", "Authorization": "Bearer: 12345"], request.allHeaderFields)
 
-		request.setValue(nil, forHTTPHeaderField: .commonKey(key: .authorization))
+		request.setValue(nil, forHTTPHeaderField: .authorization)
 		XCTAssertEqual(["Content-Type": "application/xml"], request.allHeaderFields)
-		XCTAssertNil(request.value(forHTTPHeaderField: .commonKey(key: .authorization)))
+		XCTAssertNil(request.value(forHTTPHeaderField: .authorization))
 
-		request.setValue(.other(value: "Arbitrary Value"), forHTTPHeaderField: .other(key: "Arbitrary Key"))
+		request.setValue("Arbitrary Value", forHTTPHeaderField: "Arbitrary Key")
 		XCTAssertEqual(["Content-Type": "application/xml", "Arbitrary Key": "Arbitrary Value"], request.allHeaderFields)
 
 		let allFields = ["Content-Type": "application/xml", "Authorization": "Bearer: 12345", "Arbitrary Key": "Arbitrary Value"]
@@ -52,8 +52,8 @@ class NetworkRequestTests: XCTestCase {
 		XCTAssertEqual(allFields, request.allHeaderFields)
 
 		var request2 = dummyURL.request
-		request2.setValue(.contentType(type: .audioMp4), forHTTPHeaderField: .commonKey(key: .contentType))
-		XCTAssertEqual("audio/mp4", request2.value(forHTTPHeaderField: .commonKey(key: .contentType)))
+		request2.setValue(.audioMp4, forHTTPHeaderField: .contentType)
+		XCTAssertEqual("audio/mp4", request2.value(forHTTPHeaderField: .contentType))
 	}
 
 	func testURLRequestMirroredProperties() {

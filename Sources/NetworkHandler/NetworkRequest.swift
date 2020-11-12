@@ -149,26 +149,24 @@ public struct NetworkRequest {
 	}
 
 	// MARK: - Methods
-	public mutating func addValue(_ value: HTTPHeaderValue, forHTTPHeaderField key: HTTPHeaderKey) {
-		let strKey = getKeyString(from: key)
-		let strValue = getValueString(from: value)
+	public mutating func addValue(_ headerValue: HTTPHeaderValue, forHTTPHeaderField key: HTTPHeaderKey) {
+		let strKey = key.key
 
-		urlRequest.addValue(strValue, forHTTPHeaderField: strKey)
+		urlRequest.addValue(headerValue.value, forHTTPHeaderField: strKey)
 	}
 
-	public mutating func setValue(_ value: HTTPHeaderValue?, forHTTPHeaderField key: HTTPHeaderKey) {
-		let strKey = getKeyString(from: key)
+	public mutating func setValue(_ headerValue: HTTPHeaderValue?, forHTTPHeaderField key: HTTPHeaderKey) {
+		let strKey = key.key
 
-		guard let value = value else {
+		guard let headerValue = headerValue else {
 			urlRequest.setValue(nil, forHTTPHeaderField: strKey)
 			return
 		}
-		let strValue = getValueString(from: value)
-		urlRequest.setValue(strValue, forHTTPHeaderField: strKey)
+		urlRequest.setValue(headerValue.value, forHTTPHeaderField: strKey)
 	}
 
 	public func value(forHTTPHeaderField key: HTTPHeaderKey) -> String? {
-		let strKey = getKeyString(from: key)
+		let strKey = key.key
 		return urlRequest.value(forHTTPHeaderField: strKey)
 	}
 
@@ -177,7 +175,7 @@ public struct NetworkRequest {
 		if httpMethod == .get {
 			NSLog("Attempt to populate a GET request http body. Used on \(type(of: encodableType))")
 		}
-		if value(forHTTPHeaderField: .commonKey(key: .contentType)) == nil {
+		if value(forHTTPHeaderField: .contentType) == nil {
 			NSLog("You are encoding data without declaring a content-type in your request header. Used on \(type(of: encodableType))")
 		}
 		do {
@@ -188,29 +186,6 @@ public struct NetworkRequest {
 			NSLog("Failed encoding \(type(of: encodableType)) as json: \(error)")
 			return nil
 		}
-	}
-
-	// MARK: - Utility
-	private func getKeyString(from key: HTTPHeaderKey) -> String {
-		let strKey: String
-		switch key {
-		case .other(let otherKey):
-			strKey = otherKey
-		case .commonKey(let commonKey):
-			strKey = commonKey.rawValue
-		}
-		return strKey
-	}
-
-	private func getValueString(from value: HTTPHeaderValue) -> String {
-		let strValue: String
-		switch value {
-		case .contentType(let type):
-			strValue = type.rawValue
-		case .other(let otherValue):
-			strValue = otherValue
-		}
-		return strValue
 	}
 }
 

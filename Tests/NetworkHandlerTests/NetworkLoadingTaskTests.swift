@@ -47,8 +47,8 @@ class NetworkLoadingTaskTests: XCTestCase {
 		let signature = string.hmac(algorithm: .sha1, key: TestEnvironment.s3AccessSecret)
 
 
-		request.addValue(.other(value: formatter.string(from: now)), forHTTPHeaderField: .commonKey(key: .date))
-		request.addValue(.other(value: "AWS \(TestEnvironment.s3AccessKey):\(signature)"), forHTTPHeaderField: .commonKey(key: .authorization))
+		request.addValue("\(formatter.string(from: now))", forHTTPHeaderField: .date)
+		request.addValue("AWS \(TestEnvironment.s3AccessKey):\(signature)", forHTTPHeaderField: .authorization)
 		request.httpBody = Data(randomValues)
 
 		let waitForMocking = expectation(description: "Wait for mocking")

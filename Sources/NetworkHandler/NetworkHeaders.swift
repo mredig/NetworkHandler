@@ -14,78 +14,82 @@ public struct HTTPHeader: Hashable {
 }
 
 /// Pre-typed strings for use with formatting headers
-public enum HTTPHeaderKey: Hashable {
-	public enum CommonKey: String, Hashable {
-		case accept = "Accept"
-		case acceptEncoding = "Accept-Encoding"
-		case authorization = "Authorization"
-		case contentType = "Content-Type"
-		case acceptCharset = "Accept-Charset"
-		case acceptDatetime = "Accept-Datetime"
-		case acceptLanguage = "Accept-Language"
-		case cacheControl = "Cache-Control"
-		case date = "Date"
-		case ifMatch = "If-Match"
-		case ifModifiedSince = "If-Modified-Since"
-		case ifNoneMatch = "If-None-Match"
-		case ifRange = "If-Range"
-		case ifUnmodifiedSince = "If-Unmodified-Since"
-		case maxForwards = "Max-Forwards"
-		case pragma = "Pragma"
-		case proxyAuthorization = "Proxy-Authorization"
-		case proxyConnection = "Proxy-Connection"
-		case range = "Range"
-		case referer = "Referer"
-		case TE = "TE"
-		case upgrade = "Upgrade"
-		case userAgent = "User-Agent"
-		case via = "Via"
-		case warning = "Warning"
-		case frontEndHttps = "Front-End-Https"
-		case cookie = "Cookie"
-		case expect = "Expect"
-	}
-	case commonKey(key: CommonKey)
-	case other(key: String)
-}
+public struct HTTPHeaderKey: Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+	let key: String
 
-public enum HTTPHeaderValue: Hashable {
-	public enum CommonContentType: String, Hashable {
-		case javascript = "application/javascript"
-		case json = "application/json"
-		case octetStream = "application/octet-stream"
-		case xFontWoff = "application/x-font-woff"
-		case xml = "application/xml"
-		case audioMp4 = "audio/mp4"
-		case ogg = "audio/ogg"
-		case opentype = "font/opentype"
-		case svgXml = "image/svg+xml"
-		case webp = "image/webp"
-		case xIcon = "image/x-icon"
-		case cacheManifest = "text/cache-manifest"
-		case vCard = "text/v-card"
-		case vtt = "text/vtt"
-		case videoMp4 = "video/mp4"
-		case videoOgg = "video/ogg"
-		case webm = "video/webm"
-		case xFlv = "video/x-flv"
-		case png = "image/png"
-		case jpeg = "image/jpeg"
-		case bmp = "image/bmp"
-		case css = "text/css"
-		case gif = "image/gif"
-		case html = "text/html"
-		case audioMpeg = "audio/mpeg"
-		case videoMpeg = "video/mpeg"
-		case pdf = "application/pdf"
-		case quicktime = "video/quicktime"
-		case rtf = "application/rtf"
-		case tiff = "image/tiff"
-		case plain = "text/plain"
-		case zip = "application/zip"
-		case plist = "application/x-plist"
+	public init(stringLiteral value: StringLiteralType) {
+		self.key = value
 	}
 
-	case contentType(type: CommonContentType)
-	case other(value: String)
+	public static let accept: HTTPHeaderKey = "Accept"
+	public static let acceptEncoding: HTTPHeaderKey = "Accept-Encoding"
+	public static let authorization: HTTPHeaderKey = "Authorization"
+	public static let contentType: HTTPHeaderKey = "Content-Type"
+	public static let acceptCharset: HTTPHeaderKey = "Accept-Charset"
+	public static let acceptDatetime: HTTPHeaderKey = "Accept-Datetime"
+	public static let acceptLanguage: HTTPHeaderKey = "Accept-Language"
+	public static let cacheControl: HTTPHeaderKey = "Cache-Control"
+	public static let date: HTTPHeaderKey = "Date"
+	public static let ifMatch: HTTPHeaderKey = "If-Match"
+	public static let ifModifiedSince: HTTPHeaderKey = "If-Modified-Since"
+	public static let ifNoneMatch: HTTPHeaderKey = "If-None-Match"
+	public static let ifRange: HTTPHeaderKey = "If-Range"
+	public static let ifUnmodifiedSince: HTTPHeaderKey = "If-Unmodified-Since"
+	public static let maxForwards: HTTPHeaderKey = "Max-Forwards"
+	public static let pragma: HTTPHeaderKey = "Pragma"
+	public static let proxyAuthorization: HTTPHeaderKey = "Proxy-Authorization"
+	public static let proxyConnection: HTTPHeaderKey = "Proxy-Connection"
+	public static let range: HTTPHeaderKey = "Range"
+	public static let referer: HTTPHeaderKey = "Referer"
+	public static let TE: HTTPHeaderKey = "TE"
+	public static let upgrade: HTTPHeaderKey = "Upgrade"
+	public static let userAgent: HTTPHeaderKey = "User-Agent"
+	public static let via: HTTPHeaderKey = "Via"
+	public static let warning: HTTPHeaderKey = "Warning"
+	public static let frontEndHttps: HTTPHeaderKey = "Front-End-Https"
+	public static let cookie: HTTPHeaderKey = "Cookie"
+	public static let expect: HTTPHeaderKey = "Expect"
 }
+
+public struct HTTPHeaderValue: Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+	let value: String
+
+	public init(stringLiteral value: StringLiteralType) {
+		self.value = value
+	}
+
+	public static let javascript: HTTPHeaderValue = "application/javascript"
+	public static let json: HTTPHeaderValue = "application/json"
+	public static let octetStream: HTTPHeaderValue = "application/octet-stream"
+	public static let xFontWoff: HTTPHeaderValue = "application/x-font-woff"
+	public static let xml: HTTPHeaderValue = "application/xml"
+	public static let audioMp4: HTTPHeaderValue = "audio/mp4"
+	public static let ogg: HTTPHeaderValue = "audio/ogg"
+	public static let opentype: HTTPHeaderValue = "font/opentype"
+	public static let svgXml: HTTPHeaderValue = "image/svg+xml"
+	public static let webp: HTTPHeaderValue = "image/webp"
+	public static let xIcon: HTTPHeaderValue = "image/x-icon"
+	public static let cacheManifest: HTTPHeaderValue = "text/cache-manifest"
+	public static let vCard: HTTPHeaderValue = "text/v-card"
+	public static let vtt: HTTPHeaderValue = "text/vtt"
+	public static let videoMp4: HTTPHeaderValue = "video/mp4"
+	public static let videoOgg: HTTPHeaderValue = "video/ogg"
+	public static let webm: HTTPHeaderValue = "video/webm"
+	public static let xFlv: HTTPHeaderValue = "video/x-flv"
+	public static let png: HTTPHeaderValue = "image/png"
+	public static let jpeg: HTTPHeaderValue = "image/jpeg"
+	public static let bmp: HTTPHeaderValue = "image/bmp"
+	public static let css: HTTPHeaderValue = "text/css"
+	public static let gif: HTTPHeaderValue = "image/gif"
+	public static let html: HTTPHeaderValue = "text/html"
+	public static let audioMpeg: HTTPHeaderValue = "audio/mpeg"
+	public static let videoMpeg: HTTPHeaderValue = "video/mpeg"
+	public static let pdf: HTTPHeaderValue = "application/pdf"
+	public static let quicktime: HTTPHeaderValue = "video/quicktime"
+	public static let rtf: HTTPHeaderValue = "application/rtf"
+	public static let tiff: HTTPHeaderValue = "image/tiff"
+	public static let plain: HTTPHeaderValue = "text/plain"
+	public static let zip: HTTPHeaderValue = "application/zip"
+	public static let plist: HTTPHeaderValue = "application/x-plist"
+}
+

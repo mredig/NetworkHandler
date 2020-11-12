@@ -98,7 +98,7 @@ class NetworkHandlerTests: XCTestCase {
 
 		request.expectedResponseCodes.insertRange(0...1000)
 		request.httpMethod = .post
-		request.addValue(.contentType(type: .json), forHTTPHeaderField: .commonKey(key: .contentType))
+		request.addValue(.json, forHTTPHeaderField: .contentType)
 		request.httpBody = ##"{ "query": "{ userss { id authId name } }" }"##.data(using: .utf8)
 
 		var theResult: Result<DemoModel, Error>?
