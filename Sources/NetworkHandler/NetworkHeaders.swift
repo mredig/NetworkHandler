@@ -50,11 +50,11 @@ public struct HTTPHeaderKey: Hashable, ExpressibleByStringLiteral, ExpressibleBy
 	public static let cookie: HTTPHeaderKey = "Cookie"
 	public static let expect: HTTPHeaderKey = "Expect"
 
-	public static func ==(lhs: HTTPHeaderKey, rhs: String) -> Bool {
+	public static func ==(lhs: HTTPHeaderKey, rhs: String?) -> Bool {
 		lhs.key == rhs
 	}
 
-	public static func ==(lhs: String, rhs: HTTPHeaderKey) -> Bool {
+	public static func ==(lhs: String?, rhs: HTTPHeaderKey) -> Bool {
 		rhs == lhs
 	}
 }
@@ -100,11 +100,11 @@ public struct HTTPHeaderValue: Hashable, ExpressibleByStringLiteral, Expressible
 	public static let zip: HTTPHeaderValue = "application/zip"
 	public static let plist: HTTPHeaderValue = "application/x-plist"
 
-	public static func ==(lhs: HTTPHeaderValue, rhs: String) -> Bool {
+	public static func ==(lhs: HTTPHeaderValue, rhs: String?) -> Bool {
 		lhs.value == rhs
 	}
 
-	public static func ==(lhs: String, rhs: HTTPHeaderValue) -> Bool {
+	public static func ==(lhs: String?, rhs: HTTPHeaderValue) -> Bool {
 		rhs == lhs
 	}
 }

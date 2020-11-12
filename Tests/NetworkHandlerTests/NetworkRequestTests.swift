@@ -65,10 +65,13 @@ class NetworkRequestTests: XCTestCase {
 	func testHeaderEquals() {
 		let contentKey = HTTPHeaderKey.contentType
 
+		let nilString: String? = nil
+
 		XCTAssertTrue("Content-Type" == contentKey)
 		XCTAssertTrue(contentKey == "Content-Type")
 		XCTAssertTrue("Content-Typo" != contentKey)
 		XCTAssertTrue(contentKey != "Content-Typo")
+		XCTAssertFalse(contentKey == nilString)
 
 		let gif = HTTPHeaderValue.gif
 
@@ -76,7 +79,7 @@ class NetworkRequestTests: XCTestCase {
 		XCTAssertTrue(gif == "image/gif")
 		XCTAssertTrue("image/jif" != gif)
 		XCTAssertTrue(gif != "image/jif")
-
+		XCTAssertFalse(gif == nilString)
 	}
 
 	func testURLRequestMirroredProperties() {
