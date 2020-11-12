@@ -189,6 +189,16 @@ public struct NetworkRequest {
 	}
 }
 
+public extension NetworkRequest {
+	mutating func setContentType(_ contentType: HTTPHeaderValue) {
+		setValue(contentType, forHTTPHeaderField: .contentType)
+	}
+
+	mutating func setAuthorization(_ value: HTTPHeaderValue) {
+		setValue(value, forHTTPHeaderField: .authorization)
+	}
+}
+
 extension Set: ExpressibleByIntegerLiteral where Element: FixedWidthInteger {
 
 	public init(integerLiteral value: Int) {

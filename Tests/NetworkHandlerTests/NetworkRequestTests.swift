@@ -54,6 +54,12 @@ class NetworkRequestTests: XCTestCase {
 		var request2 = dummyURL.request
 		request2.setValue(.audioMp4, forHTTPHeaderField: .contentType)
 		XCTAssertEqual("audio/mp4", request2.value(forHTTPHeaderField: .contentType))
+
+		request2.setContentType(.bmp)
+		XCTAssertEqual("image/bmp", request2.value(forHTTPHeaderField: .contentType))
+
+		request2.setAuthorization("Bearer asdlkqf")
+		XCTAssertEqual("Bearer asdlkqf", request2.value(forHTTPHeaderField: .authorization))
 	}
 
 	func testURLRequestMirroredProperties() {
