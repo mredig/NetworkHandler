@@ -28,6 +28,8 @@ public struct NetworkRequest {
 	public private(set) var urlRequest: URLRequest
 	public var expectedResponseCodes: Set<Int>
 
+	public var automaticStart = true
+
 	// MARK: - Upgraded Properties
 	public var httpMethod: HTTPMethod? {
 		get { HTTPMethod(rawValue: urlRequest.httpMethod ?? "") }

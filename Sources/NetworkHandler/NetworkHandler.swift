@@ -210,7 +210,7 @@ public class NetworkHandler {
 			}
 		}
 		inProgressTasks[trackingID] = task
-		task.resume()
+		if request.automaticStart { task.resume() }
 		return task
 	}
 
