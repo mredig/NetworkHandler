@@ -59,8 +59,8 @@ public class NetworkHandler {
 
 	- Parameters:
 		- request: NetworkRequest containing the url and other request information.
-		- useCache: Bool toggle indicating whether to use cache or not.
-		**Default**: `false`
+		- useCache: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not at all.
+		**Default**: `.dontUseCache`
 		- session: URLSession instance. **Default**: `URLSession.shared`
 		- completion: completion closure run when the data task is finished.
 		Provides a `Result` type argument providing `Data?` when there was a
@@ -69,7 +69,7 @@ public class NetworkHandler {
 	you're either mocking or have `usingCache` flagged `true` and there is cached
 	data, returns nil.
 	*/
-	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<DecodableType, Error>) -> Void) -> NetworkLoadingTask {
+	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: NetworkRequest, usingCache useCache: NetworkHandler.CacheKeyOption = .dontUseCache, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<DecodableType, Error>) -> Void) -> NetworkLoadingTask {
 
 		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] result in
 			guard let self = self else { return }
@@ -104,8 +104,8 @@ public class NetworkHandler {
 
 	- Parameters:
 		- request: NetworkRequest containing the url and other request information.
-		- useCache: Bool toggle indicating whether to use cache or not.
-		**Default**: `false`
+		- useCache: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not at all.
+		**Default**: `.dontUseCache`
 		- session: URLSession instance. **Default**: `URLSession.shared`
 		- completion: completion closure run when the data task is finished.
 		Provides a `Result` type argument providing `Data?` when there was a
@@ -114,7 +114,7 @@ public class NetworkHandler {
 	you're either mocking or have `usingCache` flagged `true` and there is cached
 	data, returns nil.
 	*/
-	@discardableResult public func transferMahDatas(with request: NetworkRequest, usingCache useCache: Bool = false, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data, Error>) -> Void) -> NetworkLoadingTask {
+	@discardableResult public func transferMahDatas(with request: NetworkRequest, usingCache useCache: NetworkHandler.CacheKeyOption = .dontUseCache, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data, Error>) -> Void) -> NetworkLoadingTask {
 		let task = transferMahOptionalDatas(with: request, usingCache: useCache, session: session) { (result: Result<Data?, Error>) in
 			do {
 				let optData = try result.get()
@@ -138,8 +138,8 @@ public class NetworkHandler {
 
 	- Parameters:
 		- request: NetworkRequest containing the url and other request information.
-		- useCache: Bool toggle indicating whether to use cache or not.
-		**Default**: `false`
+		- useCache: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not at all.
+		**Default**: `.dontUseCache`
 		- session: URLSession instance. **Default**: `URLSession.shared`
 		- completion: completion closure run when the data task is finished.
 		Provides a `Result` type argument providing `Data?` when there was a
@@ -150,12 +150,12 @@ public class NetworkHandler {
 	*/
 	@discardableResult public func transferMahOptionalDatas(
 		with request: NetworkRequest,
-		usingCache useCache: Bool = false,
+		usingCache useCache: NetworkHandler.CacheKeyOption = .dontUseCache,
 		session: NetworkLoader = URLSession.shared,
 		completion: @escaping (Result<Data?, Error>) -> Void) -> NetworkLoadingTask {
 
-		if useCache {
-			if let url = request.url, let data = cache[url.absoluteString] {
+		if let cacheKey = useCache.cacheKey(url: request.url) {
+			if let data = cache[cacheKey] {
 				let task = NetworkDataTask(mockDelay: 0) {
 					completion(.success(data))
 				}
@@ -202,9 +202,9 @@ public class NetworkHandler {
 
 			result = .success(data)
 
-			if useCache, let url = request.url, let data = data {
+			if let cacheKey = useCache.cacheKey(url: request.url) {
 				// save into cache
-				self.cache[url.absoluteString] = data
+				self.cache[cacheKey] = data
 				// don't duplicate cached data
 				URLCache.shared.removeCachedResponse(for: request.urlRequest)
 			}
@@ -224,5 +224,30 @@ public class NetworkHandler {
 		let task = inProgressTasks[id]
 		task?.result = result
 		inProgressTasks[id] = nil
+	}
+
+	public enum CacheKeyOption: Equatable, ExpressibleByBooleanLiteral, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+		case dontUseCache
+		case useURL
+		case key(String)
+
+		public init(booleanLiteral value: BooleanLiteralType) {
+			self = value ? .useURL : .dontUseCache
+		}
+
+		public init(stringLiteral value: StringLiteralType) {
+			self = .key(value)
+		}
+
+		func cacheKey(url: URL?) -> String? {
+			switch self {
+			case .dontUseCache:
+				return nil
+			case .useURL:
+				return url?.absoluteString
+			case .key(let value):
+				return value
+			}
+		}
 	}
 }
