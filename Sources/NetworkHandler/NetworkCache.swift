@@ -20,7 +20,7 @@ for you. Directly exposes some properties like `countLimit` and `totalCostLimit`
 public class NetworkCache {
 
 	// MARK: - Properties
-	private let cache = NSCache<NSURL, NSData>()
+	private let cache = NSCache<NSString, NSData>()
 
 	/**
 	The maximum number of objects the cache should hold.
@@ -51,13 +51,13 @@ public class NetworkCache {
 		set { cache.name = newValue }
 	}
 
-	public subscript(key: URL) -> Data? {
-		get { cache.object(forKey: key as NSURL) as Data? }
+	public subscript(key: String) -> Data? {
+		get { cache.object(forKey: key as NSString) as Data? }
 		set {
 			if let newData = newValue {
-				cache.setObject(newData as NSData, forKey: key as NSURL, cost: newData.count)
+				cache.setObject(newData as NSData, forKey: key as NSString, cost: newData.count)
 			} else {
-				cache.removeObject(forKey: key as NSURL)
+				cache.removeObject(forKey: key as NSString)
 			}
 		}
 	}
@@ -72,9 +72,9 @@ public class NetworkCache {
 		cache.removeAllObjects()
 	}
 
-	@discardableResult public func remove(objectFor key: URL) -> Data? {
-		let data = cache.object(forKey: key as NSURL) as Data?
-		cache.removeObject(forKey: key as NSURL)
+	@discardableResult public func remove(objectFor key: String) -> Data? {
+		let data = cache.object(forKey: key as NSString) as Data?
+		cache.removeObject(forKey: key as NSString)
 		return data
 	}
 }

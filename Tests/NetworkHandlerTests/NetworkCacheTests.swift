@@ -43,9 +43,9 @@ class NetworkCacheTests: XCTestCase {
 
 		let cache = NetworkHandler().cache
 
-		let key1 = URL(fileURLWithPath: "/")
-		let key2 = URL(fileURLWithPath: "/etc")
-		let key3 = URL(fileURLWithPath: "/usr")
+		let key1 = URL(fileURLWithPath: "/").absoluteString
+		let key2 = URL(fileURLWithPath: "/etc").absoluteString
+		let key3 = URL(fileURLWithPath: "/usr").absoluteString
 
 		cache[key1] = data1
 		XCTAssertEqual(data1, cache[key1])

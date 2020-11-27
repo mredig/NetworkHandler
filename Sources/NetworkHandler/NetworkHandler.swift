@@ -155,7 +155,7 @@ public class NetworkHandler {
 		completion: @escaping (Result<Data?, Error>) -> Void) -> NetworkLoadingTask {
 
 		if useCache {
-			if let url = request.url, let data = cache[url] {
+			if let url = request.url, let data = cache[url.absoluteString] {
 				let task = NetworkDataTask(mockDelay: 0) {
 					completion(.success(data))
 				}
@@ -204,7 +204,7 @@ public class NetworkHandler {
 
 			if useCache, let url = request.url, let data = data {
 				// save into cache
-				self.cache[url] = data
+				self.cache[url.absoluteString] = data
 				// don't duplicate cached data
 				URLCache.shared.removeCachedResponse(for: request.urlRequest)
 			}
