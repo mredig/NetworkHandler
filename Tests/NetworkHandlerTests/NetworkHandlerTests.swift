@@ -36,11 +36,20 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForInitialDownload = expectation(description: "Waiting for things")
 		let networkHandler = NetworkHandler()
 
+		// completely disabling cache and creating a new url session with each request isn't strictly or even typically
+		// necessary. This is done just to absolutely confirm the test is working.
+		let loader = { () -> URLSession in
+			let config = URLSessionConfiguration.ephemeral
+			config.urlCache = nil
+			config.requestCachePolicy = .reloadIgnoringCacheData
+			return URLSession(configuration: config)
+		}
+
 		let networkStart = CFAbsoluteTimeGetCurrent()
 
 		var image1Result: Result<Data, Error>?
 		// retrieve from live server (placekitten as of writing)
-		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, Error>) in
+		networkHandler.transferMahDatas(with: imageURL.request, usingCache: .key("kitten"), session: loader()) { (result: Result<Data, Error>) in
 			image1Result = result
 			waitForInitialDownload.fulfill()
 		}
@@ -53,7 +62,7 @@ class NetworkHandlerTests: XCTestCase {
 		let waitForCacheLoad = expectation(description: "Watiting for cache")
 		let cacheStart = CFAbsoluteTimeGetCurrent()
 		var image2Result: Result<Data, Error>?
-		networkHandler.transferMahDatas(with: imageURL.request, usingCache: true) { (result: Result<Data, Error>) in
+		networkHandler.transferMahDatas(with: imageURL.request, usingCache: .key("kitten"), session: loader()) { (result: Result<Data, Error>) in
 			image2Result = result
 			waitForCacheLoad.fulfill()
 		}
