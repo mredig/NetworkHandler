@@ -93,15 +93,35 @@ class NetworkDiskCacheTests: XCTestCase {
 	}
 
 	func testCacheCapacity() {
-		let cache = NetworkDiskCache(capacity: 2048, cacheName: "2M Cache Test")
+		let cache = generateDiskCache()
+		cache.capacity = 1024 * 2
 
-		let file1 = (key: "file1", data: Self.dummy1KFile)
-		let file2 = (key: "file2", data: Self.dummy1KFile)
-		let file3 = (key: "file3", data: Self.dummy1KFile)
-		let file4 = (key: "file4", data: Self.dummy1KFile)
+		let (file1, file2, file3, file4, file5) = Self.fileAssortment()
 
 		cache.setData(file1.data, key: file1.key, sync: true)
-	}
+		XCTAssertEqual(file1.data, cache.getData(for: file1.key))
+
+		cache.setData(file2.data, key: file2.key, sync: true)
+		XCTAssertNil(cache.getData(for: file1.key))
+		XCTAssertEqual(file2.data, cache.getData(for: file2.key))
+
+		cache.setData(file3.data, key: file3.key, sync: true)
+		XCTAssertNil(cache.getData(for: file1.key))
+		XCTAssertNil(cache.getData(for: file2.key))
+		XCTAssertNil(cache.getData(for: file3.key))
+
+		cache.setData(file4.data, key: file4.key, sync: true)
+		XCTAssertNil(cache.getData(for: file1.key))
+		XCTAssertNil(cache.getData(for: file2.key))
+		XCTAssertNil(cache.getData(for: file3.key))
+		XCTAssertEqual(file4.data, cache.getData(for: file4.key))
+
+		cache.setData(file5.data, key: file5.key, sync: true)
+		XCTAssertNil(cache.getData(for: file1.key))
+		XCTAssertNil(cache.getData(for: file2.key))
+		XCTAssertNil(cache.getData(for: file3.key))
+		XCTAssertEqual(file4.data, cache.getData(for: file4.key))
+		XCTAssertEqual(file5.data, cache.getData(for: file5.key))
 
 	}
 
