@@ -11,9 +11,9 @@ import XCTest
 
 class NetworkDiskCacheTests: XCTestCase {
 
-	static var dummy1MFile = Data(repeating: 0, count: 1024)
-	static var dummy2MFile = Data(repeating: 0, count: 1024 * 2)
-	static var dummy5MFile = Data(repeating: 0, count: 1024 * 5)
+	static var dummy1KFile = Data(repeating: 0, count: 1024)
+	static var dummy2KFile = Data(repeating: 0, count: 1024 * 2)
+	static var dummy5KFile = Data(repeating: 0, count: 1024 * 5)
 
 	static func fileAssortment() -> (
 		(key: String, data: Data),
@@ -22,11 +22,11 @@ class NetworkDiskCacheTests: XCTestCase {
 		(key: String, data: Data),
 		(key: String, data: Data)
 	) {
-		let file1 = (key: "file1", data: Self.dummy1MFile)
-		let file2 = (key: "file2", data: Self.dummy2MFile)
-		let file3 = (key: "file3", data: Self.dummy5MFile)
-		let file4 = (key: "file4", data: Self.dummy1MFile)
-		let file5 = (key: "file5", data: Self.dummy1MFile)
+		let file1 = (key: "file1", data: Self.dummy1KFile)
+		let file2 = (key: "file2", data: Self.dummy2KFile)
+		let file3 = (key: "file3", data: Self.dummy5KFile)
+		let file4 = (key: "file4", data: Self.dummy1KFile)
+		let file5 = (key: "file5", data: Self.dummy1KFile)
 		return (file1, file2, file3, file4, file5)
 	}
 
@@ -76,10 +76,10 @@ class NetworkDiskCacheTests: XCTestCase {
 	func testCacheCapacity() {
 		let cache = NetworkDiskCache(capacity: 2048, cacheName: "2M Cache Test")
 
-		let file1 = (key: "file1", data: Self.dummy1MFile)
-		let file2 = (key: "file2", data: Self.dummy1MFile)
-		let file3 = (key: "file3", data: Self.dummy1MFile)
-		let file4 = (key: "file4", data: Self.dummy1MFile)
+		let file1 = (key: "file1", data: Self.dummy1KFile)
+		let file2 = (key: "file2", data: Self.dummy1KFile)
+		let file3 = (key: "file3", data: Self.dummy1KFile)
+		let file4 = (key: "file4", data: Self.dummy1KFile)
 
 		cache.setData(file1.data, key: file1.key, sync: true)
 	}
