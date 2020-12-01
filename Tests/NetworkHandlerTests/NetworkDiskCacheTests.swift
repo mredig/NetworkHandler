@@ -55,9 +55,23 @@ class NetworkDiskCacheTests: XCTestCase {
 		XCTAssertNil(cache.getData(for: file5.key))
 	}
 
-//	func testReset() {
-//		<#statements#>
-//	}
+	func testReset() {
+		let cache = generateDiskCache()
+
+		let (file1, _, _, _, _) = Self.fileAssortment()
+
+		cache.setData(file1.data, key: file1.key)
+
+		waitForCacheToFinishActivity(cache)
+
+		XCTAssertEqual(1024, cache.size)
+		XCTAssertEqual(1, cache.count)
+
+		cache.resetCache()
+
+		XCTAssertEqual(0, cache.size)
+		XCTAssertEqual(0, cache.count)
+	}
 
 	func testCacheCapacity() {
 		let cache = NetworkDiskCache(capacity: 2048, cacheName: "2M Cache Test")
@@ -106,6 +120,29 @@ class NetworkDiskCacheTests: XCTestCase {
 		XCTAssertNil(cache[key1])
 		XCTAssertNil(cache[key2])
 		XCTAssertNil(cache[key3])
+	}
+
+	private func waitForCacheToFinishActivity(_ cache: NetworkDiskCache, timeout: TimeInterval = 10) {
+		let isActive = expectation(for: .init(block: { anyCache, _ in
+			guard let cache = anyCache as? NetworkDiskCache else { return false }
+			return !cache.isActive
+		}), evaluatedWith: cache, handler: nil)
+
+		wait(for: [isActive], timeout: timeout)
+	}
+
+	private func generateDiskCache(named name: String? = nil) -> NetworkDiskCache {
+		let cache = NetworkDiskCache(cacheName: name)
+
+		let reset = expectation(for: .init(block: { anyCache, _ in
+			guard let cache = anyCache as? NetworkDiskCache else { return false }
+			return !cache.isActive
+		}), evaluatedWith: cache, handler: nil)
+
+		wait(for: [reset], timeout: 10)
+
+		cache.resetCache()
+		return cache
 	}
 
 }

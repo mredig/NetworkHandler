@@ -6,11 +6,16 @@ class NetworkDiskCache {
 
 	var capacity: UInt64 {
 		didSet {
-			enforceCapacity()
+			cacheQueue.addOperation { [weak self] in
+				guard let self = self else { return }
+				self.enforceCapacity()
+			}
 		}
 	}
 
 	let cacheName: String
+
+	private(set) var count: Int = 0
 
 	lazy private var cacheLocation = getCacheURL()
 
@@ -88,9 +93,19 @@ class NetworkDiskCache {
 	}
 
 	func resetCache() {
-		let oldCap = capacity
-		capacity = 0
-		capacity = oldCap
+		let resetOp = BlockOperation { [self] in
+			do {
+				let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [], options: [])
+
+				for file in contents {
+					deleteFile(at: file)
+				}
+			} catch {
+				NSLog("Error resetting cache: \(error)")
+			}
+		}
+
+		cacheQueue.addOperations([resetOp], waitUntilFinished: true)
 	}
 
 	// MARK: - Utility
@@ -143,7 +158,10 @@ class NetworkDiskCache {
 
 	private func addSize(_ value: UInt64) {
 		size += value
-		enforceCapacity()
+		count += 1
+		cacheQueue.addOperation { [self] in
+			enforceCapacity()
+		}
 	}
 
 	private func subtractSize(for url: URL) {
@@ -152,6 +170,7 @@ class NetworkDiskCache {
 	}
 
 	private func subtractSize(_ value: UInt64) {
+		count -= 1
 		size -= value
 	}
 
@@ -192,6 +211,7 @@ class NetworkDiskCache {
 
 				return $0 + UInt64(fileSize)
 			})
+			count = contents.count
 		} catch {
 			NSLog("Error calculating disk cache size: \(error)")
 		}
