@@ -30,7 +30,12 @@ class NetworkDiskCacheTests: XCTestCase {
 		return (file1, file2, file3, file4, file5)
 	}
 
-	func testSetGet() {
+	override func tearDown() {
+		let cache = generateDiskCache()
+		cache.resetCache()
+	}
+
+	func testCacheAddRemove() {
 		let cache = NetworkDiskCache()
 		cache.resetCache()
 
@@ -51,6 +56,20 @@ class NetworkDiskCacheTests: XCTestCase {
 		XCTAssertEqual(cache.getData(for: file1.key), file1.data)
 		XCTAssertEqual(cache.getData(for: file2.key), file2.data)
 		XCTAssertEqual(cache.getData(for: file3.key), file3.data)
+		XCTAssertEqual(cache.getData(for: file4.key), file4.data)
+		XCTAssertNil(cache.getData(for: file5.key))
+
+		cache.deleteData(for: file1.key)
+		XCTAssertNil(cache.getData(for: file1.key))
+		XCTAssertEqual(cache.getData(for: file2.key), file2.data)
+		XCTAssertEqual(cache.getData(for: file3.key), file3.data)
+		XCTAssertEqual(cache.getData(for: file4.key), file4.data)
+		XCTAssertNil(cache.getData(for: file5.key))
+
+		cache.deleteData(for: file3.key)
+		XCTAssertNil(cache.getData(for: file1.key))
+		XCTAssertEqual(cache.getData(for: file2.key), file2.data)
+		XCTAssertNil(cache.getData(for: file3.key))
 		XCTAssertEqual(cache.getData(for: file4.key), file4.data)
 		XCTAssertNil(cache.getData(for: file5.key))
 	}
@@ -84,42 +103,6 @@ class NetworkDiskCacheTests: XCTestCase {
 		cache.setData(file1.data, key: file1.key, sync: true)
 	}
 
-	func testCacheAddRemove() {
-		let data1 = Data([1, 2, 3, 4, 5])
-		let data2 = Data(data1.reversed())
-
-		let cache = NetworkHandler().cache
-
-		let key1 = URL(fileURLWithPath: "/").absoluteString
-		let key2 = URL(fileURLWithPath: "/etc").absoluteString
-		let key3 = URL(fileURLWithPath: "/usr").absoluteString
-
-		cache[key1] = data1
-		XCTAssertEqual(data1, cache[key1])
-		cache[key1] = data2
-		XCTAssertEqual(data2, cache[key1])
-
-		cache[key2] = data1
-		XCTAssertEqual(data1, cache[key2])
-		XCTAssertEqual(data2, cache[key1])
-
-		cache[key3] = data1
-		XCTAssertEqual(data1, cache[key3])
-		cache[key3] = nil
-		XCTAssertNil(cache[key3])
-		XCTAssertEqual(data1, cache[key2])
-		XCTAssertEqual(data2, cache[key1])
-
-		cache[key3] = data1
-		XCTAssertEqual(data1, cache[key3])
-		let removed = cache.remove(objectFor: key3)
-		XCTAssertNil(cache[key3])
-		XCTAssertEqual(data1, removed)
-
-		cache.reset()
-		XCTAssertNil(cache[key1])
-		XCTAssertNil(cache[key2])
-		XCTAssertNil(cache[key3])
 	}
 
 	private func waitForCacheToFinishActivity(_ cache: NetworkDiskCache, timeout: TimeInterval = 10) {
