@@ -6,10 +6,10 @@
 //  Copyright © 2020 Red_Egg Productions. All rights reserved.
 //
 
-import NetworkHandler
+@testable import NetworkHandler
 import XCTest
 
-class NetworkCacheTests: XCTestCase {
+class NetworkCacheTests: NetworkCacheTest {
 
 	func testCacheCountLimit() {
 		let cache = NetworkHandler().cache
@@ -42,6 +42,7 @@ class NetworkCacheTests: XCTestCase {
 		let data2 = Data(data1.reversed())
 
 		let cache = NetworkHandler().cache
+		let diskCache = cache.diskCache
 
 		let key1 = URL(fileURLWithPath: "/").absoluteString
 		let key2 = URL(fileURLWithPath: "/etc").absoluteString
@@ -58,6 +59,7 @@ class NetworkCacheTests: XCTestCase {
 
 		cache[key3] = data1
 		XCTAssertEqual(data1, cache[key3])
+		waitForCacheToFinishActivity(diskCache)
 		cache[key3] = nil
 		XCTAssertNil(cache[key3])
 		XCTAssertEqual(data1, cache[key2])
@@ -65,6 +67,7 @@ class NetworkCacheTests: XCTestCase {
 
 		cache[key3] = data1
 		XCTAssertEqual(data1, cache[key3])
+		waitForCacheToFinishActivity(diskCache)
 		let removed = cache.remove(objectFor: key3)
 		XCTAssertNil(cache[key3])
 		XCTAssertEqual(data1, removed)

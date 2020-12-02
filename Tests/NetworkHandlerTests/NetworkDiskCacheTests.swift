@@ -9,7 +9,7 @@
 @testable import NetworkHandler
 import XCTest
 
-class NetworkDiskCacheTests: XCTestCase {
+class NetworkDiskCacheTests: NetworkCacheTest {
 
 	static var dummy1KFile = Data(repeating: 0, count: 1024)
 	static var dummy2KFile = Data(repeating: 0, count: 1024 * 2)
@@ -124,28 +124,4 @@ class NetworkDiskCacheTests: XCTestCase {
 		XCTAssertEqual(file5.data, cache.getData(for: file5.key))
 
 	}
-
-	private func waitForCacheToFinishActivity(_ cache: NetworkDiskCache, timeout: TimeInterval = 10) {
-		let isActive = expectation(for: .init(block: { anyCache, _ in
-			guard let cache = anyCache as? NetworkDiskCache else { return false }
-			return !cache.isActive
-		}), evaluatedWith: cache, handler: nil)
-
-		wait(for: [isActive], timeout: timeout)
-	}
-
-	private func generateDiskCache(named name: String? = nil) -> NetworkDiskCache {
-		let cache = NetworkDiskCache(cacheName: name)
-
-		let reset = expectation(for: .init(block: { anyCache, _ in
-			guard let cache = anyCache as? NetworkDiskCache else { return false }
-			return !cache.isActive
-		}), evaluatedWith: cache, handler: nil)
-
-		wait(for: [reset], timeout: 10)
-
-		cache.resetCache()
-		return cache
-	}
-
 }

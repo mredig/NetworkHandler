@@ -41,7 +41,6 @@ class NetworkDiskCache {
 
 	// MARK: - CRUD
 	func setData(_ getData: @autoclosure @escaping () -> Data?, key: String, sync: Bool = false) {
-
 		let operation = BlockOperation { [self] in
 			guard let data = getData() else {
 				NSLog("Error getting data to save for key: \(key)")
@@ -49,10 +48,11 @@ class NetworkDiskCache {
 			}
 
 			let fileLocation = path(for: key)
-			deleteFile(at: fileLocation)
+			let oldFileSize = fileSize(at: fileLocation)
 
 			do {
 				try data.write(to: fileLocation)
+				subtractSize(oldFileSize ?? 0, removingFile: false)
 				addSize(for: data)
 				updateAccessDate(fileLocation)
 			} catch {
@@ -67,8 +67,10 @@ class NetworkDiskCache {
 	func getData(for key: String) -> Data? {
 		let filePath = path(for: key)
 		var data: Data?
-		let operation = BlockOperation {
-			data = try? Data(contentsOf: filePath)
+		let operation = BlockOperation { [self] in
+			guard let loadedData = try? Data(contentsOf: filePath) else { return }
+			data = loadedData
+			updateAccessDate(filePath)
 		}
 
 		cacheQueue.addOperations([operation], waitUntilFinished: true)
@@ -86,7 +88,7 @@ class NetworkDiskCache {
 		let oldSize = fileSize(at: path) ?? 0
 		do {
 			try fileManager.removeItem(at: path)
-			subtractSize(oldSize)
+			subtractSize(oldSize, removingFile: true)
 		} catch {
 			NSLog("Error removing \(path): \(error)")
 		}
@@ -166,11 +168,11 @@ class NetworkDiskCache {
 
 	private func subtractSize(for url: URL) {
 		guard let size = fileSize(at: url) else { return }
-		subtractSize(size)
+		subtractSize(size, removingFile: true)
 	}
 
-	private func subtractSize(_ value: UInt64) {
-		count -= 1
+	private func subtractSize(_ value: UInt64, removingFile: Bool) {
+		if removingFile { count -= 1 }
 		size -= value
 	}
 
