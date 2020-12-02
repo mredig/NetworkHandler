@@ -1,4 +1,6 @@
+import Foundation
 import CryptoSwift
+
 class NetworkDiskCache {
 	let fileManager = FileManager.default
 
