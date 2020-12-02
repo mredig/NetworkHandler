@@ -221,14 +221,3 @@ class NetworkDiskCache {
 		}
 	}
 }
-
-// check memory, if it doesn't exist, check disk and store in memory if exists.
-// when saving, save to both and check size - cull oldest when necessary
-// track size in both directions
-// each access, update modified time stamp to `now` in disk
-// unknown - this would end up being a sync call on a background thread. could be an issue
-
-// 2 hrs code
-// 2 hrs testing
-// 50% buffer
-// 85% confidence
