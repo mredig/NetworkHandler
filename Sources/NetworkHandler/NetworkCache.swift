@@ -21,6 +21,7 @@ public class NetworkCache {
 
 	// MARK: - Properties
 	private let cache = NSCache<NSString, NSData>()
+	let diskCache: NetworkDiskCache
 
 	/**
 	The maximum number of objects the cache should hold.
@@ -52,29 +53,36 @@ public class NetworkCache {
 	}
 
 	public subscript(key: String) -> Data? {
-		get { cache.object(forKey: key as NSString) as Data? }
+		get {
+			(cache.object(forKey: key as NSString) as Data?) ?? diskCache.getData(for: key)
+		}
 		set {
 			if let newData = newValue {
 				cache.setObject(newData as NSData, forKey: key as NSString, cost: newData.count)
+				diskCache.setData(newData, key: key)
 			} else {
 				cache.removeObject(forKey: key as NSString)
+				diskCache.deleteData(for: key)
 			}
 		}
 	}
 
 	// MARK: - Init
-	init() {
+	init(diskCacheCapacity: UInt64 = .max) {
+		self.diskCache = .init(capacity: diskCacheCapacity)
 		name = "NetworkHandler: NetworkCache"
 	}
 
 	// MARK: - Methods
 	public func reset() {
 		cache.removeAllObjects()
+		diskCache.resetCache()
 	}
 
 	@discardableResult public func remove(objectFor key: String) -> Data? {
 		let data = cache.object(forKey: key as NSString) as Data?
 		cache.removeObject(forKey: key as NSString)
+		diskCache.deleteData(for: key)
 		return data
 	}
 }
