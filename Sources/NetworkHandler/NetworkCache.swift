@@ -69,7 +69,7 @@ public class NetworkCache {
 
 	// MARK: - Init
 	init(name: String, diskCacheCapacity: UInt64 = .max) {
-		self.diskCache = .init(capacity: diskCacheCapacity)
+		self.diskCache = .init(capacity: diskCacheCapacity, cacheName: name)
 		self.name = name
 	}
 
