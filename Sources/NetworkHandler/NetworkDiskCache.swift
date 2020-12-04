@@ -1,7 +1,7 @@
 import Foundation
 import CryptoSwift
 
-class NetworkDiskCache {
+class NetworkDiskCache: CustomDebugStringConvertible {
 	let fileManager = FileManager.default
 
 	private(set) var size: UInt64 = 0
@@ -219,5 +219,9 @@ class NetworkDiskCache {
 		} catch {
 			NSLog("Error calculating disk cache size: \(error)")
 		}
+	}
+
+	var debugDescription: String {
+		"Network Disk Cache: \(cacheLocation)"
 	}
 }

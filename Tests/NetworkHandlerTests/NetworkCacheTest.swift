@@ -1,7 +1,7 @@
 @testable import NetworkHandler
 import XCTest
 
-class NetworkCacheTest: XCTestCase {
+class NetworkCacheTest: NetworkHandlerBaseTest {
 	func waitForCacheToFinishActivity(_ cache: NetworkDiskCache, timeout: TimeInterval = 10) {
 		let isActive = expectation(for: .init(block: { anyCache, _ in
 			guard let cache = anyCache as? NetworkDiskCache else { return false }

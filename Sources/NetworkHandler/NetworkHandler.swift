@@ -41,17 +41,22 @@ public class NetworkHandler {
 	stored in the `NetworkCache`, it is also removed from the default `URLCache` if it
 	exists.
 	*/
-	public let cache = NetworkCache()
+	public let cache: NetworkCache
+
+	public let name: String
 
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
-	public static let `default` = NetworkHandler()
+	public static let `default` = NetworkHandler(name: "NHDefault", diskCacheCapacity: .max)
 
 	@NH.ThreadSafe
 	private var inProgressTasks = [UUID: NetworkLoadingTaskEditor]()
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
-	public init() {}
+	public init(name: String, diskCacheCapacity: UInt64 = .max) {
+		self.name = name
+		self.cache = NetworkCache(name: "\(name)-Cache", diskCacheCapacity: diskCacheCapacity)
+	}
 
 	// MARK: - Network Handling
 	/**

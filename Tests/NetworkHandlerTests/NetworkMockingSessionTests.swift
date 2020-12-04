@@ -9,7 +9,7 @@
 import XCTest
 import NetworkHandler
 
-class NetworkMockingSessionTests: XCTestCase {
+class NetworkMockingSessionTests: NetworkHandlerBaseTest {
 
 	let url1 = URL(string: "https://fakeurl.com/webresource1")
 	let url2 = URL(string: "https://fakeurl.com/webresource2")
@@ -31,7 +31,7 @@ class NetworkMockingSessionTests: XCTestCase {
 
 	/// Tests the server side simulator closure to make sure it correctly runs
 	func testServerSideSimulatorSuccess() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = NetworkHandler.default
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 
@@ -54,7 +54,7 @@ class NetworkMockingSessionTests: XCTestCase {
 
 	/// Tests the server side simulator closure - more of a demo than really testing anything
 	func testServerSideSimulatorFailed() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 
@@ -77,7 +77,7 @@ class NetworkMockingSessionTests: XCTestCase {
 
 	/// Tests NetworkDataTask cancel function
 	func testCancelLoading() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 
 		var mockSession = createMockSession()
 		mockSession.mockDelay = 0.5

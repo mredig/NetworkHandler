@@ -68,9 +68,9 @@ public class NetworkCache {
 	}
 
 	// MARK: - Init
-	init(diskCacheCapacity: UInt64 = .max) {
+	init(name: String, diskCacheCapacity: UInt64 = .max) {
 		self.diskCache = .init(capacity: diskCacheCapacity)
-		name = "NetworkHandler: NetworkCache"
+		self.name = name
 	}
 
 	// MARK: - Methods

@@ -10,9 +10,8 @@
 import XCTest
 
 class NetworkCacheTests: NetworkCacheTest {
-
 	func testCacheCountLimit() {
-		let cache = NetworkHandler().cache
+		let cache = generateNetworkHandlerInstance().cache
 
 		let initialLimit = cache.countLimit
 		cache.countLimit = 5
@@ -22,7 +21,7 @@ class NetworkCacheTests: NetworkCacheTest {
 	}
 
 	func testCacheTotalCostLimit() {
-		let cache = NetworkHandler().cache
+		let cache = generateNetworkHandlerInstance().cache
 
 		let initialLimit = cache.totalCostLimit
 		cache.totalCostLimit = 5
@@ -32,16 +31,16 @@ class NetworkCacheTests: NetworkCacheTest {
 	}
 
 	func testCacheName() {
-		let cache = NetworkHandler().cache
+		let cache = generateNetworkHandlerInstance().cache
 
-		XCTAssertEqual("NetworkHandler: NetworkCache", cache.name)
+		XCTAssertEqual("Test Network Handler-Cache", cache.name)
 	}
 
 	func testCacheAddRemove() {
 		let data1 = Data([1, 2, 3, 4, 5])
 		let data2 = Data(data1.reversed())
 
-		let cache = NetworkHandler().cache
+		let cache = generateNetworkHandlerInstance().cache
 		let diskCache = cache.diskCache
 
 		let key1 = URL(fileURLWithPath: "/").absoluteString

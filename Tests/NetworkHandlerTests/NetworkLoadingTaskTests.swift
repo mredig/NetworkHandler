@@ -4,11 +4,11 @@ import XCTest
 @testable import NetworkHandler
 
 /// Obviously dependent on network conditions
-class NetworkLoadingTaskTests: XCTestCase {
+class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 
 	/// tests progress tracking when downloading
 	func testDownloadProgress() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
 
@@ -28,7 +28,7 @@ class NetworkLoadingTaskTests: XCTestCase {
 
 	/// tests progress tracking when uploading - will fail without api/secret for wasabi in environment
 	func testUploadProgress() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
 		var request = url.request
@@ -66,7 +66,7 @@ class NetworkLoadingTaskTests: XCTestCase {
 	}
 
 	func testOnTaskCompletion() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
 
@@ -91,7 +91,7 @@ class NetworkLoadingTaskTests: XCTestCase {
 	}
 
 	func testDataAfterCompletion() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
 

@@ -18,7 +18,7 @@ typealias TestImage = UIImage
 #endif
 
 /// Obviously dependent on network conditions
-class NetworkHandlerTests: XCTestCase {
+class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 	// MARK: - Properties
 	var demoModelController: DemoModelController?
@@ -34,7 +34,7 @@ class NetworkHandlerTests: XCTestCase {
 	/// Tests downloading over a live connection, caching the download, and subsequently loading the file from cache.
 	func testImageDownloadAndCache() {
 		let waitForInitialDownload = expectation(description: "Waiting for things")
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 
 		// completely disabling cache and creating a new url session with each request isn't strictly or even typically
 		// necessary. This is done just to absolutely confirm the test is working.
@@ -95,7 +95,7 @@ class NetworkHandlerTests: XCTestCase {
 	/// This test will only work so long as my school project is live and conforming. Would be better to make a
 	/// permanent test server to test this with.
 	func testGraphQLError() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 		networkHandler.graphQLErrorSupport = true
 
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
@@ -131,7 +131,7 @@ class NetworkHandlerTests: XCTestCase {
 	// MARK: - Mock Network Tests
 	/// Tests using a Mock Session that is successful.
 	func testMockDataSuccess() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 		let waitForMocking = expectation(description: "Wait for mocking")
 
 		// expected result
@@ -162,8 +162,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
 	func testMockDataErrors() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
@@ -209,8 +209,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests a Mock session giving a 404 response code
 	func testMock404Response() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
@@ -238,7 +238,7 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests (using a Mock session) receiving a GraphQL error from the server.
 	func testMockGraphQLError() {
-		let networkHandler = NetworkHandler()
+		let networkHandler = generateNetworkHandlerInstance()
 		networkHandler.graphQLErrorSupport = true
 
 		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
@@ -271,8 +271,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests using a mock session that when expecting ONLY a 200 response code, a 200 code will be an expected success
 	func testRespect200OnlyAndGet200() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
@@ -304,8 +304,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests using a Mock session that when expecting ONLY a 200 response code, even a 202 code will cause an error to be thrown
 	func testRespect200OnlyButGet202() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
@@ -338,8 +338,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests using a mock session that expected response ranges are respsected
 	func testRespectResponseRangeGetValidResponse() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
@@ -370,8 +370,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests using a mock session that values outside the expected response ranges are thrown
 	func testRespectResponseRangeGetInvalidResponse() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
@@ -404,8 +404,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests using a mock session that responses containing "null" are properly reflected by the NetworkError.dataWasNull (might be specific to firebase)
 	func testNullData() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
@@ -434,8 +434,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests using a mock session that corrupt data is properly reported as NetworkError.dataCodingError
 	func testBadData() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
@@ -468,8 +468,8 @@ class NetworkHandlerTests: XCTestCase {
 
 	/// Tests using a mock session that nil data is reported as NetworkError.badData
 	func testNoData() {
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 
@@ -497,8 +497,8 @@ class NetworkHandlerTests: XCTestCase {
 	func testUpstreamErrorOccured() {
 		let errorValue = "Arbitrary upstream error!"
 		let mock = NetworkMockingSession(mockData: nil, mockError: errorValue, mockResponseCode: nil)
-		let networkHandler = NetworkHandler()
 
+		let networkHandler = generateNetworkHandlerInstance()
 		let dummyURL = URL(string: "https://networkhandlertestbase.firebaseio.com/")!
 
 		let waitForMock = expectation(description: "Wait for mocking")
