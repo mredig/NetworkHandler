@@ -28,18 +28,6 @@ public class NetworkHandler {
 	/**
 	An instance of Network Cache to speed up subsequent requests. Usage is
 	optional, but automatic when making requests using the `usingCache` flag.
-
-	Note that URLCache is still used behind the scenes for requests that don't have
-	the `usingCache` flag toggled true. This means that you can modify and have the
-	current level of support by using the URLRequest's `cachePolicy` property for
-	requests that don't have `usingCache` true. However, when `usingCache` is
-	toggled true, local and remote cache policy headers are ignored and the data is
-	stored indefinitely (until it either gets deleted to make space for more recent
-	cache objects or the app is closed), ready to be reloaded instantly the next
-	time a duplicate URL request is made (Note that it is unique to the URL, not the
-	URLRequest). Additionally, to refrain from duplicating data locally, if data is
-	stored in the `NetworkCache`, it is also removed from the default `URLCache` if it
-	exists.
 	*/
 	public let cache: NetworkCache
 
@@ -47,6 +35,14 @@ public class NetworkHandler {
 
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
 	public static let `default` = NetworkHandler(name: "NHDefault", diskCacheCapacity: .max)
+
+	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is handled via `NetworkCache`
+	public var defaultSession: NetworkLoader = {
+		let config = URLSessionConfiguration.default
+		config.requestCachePolicy = .reloadIgnoringLocalCacheData
+		config.urlCache = nil
+		return URLSession(configuration: config)
+	}()
 
 	@NH.ThreadSafe
 	private var inProgressTasks = [UUID: NetworkLoadingTaskEditor]()
@@ -74,7 +70,11 @@ public class NetworkHandler {
 	you're either mocking or have `usingCache` flagged `true` and there is cached
 	data, returns nil.
 	*/
-	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(with request: NetworkRequest, usingCache useCache: NetworkHandler.CacheKeyOption = .dontUseCache, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<DecodableType, Error>) -> Void) -> NetworkLoadingTask {
+	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(
+		with request: NetworkRequest,
+		usingCache useCache: NetworkHandler.CacheKeyOption = .dontUseCache,
+		session: NetworkLoader? = nil,
+		completion: @escaping (Result<DecodableType, Error>) -> Void) -> NetworkLoadingTask {
 
 		let task = transferMahDatas(with: request, usingCache: useCache, session: session) { [weak self] result in
 			guard let self = self else { return }
@@ -119,7 +119,12 @@ public class NetworkHandler {
 	you're either mocking or have `usingCache` flagged `true` and there is cached
 	data, returns nil.
 	*/
-	@discardableResult public func transferMahDatas(with request: NetworkRequest, usingCache useCache: NetworkHandler.CacheKeyOption = .dontUseCache, session: NetworkLoader = URLSession.shared, completion: @escaping (Result<Data, Error>) -> Void) -> NetworkLoadingTask {
+	@discardableResult public func transferMahDatas(
+		with request: NetworkRequest,
+		usingCache useCache: NetworkHandler.CacheKeyOption = .dontUseCache,
+		session: NetworkLoader? = nil,
+		completion: @escaping (Result<Data, Error>) -> Void) -> NetworkLoadingTask {
+
 		let task = transferMahOptionalDatas(with: request, usingCache: useCache, session: session) { (result: Result<Data?, Error>) in
 			do {
 				let optData = try result.get()
@@ -156,8 +161,10 @@ public class NetworkHandler {
 	@discardableResult public func transferMahOptionalDatas(
 		with request: NetworkRequest,
 		usingCache useCache: NetworkHandler.CacheKeyOption = .dontUseCache,
-		session: NetworkLoader = URLSession.shared,
+		session: NetworkLoader? = nil,
 		completion: @escaping (Result<Data?, Error>) -> Void) -> NetworkLoadingTask {
+
+		let session = session ?? defaultSession
 
 		if let cacheKey = useCache.cacheKey(url: request.url) {
 			if let data = cache[cacheKey] {
@@ -210,8 +217,6 @@ public class NetworkHandler {
 			if let cacheKey = useCache.cacheKey(url: request.url) {
 				// save into cache
 				self.cache[cacheKey] = data
-				// don't duplicate cached data
-				URLCache.shared.removeCachedResponse(for: request.urlRequest)
 			}
 		}
 		inProgressTasks[trackingID] = task
