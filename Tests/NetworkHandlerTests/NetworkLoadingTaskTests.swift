@@ -41,7 +41,7 @@ class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 
 		let now = Date()
 
-		let randomValues: [UInt8] = (0..<(1024*1024)).map { _ in UInt8.random(in: 0...UInt8.max) }
+		let randomValues: [UInt8] = (0..<(1024 * 1024 * 10)).map { _ in UInt8.random(in: 0...UInt8.max) }
 
 		let string = "\(method.rawValue)\n\n\n\(formatter.string(from: now))\n\(url.path)"
 		let signature = string.hmac(algorithm: .sha1, key: TestEnvironment.s3AccessSecret)
@@ -52,8 +52,11 @@ class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 		request.httpBody = Data(randomValues)
 
 		let waitForMocking = expectation(description: "Wait for mocking")
-		let handle = networkHandler.transferMahDatas(with: request) { _ in
-			waitForMocking.fulfill()
+		let handle = networkHandler.transferMahDatas(with: request) { result in
+			defer { waitForMocking.fulfill() }
+			if case .failure(let error) = result {
+				XCTFail("Upload failed: \(error)")
+			}
 		}
 
 		var progress: Int64 = 0
