@@ -1,7 +1,6 @@
 import Foundation
 
 public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
-
 	public var result: Result<Data?, Error>? {
 		didSet {
 			runCompletion()
@@ -100,6 +99,10 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 		completionClosures.append(perform)
 		runCompletion()
 		return self
+	}
+
+	public func setResult(_ result: Result<Data?, Error>) {
+		self.result = result
 	}
 }
 

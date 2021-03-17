@@ -175,4 +175,8 @@ public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
 		completionClosures.append(perform)
 		return self
 	}
+
+	public func setResult(_ result: Result<Data?, Error>) {
+		self.result = result
+	}
 }

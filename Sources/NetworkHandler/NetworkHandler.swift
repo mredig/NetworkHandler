@@ -45,7 +45,7 @@ public class NetworkHandler {
 	}()
 
 	@NH.ThreadSafe
-	private var inProgressTasks = [UUID: NetworkLoadingTaskEditor]()
+	private var inProgressTasks = [UUID: NetworkLoadingTask]()
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
@@ -230,9 +230,9 @@ public class NetworkHandler {
 		}
 	}
 
-	private func cleanUpTaskTracking(id: UUID, result: Result<Data?, Error>?) {
+	private func cleanUpTaskTracking(id: UUID, result: Result<Data?, Error>) {
 		let task = inProgressTasks[id]
-		task?.result = result
+		(task as? NetworkLoadingTaskEditor)?.setResult(result)
 		inProgressTasks[id] = nil
 	}
 
