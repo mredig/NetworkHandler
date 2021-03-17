@@ -27,10 +27,7 @@ public protocol NetworkLoadingTask: AnyObject {
 
 	var result: Result<Data?, Error>? { get }
 
-	var countOfBytesExpectedToReceive: Int64 { get }
-	var countOfBytesReceived: Int64 { get }
-	var countOfBytesExpectedToSend: Int64 { get }
-	var countOfBytesSent: Int64 { get }
+	var progress: Progress { get }
 
 	var priority: Float { get set }
 
@@ -38,8 +35,7 @@ public protocol NetworkLoadingTask: AnyObject {
 	func cancel()
 	func suspend()
 
-	@discardableResult func onUploadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self
-	@discardableResult func onDownloadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self
+	@discardableResult func onProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self
 	@discardableResult func onCompletion(_ perform: @escaping NetworkLoadingClosure) -> Self
 }
 

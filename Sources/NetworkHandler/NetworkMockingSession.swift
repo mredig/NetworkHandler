@@ -109,11 +109,9 @@ extension NetworkMockingSession: Hashable {
 }
 
 public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
-	public var countOfBytesExpectedToReceive: Int64 = 0
-	public var countOfBytesReceived: Int64 = 0
-	public var countOfBytesExpectedToSend: Int64 = 0
-	public var countOfBytesSent: Int64 = 0
 	public var priority: Float = 0.5
+
+	public let progress = Progress(totalUnitCount: 0)
 
 	private var completionClosures: [NetworkLoadingClosure] = [] {
 		didSet {
@@ -167,9 +165,7 @@ public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
 		status = .suspended
 	}
 
-	public func onUploadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self { self }
-
-	public func onDownloadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self { self }
+	public func onProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self { self }
 
 	public func onCompletion(_ perform: @escaping NetworkLoadingClosure) -> Self {
 		completionClosures.append(perform)

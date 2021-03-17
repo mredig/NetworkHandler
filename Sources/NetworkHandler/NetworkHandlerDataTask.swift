@@ -1,6 +1,7 @@
 import Foundation
 
 public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
+
 	public var result: Result<Data?, Error>? {
 		didSet {
 			runCompletion()
@@ -8,59 +9,42 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 	}
 	public let dataTask: URLSessionDataTask
 	public var status: NetworkLoadingTaskStatus { dataTask.status }
-	public var countOfBytesExpectedToReceive: Int64 { dataTask.countOfBytesExpectedToReceive }
-	public var countOfBytesReceived: Int64 { dataTask.countOfBytesReceived }
-	public var countOfBytesExpectedToSend: Int64 { dataTask.countOfBytesExpectedToSend }
-	public var countOfBytesSent: Int64 { dataTask.countOfBytesSent }
+	public var progress: Progress { dataTask.progress }
 
 	public var priority: Float {
 		get { dataTask.priority }
 		set { dataTask.priority = newValue }
 	}
 
-	private var downloadProgressUpdatedClosures: [NetworkLoadingClosure] = []
-	private var uploadProgressUpdatedClosures: [NetworkLoadingClosure] = []
+	private var progressUpdatedClosures: [NetworkLoadingClosure] = []
 	private var completionClosures: [NetworkLoadingClosure] = []
 
-	private var downloadObserver: NSKeyValueObservation?
-	private var uploadObserver: NSKeyValueObservation?
+	private var progressObserver: NSKeyValueObservation?
 	private var completionObserver: NSKeyValueObservation?
 
-	public init(_ dataTask: URLSessionDataTask, downloadProgressUpdatedClosure: NetworkLoadingClosure? = nil) {
+	public init(_ dataTask: URLSessionDataTask) {
 		self.dataTask = dataTask
-		if let downloadClosure = downloadProgressUpdatedClosure {
-			onDownloadProgressUpdated(downloadClosure)
-		}
+
 		setupObservers()
 	}
 
 	private func setupObservers() {
-		setupDownloadObserver()
-		setupUploadObserver()
+		setupProgressObserver()
 		setupCompletionObserver()
 	}
 
-	private func setupDownloadObserver() {
-			guard downloadObserver == nil else { return }
-			downloadObserver = dataTask.observe(\.countOfBytesReceived, options: .new, changeHandler: { [weak self] (task, change) in
-				guard let self = self else { return }
-				self.handleDownloadUpdate()
-			})
-	}
+	private func setupProgressObserver() {
+		guard progressObserver == nil else { return }
 
-	private func setupUploadObserver() {
-		guard uploadObserver == nil else { return }
-		uploadObserver = dataTask.observe(\.countOfBytesSent, options: .new, changeHandler: { [weak self] (task, change) in
-			guard let self = self else { return }
-			self.handleUploadUpdate()
-		})
+		progressObserver = progress.observe(\.fractionCompleted, options: .new) { [weak self] progress, change in
+			self?.handleProgressUpdate()
+		}
 	}
 
 	private func setupCompletionObserver() {
 		guard completionObserver == nil else { return }
 		completionObserver = dataTask.observe(\.state, options: .new, changeHandler: { [weak self] (task, change) in
-			guard let self = self else { return }
-			self.runCompletion()
+			self?.runCompletion()
 		})
 	}
 
@@ -68,12 +52,8 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 	public func cancel() { dataTask.cancel() }
 	public func suspend() { dataTask.suspend() }
 
-	private func handleDownloadUpdate() {
-		downloadProgressUpdatedClosures.forEach { $0(self) }
-	}
-
-	private func handleUploadUpdate() {
-		uploadProgressUpdatedClosures.forEach { $0(self) }
+	private func handleProgressUpdate() {
+		progressUpdatedClosures.forEach { $0(self) }
 	}
 
 	private func runCompletion() {
@@ -85,13 +65,8 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 		}
 	}
 
-	@discardableResult public func onUploadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self {
-		uploadProgressUpdatedClosures.append(perform)
-		return self
-	}
-
-	@discardableResult public func onDownloadProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self {
-		downloadProgressUpdatedClosures.append(perform)
+	@discardableResult public func onProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self {
+		progressUpdatedClosures.append(perform)
 		return self
 	}
 

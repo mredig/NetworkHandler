@@ -17,13 +17,26 @@ class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 			waitForMocking.fulfill()
 		}
 
-		var progress: Int64 = 0
-		handle.onDownloadProgressUpdated { task in
-			XCTAssertGreaterThanOrEqual(task.countOfBytesSent, progress)
-			progress = task.countOfBytesSent
+		var progressTracker: [Double] = []
+		handle.onProgressUpdated { task in
+			progressTracker.append(task.progress.fractionCompleted)
 		}
 
-		wait(for: [waitForMocking], timeout: 10)
+		wait(for: [waitForMocking], timeout: 30)
+
+		XCTAssertGreaterThan(progressTracker.count, 2)
+
+		let progressDeltaTracker = progressTracker
+			.reduce(into: [(Double, Double)]() ) {
+				let lastValue = $0.last?.0 ?? 0
+				$0.append(($1, $1 - lastValue))
+			}
+
+		let averageDelta = progressDeltaTracker
+			.map(\.1)
+			.reduce(0, +) / Double(progressTracker.count)
+
+		XCTAssertGreaterThan(averageDelta, 0)
 	}
 
 	/// tests progress tracking when uploading - will fail without api/secret for wasabi in environment
@@ -41,7 +54,10 @@ class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 
 		let now = Date()
 
-		let randomValues: [UInt8] = (0..<(1024 * 1024 * 10)).map { _ in UInt8.random(in: 0...UInt8.max) }
+		// this can be changed per run depending on internet variables - large enough to take more than an instant,
+		// small enough to not timeout.
+		let sizeOfUploadMB = 10
+		let randomValues: [UInt8] = (0..<(1024 * 1024 * sizeOfUploadMB)).map { _ in UInt8.random(in: 0...UInt8.max) }
 
 		let string = "\(method.rawValue)\n\n\n\(formatter.string(from: now))\n\(url.path)"
 		let signature = string.hmac(algorithm: .sha1, key: TestEnvironment.s3AccessSecret)
@@ -59,13 +75,27 @@ class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 			}
 		}
 
-		var progress: Int64 = 0
-		handle.onUploadProgressUpdated { task in
-			XCTAssertGreaterThanOrEqual(task.countOfBytesSent, progress)
-			progress = task.countOfBytesSent
+
+		var progressTracker: [Double] = []
+		handle.onProgressUpdated { task in
+			progressTracker.append(task.progress.fractionCompleted)
 		}
 
-		wait(for: [waitForMocking], timeout: 10)
+		wait(for: [waitForMocking], timeout: 30)
+
+		XCTAssertGreaterThan(progressTracker.count, 2)
+
+		let progressDeltaTracker = progressTracker
+			.reduce(into: [(Double, Double)]() ) {
+				let lastValue = $0.last?.0 ?? 0
+				$0.append(($1, $1 - lastValue))
+			}
+
+		let averageDelta = progressDeltaTracker
+			.map(\.1)
+			.reduce(0, +) / Double(progressTracker.count)
+
+		XCTAssertGreaterThan(averageDelta, 0)
 	}
 
 	func testOnTaskCompletion() {
