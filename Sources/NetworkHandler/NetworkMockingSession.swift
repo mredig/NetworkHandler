@@ -50,8 +50,8 @@ public struct NetworkMockingSession: NetworkLoader {
 	}
 
 	// MARK: - Public
-	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTaskEditor {
-		return NetworkDataTask(mockDelay: mockDelay) {
+	public func loadData(with request: URLRequest, completion: @escaping (Data?, URLResponse?, Error?) -> Void) -> NetworkLoadingTask {
+		return NetworkMockingDataTask(mockDelay: mockDelay) {
 			let tuple = synchronousLoadData(with: request)
 			completion(tuple.0, tuple.1, tuple.2)
 		}
@@ -106,7 +106,7 @@ extension NetworkMockingSession: Hashable {
 	}
 }
 
-public class NetworkDataTask: NetworkLoadingTaskEditor {
+public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
 	public var countOfBytesExpectedToReceive: Int64 = 0
 	public var countOfBytesReceived: Int64 = 0
 	public var countOfBytesExpectedToSend: Int64 = 0
@@ -124,7 +124,7 @@ public class NetworkDataTask: NetworkLoadingTaskEditor {
 	typealias ServerSideSimulationHandler = NetworkMockingSession.ServerSideSimulationHandler
 
 	private static let queue = DispatchQueue(label: "finishedQueue")
-	@NH.ThreadSafe(queue: NetworkDataTask.queue) private var _status: NetworkLoadingTaskStatus = .suspended
+	@NH.ThreadSafe(queue: NetworkMockingDataTask.queue) private var _status: NetworkLoadingTaskStatus = .suspended
 	public private(set) var status: NetworkLoadingTaskStatus {
 		get { _status }
 		set {

@@ -161,7 +161,7 @@ public class NetworkHandler {
 
 		if let cacheKey = useCache.cacheKey(url: request.url) {
 			if let data = cache[cacheKey] {
-				let task = NetworkDataTask(mockDelay: 0) {
+				let task = NetworkMockingDataTask(mockDelay: 0) {
 					completion(.success(data))
 				}
 				task.resume()
