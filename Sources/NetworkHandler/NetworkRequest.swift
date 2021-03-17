@@ -122,7 +122,8 @@ public struct NetworkRequest {
 	public lazy var encoder: NHEncoder = { NetworkRequest.defaultEncoder }()
 
 	/**
-	Default decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`. Changes here will reflect all request that don't provide their own decoder going forward.
+	Default decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`. Changes here will reflect all request that don't
+	provide their own decoder going forward.
 
 	Default value is `JSONDecoder()` along with all of its defaults.
 	*/

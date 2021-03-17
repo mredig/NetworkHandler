@@ -91,7 +91,9 @@ extension NetworkMockingSession: Hashable {
 	/// object for equality. The closure itself is a constant of `NetworkMockingSession` and cannot be changed once created.
 	/// Following that logic, other constant properties do not need to be compared apart from the ID. Since there are a
 	/// couple mutable properties, those also have to be compared for equality, which means this method needs updating
-	/// whenever variable properties change on this struct. The catch with this approach is that if two `NetworkMockingSession`s are created identically, they will not equate to each other, but instead will only equate `true` when comparing copies of the same original. This approach should work fine for the purpose of storing in a collection and checking to confirm uniqueness.
+	/// whenever variable properties change on this struct. The catch with this approach is that if two `NetworkMockingSession`s
+	/// are created identically, they will not equate to each other, but instead will only equate `true` when comparing copies of the
+	/// same original. This approach should work fine for the purpose of storing in a collection and checking to confirm uniqueness.
 	public static func == (lhs: NetworkMockingSession, rhs: NetworkMockingSession) -> Bool {
 		lhs.id == rhs.id &&
 		lhs.mockDelay == rhs.mockDelay &&
