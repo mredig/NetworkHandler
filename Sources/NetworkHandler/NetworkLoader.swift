@@ -22,6 +22,9 @@ public enum NetworkLoadingTaskStatus {
 }
 
 public typealias NetworkLoadingClosure = (NetworkLoadingTask) -> Void
+
+/// Designed to be similar to `URLSessionDataTask`, (intentionally allowing for `NetworkHandlerDataTask` to wrap a `URLSessionDataTask`), but also
+/// provide a layer of conveneince provided by NetworkHandler
 public protocol NetworkLoadingTask: AnyObject {
 	var status: NetworkLoadingTaskStatus { get }
 
