@@ -9,6 +9,7 @@
 
 import XCTest
 @testable import NetworkHandler
+import CryptoSwift
 
 #if os(macOS)
 typealias TestImage = NSImage
@@ -334,6 +335,88 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertThrowsError(try theResult?.get(), "Got unexpected error") { error in
 			XCTAssertEqual(NetworkError.httpNon200StatusCode(code: 202, data: mockData), error as? NetworkError)
 		}
+	}
+
+	func testUploadFile() throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
+		var request = url.request
+		let method = HTTPMethod.put
+		request.httpMethod = method
+
+		let formatter = DateFormatter()
+		formatter.locale = Locale(identifier: "en_US_POSIX")
+		formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
+
+		let now = Date()
+
+		// this can be changed per run depending on internet variables - large enough to take more than an instant,
+		// small enough to not timeout.
+		let sizeOfUploadMB = 10
+
+		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
+		let outputStream = OutputStream(url: dummyFile, append: false)
+		outputStream?.open()
+		let length = 1024 * 1024
+		let gibberish = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
+		let raw = UnsafeMutableRawPointer(gibberish)
+		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
+		var hasher = MD5()
+
+		try (0..<sizeOfUploadMB).forEach { _ in
+			for i in 0..<(length / 8) {
+				quicker[i] = UInt64.random(in: 0...UInt64.max)
+			}
+
+			_ = try hasher.update(withBytes: Array(Data(bytes: gibberish, count: length)))
+			outputStream?.write(gibberish, maxLength: length)
+		}
+		outputStream?.close()
+		gibberish.deallocate()
+
+		let inputStream = InputStream(url: dummyFile)
+
+		let dataHash = try hasher.finish()
+
+		let string = "\(method.rawValue)\n\n\n\(formatter.string(from: now))\n\(url.path)"
+		let signature = string.hmac(algorithm: .sha1, key: TestEnvironment.s3AccessSecret)
+
+
+		request.addValue("\(formatter.string(from: now))", forHTTPHeaderField: .date)
+		request.addValue("AWS \(TestEnvironment.s3AccessKey):\(signature)", forHTTPHeaderField: .authorization)
+		request.httpBodyStream = inputStream
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: dummyFile)
+		}
+		
+		let waitForUpload = expectation(description: "Wait for upload")
+		var theResult: Result<Data?, Error>?
+		let handle = networkHandler.transferMahOptionalDatas(with: request, completion: { result in
+			theResult = result
+			waitForUpload.fulfill()
+		})
+
+		wait(for: [waitForUpload], timeout: 30)
+
+		XCTAssertNoThrow(try theResult?.get())
+		XCTAssertEqual(handle.status, .completed)
+
+		let waitForDownload = expectation(description: "Wait for download")
+		let dlRequest = url.request
+		let dlHandle = networkHandler.transferMahDatas(with: dlRequest, completion: { result in
+			do {
+				XCTAssertNoThrow(try result.get())
+				let uploadedData = try result.get()
+				XCTAssertEqual(uploadedData.md5().toHexString(), dataHash.toHexString())
+			} catch {
+				print("Error confirming upload: \(error)")
+			}
+			waitForDownload.fulfill()
+		})
+
+		wait(for: [waitForDownload], timeout: 30)
+		XCTAssertEqual(dlHandle.status, .completed)
 	}
 
 	/// Tests using a mock session that expected response ranges are respsected

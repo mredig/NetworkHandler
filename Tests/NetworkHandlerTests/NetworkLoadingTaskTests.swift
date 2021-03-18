@@ -57,7 +57,27 @@ class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 		// this can be changed per run depending on internet variables - large enough to take more than an instant,
 		// small enough to not timeout.
 		let sizeOfUploadMB = 10
-		let randomValues: [UInt8] = (0..<(1024 * 1024 * sizeOfUploadMB)).map { _ in UInt8.random(in: 0...UInt8.max) }
+
+		let tempFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
+		let outputStream = OutputStream(url: tempFile, append: false)
+		outputStream?.open()
+		let length = 1024 * sizeOfUploadMB
+		let gibberish = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
+
+		(0..<1024).forEach { _ in
+			(0..<length).forEach {
+				gibberish[$0] = UInt8.random(in: 0...UInt8.max)
+			}
+
+			outputStream?.write(gibberish, maxLength: length)
+		}
+		outputStream?.close()
+		gibberish.deallocate()
+
+		let inputStream = InputStream(url: tempFile)
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: tempFile)
+		}
 
 		let string = "\(method.rawValue)\n\n\n\(formatter.string(from: now))\n\(url.path)"
 		let signature = string.hmac(algorithm: .sha1, key: TestEnvironment.s3AccessSecret)
@@ -65,7 +85,7 @@ class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 
 		request.addValue("\(formatter.string(from: now))", forHTTPHeaderField: .date)
 		request.addValue("AWS \(TestEnvironment.s3AccessKey):\(signature)", forHTTPHeaderField: .authorization)
-		request.httpBody = Data(randomValues)
+		request.httpBodyStream = inputStream
 
 		let waitForMocking = expectation(description: "Wait for mocking")
 		let handle = networkHandler.transferMahDatas(with: request) { result in
