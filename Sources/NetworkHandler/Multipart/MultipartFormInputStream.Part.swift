@@ -43,7 +43,6 @@ extension MultipartFormInputStream {
 			self.bodyLength = strData.count
 
 			super.init()
-			commonInit()
 		}
 
 		init(withName name: String, boundary: String, data: Data, contentType: String, filename: String? = nil) {
@@ -58,10 +57,9 @@ extension MultipartFormInputStream {
 			self.bodyLength = data.count
 
 			super.init()
-			commonInit()
 		}
 
-		init?(withName name: String, boundary: String, filename: String? = nil, fileURL: URL, contentType: String? = nil) {
+		init(withName name: String, boundary: String, filename: String? = nil, fileURL: URL, contentType: String? = nil) throws {
 			let contentType = contentType ?? Self.getMimeType(forFileExtension: fileURL.pathExtension)
 
 			let headerStr = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename ?? fileURL.lastPathComponent)\"\r\nContent-Type: \(contentType)\r\n\r\n"
@@ -70,15 +68,20 @@ extension MultipartFormInputStream {
 				let fileStream = InputStream(url: fileURL),
 				let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path),
 				let fileSize = attributes[.size] as? Int
-			else { return nil }
+			else { throw PartError.fileAttributesInaccessible }
 			self.body = fileStream
 			self.bodyLength = fileSize
 
 			super.init()
-			commonInit()
 		}
 
-		init(withName name: String, boundary: String, stream: InputStream, streamFilename: String, streamLength: Int) {
+		init(withName name: String, boundary: String, stream: InputStream, streamFilename: String, streamLength: Int) throws {
+			switch stream.streamStatus {
+			case .notOpen, .open:
+				break
+			default:
+				throw StreamConcatError.mustStartInNotOpenState
+			}
 			let contentType = Self.genericBinaryMimeType
 			let headerStr = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; filename=\"\(streamFilename)\"\r\nContent-Type: \(contentType)\r\n\r\n"
 			self.headers = headerStr.data(using: .utf8) ?? Data(headerStr.utf8)
@@ -86,7 +89,6 @@ extension MultipartFormInputStream {
 			self.bodyLength = streamLength
 
 			super.init()
-			commonInit()
 		}
 
 		init(footerStreamWithBoundary boundary: String) {
@@ -98,19 +100,14 @@ extension MultipartFormInputStream {
 			self.bodyLength = body.count
 
 			super.init()
-			commonInit()
 		}
 
-		private func commonInit() {
-			precondition(streamStatus == .notOpen)
-			[headerStream, body, footerStream]
-				.forEach {
-					do {
-						try addStream($0)
-					} catch {
-						print("Error adding stream: \(error)")
-					}
-				}
+		override func close() {
+			super.close()
+		}
+
+		override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+			super.read(buffer, maxLength: len)
 		}
 
 		override func open() {
@@ -122,6 +119,10 @@ extension MultipartFormInputStream {
 				print("Error concatenating streams: \(error)")
 			}
 			super.open()
+		}
+
+		enum PartError: Error {
+			case fileAttributesInaccessible
 		}
 	}
 }

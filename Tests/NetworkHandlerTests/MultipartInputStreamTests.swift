@@ -93,9 +93,10 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 		let testedText = "tested"
 		multipart.addPart(named: "Text", string: testedText)
-		multipart.addPart(named: "File1", stream: arbitraryStream, streamFilename: "text.txt", streamLength: arbitraryData.count)
+		try multipart.addPart(named: "File1", stream: arbitraryStream, streamFilename: "text.txt", streamLength: arbitraryData.count)
 		let (fileURL, _) = try createTestFile()
-		multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
+		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
+		multipart.open()
 
 		var readCount = 0
 		var finalData = Data()
@@ -111,13 +112,14 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 			finalData += data
 		}
+		multipart.close()
 
 		let expected = """
 		--Boundary-alskdglkasdjfglkajsdf\r\nContent-Disposition: form-data; name=\"Text\"\r\n\r\ntested\r\n--Boundary-\
 		alskdglkasdjfglkajsdf\r\nContent-Disposition: form-data; name=\"File1\"; filename=\"text.txt\"\r\nContent-Type: \
 		application/octet-stream\r\n\r\nOdd input stream\r\n--Boundary-alskdglkasdjfglkajsdf\r\nContent-Disposition: \
 		form-data; name=\"File2\"; filename=\"tempfile\"\r\nContent-Type: text/html\r\n\r\n<html><body>this is a \
-		body</body></html>\r\n
+		body</body></html>\r\n--Boundary-alskdglkasdjfglkajsdf--\r\n
 		"""
 
 		finalData = finalData[0..<readCount]
@@ -138,9 +140,9 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 		let testedText = "tested"
 		multipart.addPart(named: "Text", string: testedText)
-		multipart.addPart(named: "File1", stream: arbitraryStream, streamFilename: "text.txt", streamLength: arbitraryData.count)
+		try multipart.addPart(named: "File1", stream: arbitraryStream, streamFilename: "text.txt", streamLength: arbitraryData.count)
 		let (fileURL, fileContents) = try createTestFile()
-		multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
+		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
 
 		let url = URL(string: "https://httpbin.org/post")!
 		let waitForDownload = expectation(description: "Wait for download")
