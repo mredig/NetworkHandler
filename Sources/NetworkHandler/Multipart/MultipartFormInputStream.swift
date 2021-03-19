@@ -1,12 +1,5 @@
 import Foundation
 
-private protocol StreamProv: AnyObject {
-	var hasBytesAvailable: Bool { get }
-	func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int
-}
-
-extension InputStream: StreamProv {}
-
 public class MultipartInputStream: InputStream {
 	public let boundary: String
 	public private(set) var length: Int
@@ -17,7 +10,6 @@ public class MultipartInputStream: InputStream {
 	}
 
 	private var parts: [Part] = []
-	private var allStreamParts: [StreamProv] { parts }
 	private var currentPart = 0
 	private let footer: Data
 	private lazy var footerStream: InputStream = {
@@ -110,14 +102,14 @@ public class MultipartInputStream: InputStream {
 		return count
 	}
 
-	private func read(part: StreamProv, into pointer: UnsafeMutablePointer<UInt8>, writingIntoPointerAt startOffset: Int, maxLength: Int) -> Int {
+	private func read(part: Part, into pointer: UnsafeMutablePointer<UInt8>, writingIntoPointerAt startOffset: Int, maxLength: Int) -> Int {
 		let pointerWithOffset = pointer.advanced(by: startOffset)
 		return part.read(pointerWithOffset, maxLength: maxLength)
 	}
 
-	private func getCurrentPart() throws -> StreamProv {
-		guard currentPart < allStreamParts.count else { throw Part.PartError.atEndOfStreams }
-		let part = allStreamParts[currentPart]
+	private func getCurrentPart() throws -> Part {
+		guard currentPart < parts.count else { throw Part.PartError.atEndOfStreams }
+		let part = parts[currentPart]
 		guard part.hasBytesAvailable else {
 			currentPart += 1
 			return try getCurrentPart()
@@ -275,5 +267,3 @@ extension MultipartInputStream {
 		}
 	}
 }
-
-extension MultipartInputStream.Part: StreamProv {}
