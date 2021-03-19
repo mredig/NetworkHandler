@@ -1,13 +1,30 @@
 import Foundation
 
+private protocol StreamProv: AnyObject {
+	var hasBytesAvailable: Bool { get }
+	func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int
+}
+
+extension InputStream: StreamProv {}
+
 public class MultipartInputStream: InputStream {
 	public let boundary: String
 	public private(set) var length: Int
 	public private(set) var delivered: Int = 0
 
+	public var multipartContentTypeHeaderValue: HTTPHeaderValue {
+		"multipart/form-data; charset=utf-8; boundary=\(boundary)"
+	}
+
 	private var parts: [Part] = []
+	private var allStreamParts: [StreamProv] { parts + [footerStream] }
 	private var currentPart = 0
 	private let footer: Data
+	private lazy var footerStream: InputStream = {
+		let stream = InputStream(data: footer)
+		stream.open()
+		return stream
+	}()
 	private var _streamStatus: Stream.Status = .notOpen
 	public override var streamStatus: Stream.Status {
 		_streamStatus
@@ -92,14 +109,14 @@ public class MultipartInputStream: InputStream {
 		return count
 	}
 
-	private func read(part: Part, into pointer: UnsafeMutablePointer<UInt8>, writingIntoPointerAt startOffset: Int, maxLength: Int) -> Int {
+	private func read(part: StreamProv, into pointer: UnsafeMutablePointer<UInt8>, writingIntoPointerAt startOffset: Int, maxLength: Int) -> Int {
 		let pointerWithOffset = pointer.advanced(by: startOffset)
-		return part.read(buffer: pointerWithOffset, maxLength: maxLength)
+		return part.read(pointerWithOffset, maxLength: maxLength)
 	}
 
-	private func getCurrentPart() throws -> Part {
-		guard currentPart < parts.count else { throw Part.PartError.atEndOfStreams }
-		let part = parts[currentPart]
+	private func getCurrentPart() throws -> StreamProv {
+		guard currentPart < allStreamParts.count else { throw Part.PartError.atEndOfStreams }
+		let part = allStreamParts[currentPart]
 		guard part.hasBytesAvailable else {
 			currentPart += 1
 			return try getCurrentPart()
@@ -176,6 +193,10 @@ extension MultipartInputStream {
 			commonInit()
 		}
 
+//		init(footerStreamWithBoundary boundary: String) {
+//			let headerStr = 
+//		}
+
 		private func commonInit() {
 			body.open()
 		}
@@ -201,7 +222,7 @@ extension MultipartInputStream {
 			streams.last?.hasBytesAvailable ?? false
 		}
 
-		func read(buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+		func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
 			var count = 0
 			while count < len {
 				do {
@@ -249,106 +270,4 @@ extension MultipartInputStream {
 	}
 }
 
-
-public class ConcatenatedInputStream: InputStream {
-
-	public private(set) var streams: [InputStream] = []
-
-	private var streamIndex = 0
-
-	public override var hasBytesAvailable: Bool {
-		streams.last?.hasBytesAvailable ?? false
-	}
-
-	private var _streamStatus: Stream.Status = .notOpen
-	public override var streamStatus: Stream.Status { _streamStatus }
-
-	public convenience init(streams: [InputStream]) throws {
-		self.init()
-		self.streams = streams
-		try streams.forEach {
-			switch $0.streamStatus {
-			case .open:
-				print("Warning: stream already open after adding to concatenation. When reading, it will continue where it left off, if already read.")
-				return
-			case .notOpen:
-				$0.open()
-			default:
-				throw StreamConcatError.mustStartInNotOpenState
-			}
-		}
-	}
-
-	public override func open() {
-		_streamStatus = .open
-	}
-
-	public override func close() {
-		_streamStatus = .closed
-	}
-
-	private weak var _delegate: StreamDelegate?
-	public override var delegate: StreamDelegate? {
-		get { _delegate }
-		set { _delegate = newValue }
-	}
-
-	public override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-		_streamStatus = .reading
-		var statusOnExit: Stream.Status = .open
-		defer { _streamStatus = statusOnExit }
-
-		var count = 0
-		while count < len {
-			do {
-				let stream = try getCurrentStream()
-				count += read(stream: stream, into: buffer, writingIntoPointerAt: count, maxLength: len - count)
-			} catch StreamConcatError.atEndOfStreams {
-				statusOnExit = .atEnd
-				return count
-			} catch {
-				print("Error getting current stream: \(error)")
-			}
-		}
-		return count
-	}
-
-	private func read(stream: InputStream, into pointer: UnsafeMutablePointer<UInt8>, writingIntoPointerAt startOffset: Int, maxLength: Int) -> Int {
-		let pointerWithOffset = pointer.advanced(by: startOffset)
-		return stream.read(pointerWithOffset, maxLength: maxLength)
-	}
-
-	private func getCurrentStream() throws -> InputStream {
-		guard streamIndex < streams.count else { throw StreamConcatError.atEndOfStreams }
-		let stream = streams[streamIndex]
-		switch stream.streamStatus {
-		case .open:
-			return stream
-		case .notOpen:
-			stream.open()
-			return try getCurrentStream()
-		case .atEnd:
-			stream.close()
-			streamIndex += 1
-			return try getCurrentStream()
-		case .error:
-			throw stream.streamError!
-		default:
-			print("Unexpected status: \(stream.streamStatus)")
-			throw StreamConcatError.unexpectedStatus(stream.streamStatus)
-		}
-	}
-
-	public override func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool { false }
-
-	public override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
-	public override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
-	public override func property(forKey key: Stream.PropertyKey) -> Any? { nil }
-	public override func setProperty(_ property: Any?, forKey key: Stream.PropertyKey) -> Bool { false }
-
-	public enum StreamConcatError: Error {
-		case atEndOfStreams
-		case unexpectedStatus(Stream.Status)
-		case mustStartInNotOpenState
-	}
-}
+extension MultipartInputStream.Part: StreamProv {}
