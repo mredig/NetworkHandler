@@ -14,11 +14,16 @@ public struct HTTPHeader: Hashable {
 }
 
 /// Pre-typed strings for use with formatting headers
-public struct HTTPHeaderKey: Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
-	public let key: String
+public struct HTTPHeaderKey: RawRepresentable, Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+	public var key: String { rawValue }
+	public let rawValue: String
 
 	public init(stringLiteral value: StringLiteralType) {
-		self.key = value
+		self.rawValue = value
+	}
+
+	public init?(rawValue: String) {
+		self.rawValue = rawValue
 	}
 
 	public static let accept: HTTPHeaderKey = "Accept"
@@ -59,11 +64,16 @@ public struct HTTPHeaderKey: Hashable, ExpressibleByStringLiteral, ExpressibleBy
 	}
 }
 
-public struct HTTPHeaderValue: Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
-	public let value: String
+public struct HTTPHeaderValue: RawRepresentable, Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+	public let rawValue: String
+	public var value: String { rawValue }
 
 	public init(stringLiteral value: StringLiteralType) {
-		self.value = value
+		self.rawValue = value
+	}
+
+	public init?(rawValue: String) {
+		self.rawValue = rawValue
 	}
 
 	public static let javascript: HTTPHeaderValue = "application/javascript"
@@ -99,6 +109,10 @@ public struct HTTPHeaderValue: Hashable, ExpressibleByStringLiteral, Expressible
 	public static let plain: HTTPHeaderValue = "text/plain"
 	public static let zip: HTTPHeaderValue = "application/zip"
 	public static let plist: HTTPHeaderValue = "application/x-plist"
+	/// If using built in multipart form support, look into `MultipartFormInputStream.multipartContentTypeHeaderValue`
+	public static func multipart(boundary: String) -> HTTPHeaderValue {
+		"multipart/form-data; boundary=\(boundary)"
+	}
 
 	public static func ==(lhs: HTTPHeaderValue, rhs: String?) -> Bool {
 		lhs.value == rhs
