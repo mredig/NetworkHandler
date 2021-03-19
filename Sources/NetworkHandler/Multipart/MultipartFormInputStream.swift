@@ -13,11 +13,11 @@ public class MultipartInputStream: InputStream {
 	public private(set) var delivered: Int = 0
 
 	public var multipartContentTypeHeaderValue: HTTPHeaderValue {
-		"multipart/form-data; charset=utf-8; boundary=\(boundary)"
+		"multipart/form-data; boundary=\(boundary)"
 	}
 
 	private var parts: [Part] = []
-	private var allStreamParts: [StreamProv] { parts + [footerStream] }
+	private var allStreamParts: [StreamProv] { parts }
 	private var currentPart = 0
 	private let footer: Data
 	private lazy var footerStream: InputStream = {
@@ -41,7 +41,7 @@ public class MultipartInputStream: InputStream {
 	}
 
 	public init(boundary: String = UUID().uuidString) {
-		self.boundary = boundary
+		self.boundary = "Boundary-\(boundary)"
 		self.length = 0
 		let footer = "--\(boundary)--\r\n"
 		self.footer = footer.data(using: .utf8) ?? Data(footer.utf8)
@@ -81,6 +81,7 @@ public class MultipartInputStream: InputStream {
 
 	public override func open() {
 		_streamStatus = .open
+		parts.append(.init(footerStreamWithBoundary: boundary))
 	}
 
 	public override func close() {
@@ -193,9 +194,14 @@ extension MultipartInputStream {
 			commonInit()
 		}
 
-//		init(footerStreamWithBoundary boundary: String) {
-//			let headerStr = 
-//		}
+		init(footerStreamWithBoundary boundary: String) {
+			let headerStr = "--"
+			self.headers = headerStr.data(using: .utf8) ?? Data(headerStr.utf8)
+			let bodyStr = "\(boundary)--"
+			let body = bodyStr.data(using: .utf8) ?? Data(bodyStr.utf8)
+			self.body = InputStream(data: body)
+			self.bodyLength = body.count
+		}
 
 		private func commonInit() {
 			body.open()

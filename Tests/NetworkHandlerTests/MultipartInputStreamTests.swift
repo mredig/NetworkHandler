@@ -8,7 +8,7 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 		let part1 = InputStream(data: "Hello ".data(using: .utf8)!)
 		let part2 = InputStream(data: "World!".data(using: .utf8)!)
-		let part3 = InputStream(url: try createTestFile())!
+		let part3 = InputStream(url: try createTestFile().0)!
 
 		let concat = try ConcatenatedInputStream(streams: [part1, part2, part3])
 
@@ -30,7 +30,7 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 		let part1 = InputStream(data: "Hello ".data(using: .utf8)!)
 		let part2 = InputStream(data: "World!".data(using: .utf8)!)
-		let part3 = InputStream(url: try createTestFile())!
+		let part3 = InputStream(url: try createTestFile().0)!
 
 		let concat = try ConcatenatedInputStream(streams: [part1, part2, part3])
 
@@ -59,7 +59,7 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 		let part1 = InputStream(data: "Hello ".data(using: .utf8)!)
 		let part2 = InputStream(data: "World!".data(using: .utf8)!)
-		let part3 = InputStream(url: try createTestFile())!
+		let part3 = InputStream(url: try createTestFile().0)!
 
 		let concat = try ConcatenatedInputStream(streams: [part1, part2, part3])
 
@@ -86,38 +86,20 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 	func testMultipartUpload() throws {
 		let networkHandler = generateNetworkHandlerInstance()
 
-		let boundary = "__X_PAW_BOUNDARY__"
+		let boundary = "alskdglkasdjfglkajsdf"
 		let multipart = MultipartInputStream(boundary: boundary)
 
-		let arbitraryData = "Odd input stream".data(using: .utf8)!
+		let arbText = "Odd input stream"
+		let arbitraryData = arbText.data(using: .utf8)!
 		let arbitraryStream = InputStream(data: arbitraryData)
 
-		multipart.addPart(named: "Text", string: "tested")
-		multipart.addPart(named: "Text2", stream: arbitraryStream, streamFilename: "text.txt", streamLength: arbitraryData.count)
-		multipart.addPart(named: "File", fileURL: try createTestFile(), contentType: "text/html")
+		let testedText = "tested"
+		multipart.addPart(named: "Text", string: testedText)
+		multipart.addPart(named: "File1", stream: arbitraryStream, streamFilename: "text.txt", streamLength: arbitraryData.count)
+		let (fileURL, fileContents) = try createTestFile()
+		multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
 
-//		let waitForDownload = expectation(description: "asdgljkha")
 		let url = URL(string: "https://httpbin.org/post")!
-//		var request = URLRequest(url: url)
-
-//		request.httpMethod = "POST"
-//		request.httpBodyStream = multipart
-//		request.addValue("multipart/form-data; charset=utf-8; boundary=__X_PAW_BOUNDARY__", forHTTPHeaderField: "Content-Type")
-////		request.httpBody = finalData
-//
-//		//let sem = DispatchSemaphore(value: 0)
-//		URLSession.shared.dataTask(with: request) { (data, response, err) in
-//			if let error = err {
-//				print("Error: \(error)")
-//				return
-//			}
-//
-//			guard let data = data else { return }
-//			print(String(data: data, encoding: .utf8)!)
-//			waitForDownload.fulfill()
-//		//	sem.signal()
-//		}.resume()
-
 		let waitForDownload = expectation(description: "Wait for download")
 		var request = url.request
 		request.httpMethod = .post
@@ -128,10 +110,12 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 				XCTAssertNoThrow(try result.get())
 				let uploadedData = try result.get()
 				let dict = try? JSONSerialization.jsonObject(with: uploadedData, options: []) as? [String: Any]
-				let	rubberBand = dict?["form"] as? String
-				print(rubberBand)
-				print(String(data: uploadedData, encoding: .utf8)!)
-//				XCTAssertEqual(uploadedData.md5().toHexString(), dataHash.toHexString())
+				let	form = dict?["form"] as? [String: String]
+				let files = dict?["files"] as? [String: String]
+
+				XCTAssertEqual(arbText, files?["File1"])
+				XCTAssertEqual(fileContents, files?["File2"]?.data(using: .utf8))
+				XCTAssertEqual(testedText, form?["Text"])
 			} catch {
 				print("Error confirming upload: \(error)")
 			}
@@ -143,13 +127,13 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 	}
 
 	// MARK: - common utilities
-	private func createTestFile() throws -> URL {
+	private func createTestFile() throws -> (URL, Data) {
 		let testFileURL = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
 		let testFileContents = "<html><body>this is a body</body></html>".data(using: .utf8)!
 		try testFileContents.write(to: testFileURL)
 		addTeardownBlock {
 			try? FileManager.default.removeItem(at: testFileURL)
 		}
-		return testFileURL
+		return (testFileURL, testFileContents)
 	}
 }
