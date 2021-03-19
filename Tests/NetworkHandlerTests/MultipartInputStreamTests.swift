@@ -87,7 +87,7 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 		let networkHandler = generateNetworkHandlerInstance()
 
 		let boundary = "alskdglkasdjfglkajsdf"
-		let multipart = MultipartInputStream(boundary: boundary)
+		let multipart = MultipartFormInputStream(boundary: boundary)
 
 		let arbText = "Odd input stream"
 		let arbitraryData = arbText.data(using: .utf8)!
