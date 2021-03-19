@@ -90,7 +90,7 @@ public class MultipartFormInputStream: InputStream {
 			do {
 				let part = try getCurrentPart()
 				count += read(part: part, into: buffer, writingIntoPointerAt: count, maxLength: len - count)
-			} catch Part.PartError.atEndOfStreams {
+			} catch ConcatenatedInputStream.StreamConcatError.atEndOfStreams {
 				statusOnExit = .atEnd
 				return count
 			} catch {
@@ -108,7 +108,7 @@ public class MultipartFormInputStream: InputStream {
 	}
 
 	private func getCurrentPart() throws -> Part {
-		guard currentPart < parts.count else { throw Part.PartError.atEndOfStreams }
+		guard currentPart < parts.count else { throw ConcatenatedInputStream.StreamConcatError.atEndOfStreams }
 		let part = parts[currentPart]
 		guard part.hasBytesAvailable else {
 			currentPart += 1

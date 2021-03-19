@@ -125,6 +125,7 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(expected, finalString)
 	}
 
+	/// Dependent on the service at `https://httpbin.org/`
 	func testMultipartUpload() throws {
 		let networkHandler = generateNetworkHandlerInstance()
 

@@ -7,26 +7,22 @@ public class ConcatenatedInputStream: InputStream {
 	private var streamIndex = 0
 
 	public override var hasBytesAvailable: Bool {
-		streams.last?.hasBytesAvailable ?? false
+		(try? getCurrentStream().hasBytesAvailable) ?? false
 	}
 
 	private var _streamStatus: Stream.Status = .notOpen
 	public override var streamStatus: Stream.Status { _streamStatus }
 
-	public convenience init(streams: [InputStream]) throws {
-		self.init()
-		self.streams = streams
+	public init(streams: [InputStream]) throws {
+		super.init(data: Data())
+		
 		try streams.forEach {
-			switch $0.streamStatus {
-			case .open:
-				print("Warning: stream already open after adding to concatenation. When reading, it will continue where it left off, if already read.")
-				return
-			case .notOpen:
-				$0.open()
-			default:
-				throw StreamConcatError.mustStartInNotOpenState
-			}
+			try addStream($0)
 		}
+	}
+
+	public init() {
+		super.init(data: Data())
 	}
 
 	public override func open() {
@@ -41,6 +37,19 @@ public class ConcatenatedInputStream: InputStream {
 	public override var delegate: StreamDelegate? {
 		get { _delegate }
 		set { _delegate = newValue }
+	}
+
+	public func addStream(_ stream: InputStream) throws {
+		guard _streamStatus == .notOpen else { throw StreamConcatError.cannotAddStreamsOnceOpen }
+		switch stream.streamStatus {
+		case .open:
+			print("Warning: stream already open after adding to concatenation. When reading, it will continue where it left off, if already read.")
+		case .notOpen:
+			break
+		default:
+			throw StreamConcatError.mustStartInNotOpenState
+		}
+		streams.append(stream)
 	}
 
 	public override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
@@ -82,7 +91,13 @@ public class ConcatenatedInputStream: InputStream {
 			streamIndex += 1
 			return try getCurrentStream()
 		case .error:
-			throw stream.streamError!
+			throw stream.streamError ?? StreamConcatError.unknownError
+		case .closed:
+			if streamIndex == streams.count {
+				throw StreamConcatError.atEndOfStreams
+			} else {
+				fallthrough
+			}
 		default:
 			print("Unexpected status: \(stream.streamStatus)")
 			throw StreamConcatError.unexpectedStatus(stream.streamStatus)
@@ -100,5 +115,7 @@ public class ConcatenatedInputStream: InputStream {
 		case atEndOfStreams
 		case unexpectedStatus(Stream.Status)
 		case mustStartInNotOpenState
+		case cannotAddStreamsOnceOpen
+		case unknownError
 	}
 }

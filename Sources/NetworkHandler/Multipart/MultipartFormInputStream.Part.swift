@@ -3,7 +3,7 @@ import CoreServices
 import UniformTypeIdentifiers
 
 extension MultipartFormInputStream {
-	class Part {
+	class Part: ConcatenatedInputStream {
 		static let genericBinaryMimeType = "application/octet-stream"
 		static func getMimeType(forFileExtension pathExt: String) -> String {
 			if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
@@ -25,6 +25,16 @@ extension MultipartFormInputStream {
 		var headersLength: Int { headers.count }
 		var length: Int { headersLength + bodyLength + 2 }
 
+		private lazy var headerStream: InputStream = {
+			let stream = InputStream(data: headers)
+			return stream
+		}()
+
+		private let footerStream: InputStream = {
+			let stream = InputStream(data: "\r\n".data(using: .utf8)!)
+			return stream
+		}()
+
 		init(withName name: String, boundary: String, string: String) {
 			let headerStr = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\n\r\n"
 			self.headers = headerStr.data(using: .utf8) ?? Data(headerStr.utf8)
@@ -32,6 +42,7 @@ extension MultipartFormInputStream {
 			self.body = InputStream(data: strData)
 			self.bodyLength = strData.count
 
+			super.init()
 			commonInit()
 		}
 
@@ -46,6 +57,7 @@ extension MultipartFormInputStream {
 			self.body = InputStream(data: data)
 			self.bodyLength = data.count
 
+			super.init()
 			commonInit()
 		}
 
@@ -62,6 +74,7 @@ extension MultipartFormInputStream {
 			self.body = fileStream
 			self.bodyLength = fileSize
 
+			super.init()
 			commonInit()
 		}
 
@@ -72,6 +85,7 @@ extension MultipartFormInputStream {
 			self.body = stream
 			self.bodyLength = streamLength
 
+			super.init()
 			commonInit()
 		}
 
@@ -82,77 +96,32 @@ extension MultipartFormInputStream {
 			let body = bodyStr.data(using: .utf8) ?? Data(bodyStr.utf8)
 			self.body = InputStream(data: body)
 			self.bodyLength = body.count
+
+			super.init()
+			commonInit()
 		}
 
 		private func commonInit() {
-			body.open()
-		}
-
-		private lazy var headerStream: InputStream = {
-			let stream = InputStream(data: headers)
-			stream.open()
-			return stream
-		}()
-
-		private let footerStream: InputStream = {
-			let stream = InputStream(data: "\r\n".data(using: .utf8)!)
-			stream.open()
-			return stream
-		}()
-		private lazy var streams = [
-			headerStream,
-			body,
-			footerStream
-		]
-		private var streamIndex: Int = 0
-		var hasBytesAvailable: Bool {
-			streams.last?.hasBytesAvailable ?? false
-		}
-
-		func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-			var count = 0
-			while count < len {
-				do {
-					let stream = try getCurrentStream()
-					count += read(stream: stream, into: buffer, writingIntoPointerAt: count, maxLength: len - count)
-				} catch PartError.atEndOfStreams {
-					return count
-				} catch {
-					print("Error getting current stream: \(error)")
+			precondition(streamStatus == .notOpen)
+			[headerStream, body, footerStream]
+				.forEach {
+					do {
+						try addStream($0)
+					} catch {
+						print("Error adding stream: \(error)")
+					}
 				}
+		}
+
+		override func open() {
+			do {
+				try addStream(headerStream)
+				try addStream(body)
+				try addStream(footerStream)
+			} catch {
+				print("Error concatenating streams: \(error)")
 			}
-			return count
-		}
-
-		private func read(stream: InputStream, into pointer: UnsafeMutablePointer<UInt8>, writingIntoPointerAt startOffset: Int, maxLength: Int) -> Int {
-			let pointerWithOffset = pointer.advanced(by: startOffset)
-			return stream.read(pointerWithOffset, maxLength: maxLength)
-		}
-
-		private func getCurrentStream() throws -> InputStream {
-			guard streamIndex < streams.count else { throw PartError.atEndOfStreams }
-			let stream = streams[streamIndex]
-			switch stream.streamStatus {
-			case .open:
-				return stream
-			case .notOpen:
-				stream.open()
-				return try getCurrentStream()
-			case .atEnd:
-				stream.close()
-				streamIndex += 1
-				return try getCurrentStream()
-			case .error:
-				throw stream.streamError!
-			default:
-				print("Unexpected status: \(stream.streamStatus)")
-				throw PartError.unexpectedStatus(stream.streamStatus)
-			}
-		}
-
-		enum PartError: Error {
-			case atEndOfStreams
-			case unexpectedStatus(Stream.Status)
+			super.open()
 		}
 	}
 }
