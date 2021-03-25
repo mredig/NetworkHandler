@@ -82,7 +82,12 @@ public class ConcatenatedInputStream: InputStream {
 		let stream = streams[streamIndex]
 		switch stream.streamStatus {
 		case .open:
-			return stream
+			if stream.hasBytesAvailable {
+				return stream
+			} else {
+				stream.close()
+				return try getCurrentStream()
+			}
 		case .notOpen:
 			stream.open()
 			return try getCurrentStream()
@@ -93,10 +98,11 @@ public class ConcatenatedInputStream: InputStream {
 		case .error:
 			throw stream.streamError ?? StreamConcatError.unknownError
 		case .closed:
-			if streamIndex == streams.count {
+			if streamIndex >= streams.count {
 				throw StreamConcatError.atEndOfStreams
 			} else {
-				fallthrough
+				streamIndex += 1
+				return try getCurrentStream()
 			}
 		default:
 			print("Unexpected status: \(stream.streamStatus)")
