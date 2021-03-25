@@ -2,6 +2,14 @@ import Foundation
 
 public class MultipartFormInputStream: ConcatenatedInputStream {
 	public let boundary: String
+	private let originalBoundary: String
+
+	private var addedFooter = false
+
+	/// intended to be an approximation, not exact. Will not include footer if has not been added yet.
+	public var totalSize: Int {
+		streams.reduce(0) { $0 + (($1 as? Part)?.length ?? 0) }
+	}
 
 	public var multipartContentTypeHeaderValue: HTTPHeaderValue {
 		"multipart/form-data; boundary=\(boundary)"
@@ -14,6 +22,7 @@ public class MultipartFormInputStream: ConcatenatedInputStream {
 	}
 
 	public init(boundary: String = UUID().uuidString) {
+		self.originalBoundary = boundary
 		self.boundary = "Boundary-\(boundary)"
 		super.init()
 	}
@@ -35,14 +44,12 @@ public class MultipartFormInputStream: ConcatenatedInputStream {
 		try addStream(part)
 	}
 
-	public func addPart(named name: String, stream: InputStream, streamFilename: String, streamLength: Int) throws {
-		let part = try Part(withName: name, boundary: boundary, stream: stream, streamFilename: streamFilename, streamLength: streamLength)
-		try addStream(part)
-	}
-
 	public override func open() {
-		// there is no way this should be able to fail
-		try! addStream(Part(footerStreamWithBoundary: boundary))
+		if addedFooter == false {
+			// there is no way this should be able to fail
+			try! addStream(Part(footerStreamWithBoundary: boundary))
+			addedFooter = true
+		}
 		super.open()
 	}
 
@@ -54,4 +61,28 @@ public class MultipartFormInputStream: ConcatenatedInputStream {
 	public override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
 	public override func property(forKey key: Stream.PropertyKey) -> Any? { nil }
 	public override func setProperty(_ property: Any?, forKey key: Stream.PropertyKey) -> Bool { false }
+
+	public override func addStream(_ stream: InputStream) throws {
+		guard type(of: stream) == Part.self else { throw MultipartError.streamNotPart }
+		try super.addStream(stream)
+	}
+
+	enum MultipartError: Error {
+		case streamNotPart
+	}
+}
+
+extension MultipartFormInputStream: NSCopying {
+	public func copy(with zone: NSZone? = nil) -> Any {
+		let newCopy = MultipartFormInputStream(boundary: originalBoundary)
+
+		streams.forEach {
+			guard let streamCopy = $0.copy() as? Part else { fatalError("Can't copy stream") }
+			try! newCopy.addStream(streamCopy)
+		}
+
+		newCopy.addedFooter = addedFooter
+
+		return newCopy
+	}
 }

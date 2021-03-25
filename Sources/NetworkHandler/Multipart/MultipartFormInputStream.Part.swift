@@ -19,6 +19,8 @@ extension MultipartFormInputStream {
 			}
 		}
 
+		let copyGenerator: () -> Part
+
 		let headers: Data
 		let body: InputStream
 		var bodyLength: Int
@@ -41,6 +43,9 @@ extension MultipartFormInputStream {
 			let strData = string.data(using: .utf8) ?? Data(string.utf8)
 			self.body = InputStream(data: strData)
 			self.bodyLength = strData.count
+			self.copyGenerator = {
+				Part(withName: name, boundary: boundary, string: string)
+			}
 
 			super.init()
 		}
@@ -55,7 +60,9 @@ extension MultipartFormInputStream {
 			self.headers = headerStr.data(using: .utf8) ?? Data(headerStr.utf8)
 			self.body = InputStream(data: data)
 			self.bodyLength = data.count
-
+			self.copyGenerator = {
+				Part(withName: name, boundary: boundary, data: data, contentType: contentType, filename: filename)
+			}
 			super.init()
 		}
 
@@ -71,23 +78,9 @@ extension MultipartFormInputStream {
 			else { throw PartError.fileAttributesInaccessible }
 			self.body = fileStream
 			self.bodyLength = fileSize
-
-			super.init()
-		}
-
-		init(withName name: String, boundary: String, stream: InputStream, streamFilename: String, streamLength: Int) throws {
-			switch stream.streamStatus {
-			case .notOpen, .open:
-				break
-			default:
-				throw StreamConcatError.mustStartInNotOpenState
+			self.copyGenerator = {
+				try! Part(withName: name, boundary: boundary, filename: filename, fileURL: fileURL, contentType: contentType)
 			}
-			let contentType = Self.genericBinaryMimeType
-			let headerStr = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; filename=\"\(streamFilename)\"\r\nContent-Type: \(contentType)\r\n\r\n"
-			self.headers = headerStr.data(using: .utf8) ?? Data(headerStr.utf8)
-			self.body = stream
-			self.bodyLength = streamLength
-
 			super.init()
 		}
 
@@ -98,16 +91,14 @@ extension MultipartFormInputStream {
 			let body = bodyStr.data(using: .utf8) ?? Data(bodyStr.utf8)
 			self.body = InputStream(data: body)
 			self.bodyLength = body.count
-
+			self.copyGenerator = {
+				Part(footerStreamWithBoundary: boundary)
+			}
 			super.init()
 		}
 
 		override func close() {
 			super.close()
-		}
-
-		override func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
-			super.read(buffer, maxLength: len)
 		}
 
 		override func open() {
@@ -124,5 +115,11 @@ extension MultipartFormInputStream {
 		enum PartError: Error {
 			case fileAttributesInaccessible
 		}
+	}
+}
+
+extension MultipartFormInputStream.Part: NSCopying {
+	func copy(with zone: NSZone? = nil) -> Any {
+		copyGenerator()
 	}
 }

@@ -89,30 +89,14 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 		let arbText = "Odd input stream"
 		let arbitraryData = arbText.data(using: .utf8)!
-		let arbitraryStream = InputStream(data: arbitraryData)
 
 		let testedText = "tested"
 		multipart.addPart(named: "Text", string: testedText)
-		try multipart.addPart(named: "File1", stream: arbitraryStream, streamFilename: "text.txt", streamLength: arbitraryData.count)
+		multipart.addPart(named: "File1", data: arbitraryData, filename: "text.txt")
 		let (fileURL, _) = try createTestFile()
 		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
-		multipart.open()
 
-		var readCount = 0
-		var finalData = Data()
-		for _ in 0..<100 {
-			let bufferSize = 20
-			let testPoint = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-			let buffer = UnsafeMutableBufferPointer<UInt8>(start: testPoint, count: bufferSize)
-			buffer.initialize(repeating: 0)
-
-			readCount += multipart.read(testPoint, maxLength: bufferSize)
-
-			let data = Data(buffer: buffer)
-
-			finalData += data
-		}
-		multipart.close()
+		let finalData = streamToData(multipart)
 
 		let expected = """
 		--Boundary-alskdglkasdjfglkajsdf\r\nContent-Disposition: form-data; name=\"Text\"\r\n\r\ntested\r\n--Boundary-\
@@ -122,7 +106,6 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 		body</body></html>\r\n--Boundary-alskdglkasdjfglkajsdf--\r\n
 		"""
 
-		finalData = finalData[0..<readCount]
 		let finalString = String(data: finalData, encoding: .utf8)
 		XCTAssertEqual(expected, finalString)
 	}
@@ -136,11 +119,10 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 		let arbText = "Odd input stream"
 		let arbitraryData = arbText.data(using: .utf8)!
-		let arbitraryStream = InputStream(data: arbitraryData)
 
 		let testedText = "tested"
 		multipart.addPart(named: "Text", string: testedText)
-		try multipart.addPart(named: "File1", stream: arbitraryStream, streamFilename: "text.txt", streamLength: arbitraryData.count)
+		multipart.addPart(named: "File1", data: arbitraryData, filename: "text.txt")
 		let (fileURL, fileContents) = try createTestFile()
 		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
 
@@ -169,6 +151,68 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 
 		wait(for: [waitForDownload], timeout: 30)
 		XCTAssertEqual(handle.status, .completed)
+	}
+
+	func testStreamCopy() throws {
+		let expected = """
+		--Boundary-alskdglkasdjfglkajsdf\r\nContent-Disposition: form-data; name=\"Text\"\r\n\r\ntested\r\n--Boundary-\
+		alskdglkasdjfglkajsdf\r\nContent-Disposition: form-data; name=\"File1\"; filename=\"text.txt\"\r\nContent-Type: \
+		application/octet-stream\r\n\r\nOdd input stream\r\n--Boundary-alskdglkasdjfglkajsdf\r\nContent-Disposition: \
+		form-data; name=\"File2\"; filename=\"tempfile\"\r\nContent-Type: text/html\r\n\r\n<html><body>this is a \
+		body</body></html>\r\n--Boundary-alskdglkasdjfglkajsdf--\r\n
+		"""
+
+		let boundary = "alskdglkasdjfglkajsdf"
+		let multipart = MultipartFormInputStream(boundary: boundary)
+
+		let arbText = "Odd input stream"
+		let arbitraryData = arbText.data(using: .utf8)!
+
+		let testedText = "tested"
+		multipart.addPart(named: "Text", string: testedText)
+		multipart.addPart(named: "File1", data: arbitraryData, filename: "text.txt")
+		let (fileURL, _) = try createTestFile()
+		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
+
+		let theCopyBefore = multipart.copy() as! MultipartFormInputStream
+		let theCopyData = streamToData(theCopyBefore)
+		let copyString = String(data: theCopyData, encoding: .utf8)
+		XCTAssertEqual(expected, copyString)
+
+		let originalMultipartData = streamToData(multipart)
+		let multipartString = String(data: originalMultipartData, encoding: .utf8)
+		XCTAssertEqual(expected, multipartString)
+
+		let theCopyAfter = multipart.copy() as! MultipartFormInputStream
+		let theCopyAfterData = streamToData(theCopyAfter)
+		let copyAfterString = String(data: theCopyAfterData, encoding: .utf8)
+		XCTAssertEqual(expected, copyAfterString)
+	}
+
+	private func streamToData(_ stream: InputStream) -> Data {
+		if stream.streamStatus == .notOpen {
+			stream.open()
+		}
+
+		var readCount = 0
+		var finalData = Data()
+		while stream.hasBytesAvailable {
+			let bufferSize = 20
+			let testPoint = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+			let buffer = UnsafeMutableBufferPointer<UInt8>(start: testPoint, count: bufferSize)
+			buffer.initialize(repeating: 0)
+
+			readCount += stream.read(testPoint, maxLength: bufferSize)
+
+			let data = Data(buffer: buffer)
+
+			finalData += data
+		}
+		stream.close()
+
+		finalData = finalData[0..<readCount]
+
+		return finalData
 	}
 
 	// MARK: - common utilities
