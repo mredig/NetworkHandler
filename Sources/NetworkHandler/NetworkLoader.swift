@@ -38,6 +38,8 @@ public protocol NetworkLoadingTask: AnyObject {
 	func cancel()
 	func suspend()
 
+
+	@discardableResult func onStatusUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self
 	@discardableResult func onProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self
 	@discardableResult func onCompletion(_ perform: @escaping NetworkLoadingClosure) -> Self
 }

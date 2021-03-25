@@ -6,6 +6,7 @@ public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
 
 	public let progress = Progress(totalUnitCount: 0)
 
+	private var statusUpdatedClosures: [NetworkLoadingClosure] = []
 	private var completionClosures: [NetworkLoadingClosure] = [] {
 		didSet {
 			runCompletion()
@@ -40,6 +41,10 @@ public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
 		completionClosures.forEach { $0(self) }
 	}
 
+	private func runStatusUpdated() {
+		statusUpdatedClosures.forEach { $0(self) }
+	}
+
 	public func resume() {
 		status = .running
 
@@ -56,6 +61,11 @@ public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
 
 	public func suspend() {
 		status = .suspended
+	}
+
+	public func onStatusUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self {
+		statusUpdatedClosures.append(perform)
+		return self
 	}
 
 	public func onProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self { self }

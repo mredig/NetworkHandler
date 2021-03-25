@@ -16,11 +16,13 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 		set { dataTask.priority = newValue }
 	}
 
+	private var statusUpdatedClosures: [NetworkLoadingClosure] = []
 	private var progressUpdatedClosures: [NetworkLoadingClosure] = []
 	private var completionClosures: [NetworkLoadingClosure] = []
 
 	private var progressObserver: NSKeyValueObservation?
 	private var completionObserver: NSKeyValueObservation?
+	private var statusObserver: NSKeyValueObservation?
 
 	public init(_ dataTask: URLSessionDataTask) {
 		self.dataTask = dataTask
@@ -31,6 +33,7 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 	private func setupObservers() {
 		setupProgressObserver()
 		setupCompletionObserver()
+		setupStatusObserver()
 	}
 
 	private func setupProgressObserver() {
@@ -45,6 +48,13 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 		guard completionObserver == nil else { return }
 		completionObserver = dataTask.observe(\.state, options: .new, changeHandler: { [weak self] (task, change) in
 			self?.runCompletion()
+		})
+	}
+
+	private func setupStatusObserver() {
+		guard statusObserver == nil else { return }
+		statusObserver = dataTask.observe(\.state, options: .new, changeHandler: { [weak self] task, change in
+			self?.runStatusUpdated()
 		})
 	}
 
@@ -63,6 +73,15 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 		while let completionClosure = reversedClosures.popLast() {
 			completionClosure(self)
 		}
+	}
+
+	private func runStatusUpdated() {
+		statusUpdatedClosures.forEach { $0(self) }
+	}
+
+	public func onStatusUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self {
+		statusUpdatedClosures.append(perform)
+		return self
 	}
 
 	@discardableResult public func onProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self {
