@@ -32,7 +32,7 @@ public protocol NetworkLoadingTask: AnyObject {
 
 	var progress: Progress { get }
 
-	var priority: Float { get set }
+	var priority: NetworkRequest.Priority { get set }
 
 	func resume()
 	func cancel()

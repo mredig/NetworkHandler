@@ -11,7 +11,7 @@ import XCTest
 
 
 /// Obviously dependent on network conditions
-class NetworkRequestTests: XCTestCase {
+class NetworkRequestTests: NetworkHandlerBaseTest {
 
 	/// Tests encoding and decoding a request body
 	func testEncodingGeneric() {
@@ -143,6 +143,44 @@ class NetworkRequestTests: XCTestCase {
 			XCTAssertTrue(request.allowsConstrainedNetworkAccess)
 		}
 		#endif
+	}
+
+	func testPriority() {
+		let dummyURL = URL(string: "https://redeggproductions.com")!
+		let networkHandler = generateNetworkHandlerInstance()
+
+		var defaultRequest = dummyURL.request
+		defaultRequest.automaticStart = false
+		let defTask = networkHandler.transferMahOptionalDatas(with: defaultRequest, completion: { _ in })
+		XCTAssertEqual(defTask.priority, defaultRequest.priority)
+
+		var highRequest = dummyURL.request
+		highRequest.priority = .highPriority
+		highRequest.automaticStart = false
+		let highTask = networkHandler.transferMahOptionalDatas(with: highRequest, completion: { _ in })
+		XCTAssertEqual(highTask.priority, highRequest.priority)
+
+		var lowRequest = dummyURL.request
+		lowRequest.priority = .highPriority
+		lowRequest.automaticStart = false
+		let lowTask = networkHandler.transferMahOptionalDatas(with: lowRequest, completion: { _ in })
+		XCTAssertEqual(lowTask.priority, lowRequest.priority)
+
+		var arbitraryRequest = dummyURL.request
+		arbitraryRequest.priority = -1
+		XCTAssertEqual(0, arbitraryRequest.priority.rawValue)
+
+		arbitraryRequest.priority = 0
+		XCTAssertEqual(0, arbitraryRequest.priority.rawValue)
+
+		arbitraryRequest.priority = 0.4
+		XCTAssertEqual(0.4, arbitraryRequest.priority.rawValue)
+
+		arbitraryRequest.priority = 1
+		XCTAssertEqual(1, arbitraryRequest.priority.rawValue)
+
+		arbitraryRequest.priority = 4
+		XCTAssertEqual(1, arbitraryRequest.priority.rawValue)
 	}
 
 }

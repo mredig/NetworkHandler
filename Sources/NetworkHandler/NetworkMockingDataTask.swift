@@ -2,7 +2,7 @@ import Foundation
 
 /// Conforms to `NetworkLoadingTask`, which in turn is designed to be similar to `URLSessionDataTask`
 public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
-	public var priority: Float = 0.5
+	public var priority: NetworkRequest.Priority = 0.5
 
 	public let progress = Progress(totalUnitCount: 0)
 

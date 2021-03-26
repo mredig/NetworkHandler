@@ -11,9 +11,9 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 	public var status: NetworkLoadingTaskStatus { dataTask.status }
 	public var progress: Progress { dataTask.progress }
 
-	public var priority: Float {
-		get { dataTask.priority }
-		set { dataTask.priority = newValue }
+	public var priority: NetworkRequest.Priority {
+		get { NetworkRequest.Priority(dataTask.priority) }
+		set { dataTask.priority = newValue.rawValue }
 	}
 
 	private var statusUpdatedClosures: [NetworkLoadingClosure] = []

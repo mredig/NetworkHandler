@@ -86,6 +86,8 @@ public struct NetworkRequest {
 		set { urlRequest.networkServiceType = newValue }
 	}
 
+	public var priority: Priority = .defaultPriority
+
 	#if !os(Linux)
 	@available(iOS 13.0, OSX 10.15, *)
 	public var allowsExpensiveNetworkAccess: Bool {
@@ -199,6 +201,44 @@ public extension NetworkRequest {
 
 	mutating func setAuthorization(_ value: HTTPHeaderValue) {
 		setValue(value, forHTTPHeaderField: .authorization)
+	}
+}
+
+public extension NetworkRequest {
+	struct Priority: RawRepresentable, ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral, Hashable {
+		static let highPriority: Priority = Priority(URLSessionTask.highPriority)
+		static let defaultPriority: Priority = Priority(URLSessionTask.defaultPriority)
+		static let lowPriority: Priority = Priority(URLSessionTask.lowPriority)
+
+		public let rawValue: Float
+
+		public init?(rawValue: Float) {
+			guard (0...1).contains(rawValue) else { return nil }
+			self.rawValue = rawValue
+		}
+
+		public init(floatLiteral value: FloatLiteralType) {
+			switch value {
+			case ...0:
+				self.rawValue = 0
+			case 0...1:
+				self.rawValue = Float(value)
+			default:
+				self.rawValue = 1
+			}
+		}
+
+		public init(integerLiteral value: IntegerLiteralType) {
+			self.init(floatLiteral: Double(value))
+		}
+
+		public init(_ floatValue: Float) {
+			self.init(floatLiteral: Double(floatValue))
+		}
+
+		public init() {
+			rawValue = URLSessionTask.defaultPriority
+		}
 	}
 }
 
