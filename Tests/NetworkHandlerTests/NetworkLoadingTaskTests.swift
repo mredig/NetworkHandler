@@ -208,3 +208,75 @@ class NetworkLoadingTaskTests: NetworkHandlerBaseTest {
 		XCTAssertNotNil(handle.result)
 	}
 }
+
+#if canImport(Combine)
+import Combine
+
+@available(iOS 13.0, tvOS 13.0, macOS 15.0, watchOS 6.0, *)
+extension NetworkLoadingTaskTests {
+
+	func testCombine() {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+
+		var delayRequest = url.request
+		delayRequest.automaticStart = false
+
+		let waitForCompletion = expectation(description: "Wait for mocking")
+		let handle = networkHandler.transferMahDatas(with: url.request) { _ in
+			waitForCompletion.fulfill()
+		}
+
+		var bag: Set<AnyCancellable> = []
+
+		var completionPublishCount = 0
+		var statusOnePublishCount = 0
+		var statusTwoPublishCount = 0
+		var progressPublishCount = 0
+
+		handle
+			.completionPublisher
+			.sink(receiveValue: { _ in completionPublishCount += 1 })
+			.store(in: &bag)
+
+		handle
+			.progressPublisher
+			.sink(receiveValue: { _ in progressPublishCount += 1 })
+			.store(in: &bag)
+
+		handle
+			.statusPublisher
+			.sink(receiveValue: { _ in statusOnePublishCount += 1 })
+			.store(in: &bag)
+
+		handle
+			.statusPublisher
+			.sink(receiveValue: { _ in statusTwoPublishCount += 1 })
+			.store(in: &bag)
+
+		handle.resume()
+
+		wait(for: [waitForCompletion], timeout: 10)
+
+		let runCompletedAfterwards = expectation(description: "run again")
+		runCompletedAfterwards.expectedFulfillmentCount = 3
+		handle.onCompletion { task in
+			runCompletedAfterwards.fulfill()
+		}
+		handle.onCompletion { task in
+			runCompletedAfterwards.fulfill()
+		}
+		handle.onCompletion { task in
+			runCompletedAfterwards.fulfill()
+		}
+
+		wait(for: [runCompletedAfterwards], timeout: 10)
+
+		XCTAssertEqual(statusOnePublishCount, statusTwoPublishCount)
+		XCTAssertGreaterThan(statusOnePublishCount, 0)
+		XCTAssertEqual(completionPublishCount, 1)
+		XCTAssertGreaterThan(progressPublishCount, 0)
+	}
+}
+#endif

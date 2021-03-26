@@ -47,3 +47,34 @@ public protocol NetworkLoadingTask: AnyObject {
 protocol NetworkLoadingTaskEditor: NetworkLoadingTask {
 	func setResult(_ result: Result<Data?, Error>)
 }
+
+#if canImport(Combine)
+import Combine
+
+@available(iOS 13.0, tvOS 13.0, macOS 15.0, watchOS 6.0, *)
+extension NetworkLoadingTask {
+	var statusPublisher: PassthroughSubject<NetworkLoadingTaskStatus, Never> {
+		let publisher = PassthroughSubject<NetworkLoadingTaskStatus, Never>()
+		onStatusUpdated { task in
+			publisher.send(task.status)
+		}
+		return publisher
+	}
+
+	var progressPublisher: PassthroughSubject<Progress, Never> {
+		let publisher = PassthroughSubject<Progress, Never>()
+		onProgressUpdated { task in
+			publisher.send(task.progress)
+		}
+		return publisher
+	}
+
+	var completionPublisher: PassthroughSubject<Result<Data?, Error>?, Never> {
+		let publisher = PassthroughSubject<Result<Data?, Error>?, Never>()
+		onCompletion { task in
+			publisher.send(task.result)
+		}
+		return publisher
+	}
+}
+#endif
