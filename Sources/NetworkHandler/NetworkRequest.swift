@@ -206,9 +206,9 @@ public extension NetworkRequest {
 
 public extension NetworkRequest {
 	struct Priority: RawRepresentable, ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral, Hashable {
-		static let highPriority: Priority = Priority(URLSessionTask.highPriority)
-		static let defaultPriority: Priority = Priority(URLSessionTask.defaultPriority)
-		static let lowPriority: Priority = Priority(URLSessionTask.lowPriority)
+		static public let highPriority: Priority = Priority(URLSessionTask.highPriority)
+		static public let defaultPriority: Priority = Priority(URLSessionTask.defaultPriority)
+		static public let lowPriority: Priority = Priority(URLSessionTask.lowPriority)
 
 		public let rawValue: Float
 
