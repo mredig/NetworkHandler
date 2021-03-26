@@ -52,7 +52,7 @@ protocol NetworkLoadingTaskEditor: NetworkLoadingTask {
 import Combine
 
 @available(iOS 13.0, tvOS 13.0, macOS 15.0, watchOS 6.0, *)
-extension NetworkLoadingTask {
+public extension NetworkLoadingTask {
 	var statusPublisher: PassthroughSubject<NetworkLoadingTaskStatus, Never> {
 		let publisher = PassthroughSubject<NetworkLoadingTaskStatus, Never>()
 		onStatusUpdated { task in
