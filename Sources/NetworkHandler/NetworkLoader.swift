@@ -38,6 +38,7 @@ public protocol NetworkLoadingTask: AnyObject {
 	func cancel()
 	func suspend()
 
+	func eraseToAnyHashable() -> AnyHashable
 
 	@discardableResult func onStatusUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self
 	@discardableResult func onProgressUpdated(_ perform: @escaping NetworkLoadingClosure) -> Self

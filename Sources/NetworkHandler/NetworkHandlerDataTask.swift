@@ -1,7 +1,6 @@
 import Foundation
 
-public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
-
+public class NetworkHandlerDataTask: NetworkLoadingTaskEditor, Hashable {
 	public var result: Result<Data?, Error>? {
 		didSet {
 			runCompletion()
@@ -97,6 +96,19 @@ public class NetworkHandlerDataTask: NetworkLoadingTaskEditor {
 
 	public func setResult(_ result: Result<Data?, Error>) {
 		self.result = result
+	}
+
+	public func eraseToAnyHashable() -> AnyHashable {
+		AnyHashable(self)
+	}
+
+	public static func == (lhs: NetworkHandlerDataTask, rhs: NetworkHandlerDataTask) -> Bool {
+		lhs === rhs
+	}
+
+	public func hash(into hasher: inout Hasher) {
+		let value = Unmanaged.passUnretained(self).toOpaque()
+		hasher.combine(value)
 	}
 }
 

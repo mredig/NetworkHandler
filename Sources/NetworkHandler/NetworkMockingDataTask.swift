@@ -1,7 +1,7 @@
 import Foundation
 
 /// Conforms to `NetworkLoadingTask`, which in turn is designed to be similar to `URLSessionDataTask`
-public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
+public class NetworkMockingDataTask: NetworkLoadingTaskEditor, Hashable {
 	public var priority: NetworkRequest.Priority = 0.5
 
 	public let progress = Progress(totalUnitCount: 0)
@@ -77,5 +77,18 @@ public class NetworkMockingDataTask: NetworkLoadingTaskEditor {
 
 	public func setResult(_ result: Result<Data?, Error>) {
 		self.result = result
+	}
+
+	public func eraseToAnyHashable() -> AnyHashable {
+		AnyHashable(self)
+	}
+
+	public static func == (lhs: NetworkMockingDataTask, rhs: NetworkMockingDataTask) -> Bool {
+		lhs === rhs
+	}
+
+	public func hash(into hasher: inout Hasher) {
+		let value = Unmanaged.passUnretained(self).toOpaque()
+		hasher.combine(value)
 	}
 }
