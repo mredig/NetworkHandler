@@ -93,13 +93,19 @@ public struct NetworkRequest {
 	#endif
 
 	/**
-	Default encoder used to encode with the `setJson` function. Changes here will reflect all request that don't provide their own encoder going forward.
+	Default encoder used to encode with the `encodeData` function. Changes here will reflect all request that don't provide their own encoder going forward.
 
 	Default value is `JSONEncoder()` along with all of its defaults.
+
+	This value is just a convenient access to `URLRequest.defaultEncoder` from `NetworkHaalper`. If you change one, they are both updated.
 	*/
-	public static var defaultEncoder: NHEncoder = JSONEncoder()
+	public static var defaultEncoder: NHEncoder {
+		get { URLRequest.defaultEncoder }
+		set { URLRequest.defaultEncoder = newValue }
+	}
+
 	/**
-	Encoder used to encode with the `setJson` function. The default value is a reference to
+	Encoder used to encode with the `encodeData` function. The default value is a reference to
 	`NetworkRequest.defaultEncoder`, therefore changes will affect all encodings using the default, going forward.
 
 	Either provide a new encoder for one off changes in encoding strategy, or standardize on a single stragegy for
@@ -159,14 +165,8 @@ public struct NetworkRequest {
 
 	/// Sets `.httpBody` data to the result of encoding an encodable object passed in. If successful, returns the data.
 	@discardableResult public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType) -> Data? {
-		if httpMethod == .get {
-			NSLog("Attempt to populate a GET request http body. Used on \(type(of: encodableType))")
-		}
-		if value(forHTTPHeaderField: .contentType) == nil {
-			NSLog("You are encoding data without declaring a content-type in your request header. Used on \(type(of: encodableType))")
-		}
 		do {
-			let data = try encoder.encode(encodableType)
+			let data = try urlRequest.encodeData(encodableType, encoder: encoder)
 			httpBody = data
 			return data
 		} catch {
