@@ -10,6 +10,7 @@
 import XCTest
 @testable import NetworkHandler
 import CryptoSwift
+import TestSupport
 
 #if os(macOS)
 typealias TestImage = NSImage

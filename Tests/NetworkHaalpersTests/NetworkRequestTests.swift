@@ -7,9 +7,8 @@
 // swiftlint:disable function_body_length
 
 import XCTest
-//@testable
-import NetworkHandler
-
+import NetworkHaalpers
+import TestSupport
 
 /// Obviously dependent on network conditions
 class NetworkRequestTests: NetworkHandlerBaseTest {

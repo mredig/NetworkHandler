@@ -8,6 +8,7 @@
 
 import XCTest
 import NetworkHandler
+import TestSupport
 
 class NetworkMockingSessionTests: NetworkHandlerBaseTest {
 

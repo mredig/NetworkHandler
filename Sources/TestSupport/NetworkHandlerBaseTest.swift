@@ -9,9 +9,9 @@
 @testable import NetworkHandler
 import XCTest
 
-class NetworkHandlerBaseTest: XCTestCase {
+open class NetworkHandlerBaseTest: XCTestCase {
 
-	func generateNetworkHandlerInstance() -> NetworkHandler {
+	public func generateNetworkHandlerInstance() -> NetworkHandler {
 		.init(name: "Test Network Handler")
 	}
 

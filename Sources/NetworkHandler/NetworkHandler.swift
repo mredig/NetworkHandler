@@ -7,7 +7,7 @@
 //swiftlint:disable line_length
 
 import Foundation
-import NetworkHelpers
+@_exported import NetworkHaalpers
 #if os(Linux)
 import FoundationNetworking
 #endif

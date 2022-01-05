@@ -7,6 +7,7 @@
 
 import XCTest
 @testable import NetworkHandler
+@testable import TestSupport
 
 /// Obviously dependent on network conditions
 class NetworkErrorTests: XCTestCase {

@@ -1,5 +1,5 @@
 import Foundation
-import NetworkHelpers
+import NetworkHaalpers
 
 public class NetworkHandlerDataTask: NetworkLoadingTaskEditor, Hashable {
 	public var result: Result<Data?, Error>? {

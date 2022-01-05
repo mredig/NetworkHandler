@@ -2,6 +2,7 @@
 
 import XCTest
 @testable import NetworkHandler
+import TestSupport
 
 /// Obviously dependent on network conditions
 class NetworkLoadingTaskTests: NetworkHandlerBaseTest {

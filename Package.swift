@@ -18,7 +18,11 @@ let package = Package(
             targets: ["NetworkHandler"]),
 		.library(
 			name: "NetworkHaalpers",
-			targets: ["NetworkHaalpers"])
+			targets: ["NetworkHaalpers"]),
+//		.library(
+//			name: "TestSupport",
+//			targets: ["NetworkHaalpers"])
+
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -39,11 +43,16 @@ let package = Package(
 			dependencies: [
 //				"CryptoSwift",
 			]),
+		.target(
+			name: "TestSupport",
+			dependencies: [
+				"NetworkHandler",
+			]),
         .testTarget(
             name: "NetworkHandlerTests",
-            dependencies: ["NetworkHandler"]),
+            dependencies: ["NetworkHandler", "TestSupport"]),
 		.testTarget(
 			name: "NetworkHaalpersTests",
-			dependencies: ["NetworkHaalpers"]),
+			dependencies: ["NetworkHaalpers", "TestSupport"]),
     ]
 )

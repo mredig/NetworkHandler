@@ -9,7 +9,7 @@
 import Foundation
 import NetworkHandler
 
-class DemoModelController {
+public class DemoModelController {
 	private var _demoModels = [DemoModel]()
 
 	private(set) var demoModels: [DemoModel] {
@@ -21,7 +21,9 @@ class DemoModelController {
 		}
 	}
 
-	@discardableResult func create(modelWithTitle title: String,
+	public init() {}
+
+	@discardableResult public func create(modelWithTitle title: String,
 								   andSubtitle subtitle: String,
 								   imageURL: URL,
 								   completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel {
@@ -39,7 +41,7 @@ class DemoModelController {
 		return model
 	}
 
-	@discardableResult func update(model: DemoModel,
+	@discardableResult public func update(model: DemoModel,
 								   withTitle title: String,
 								   subtitle: String,
 								   imageURL: URL,
@@ -62,7 +64,7 @@ class DemoModelController {
 		return updatedModel
 	}
 
-	func delete(model: DemoModel, completion: @escaping (NetworkError?) -> Void = { _ in }) {
+	public func delete(model: DemoModel, completion: @escaping (NetworkError?) -> Void = { _ in }) {
 		guard let index = demoModels.firstIndex(of: model) else { return }
 		demoModels.remove(at: index)
 		deleteFromServer(model: model) { (result: Result<Data?, Error>) in
@@ -76,7 +78,7 @@ class DemoModelController {
 		}
 	}
 
-	func clearLocalModelCache() {
+	public func clearLocalModelCache() {
 		demoModels.removeAll()
 	}
 
@@ -84,7 +86,7 @@ class DemoModelController {
 
 	let baseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
 
-	func fetchDemoModels(completion: @escaping (NetworkError?) -> Void = { _ in }) {
+	public func fetchDemoModels(completion: @escaping (NetworkError?) -> Void = { _ in }) {
 		let getURL = baseURL.appendingPathExtension("json")
 
 		let request = getURL.request
@@ -103,7 +105,7 @@ class DemoModelController {
 		}
 	}
 
-	func put(model: DemoModel, completion: @escaping (Result<DemoModel, Error>) -> Void) {
+	public func put(model: DemoModel, completion: @escaping (Result<DemoModel, Error>) -> Void) {
 		let putURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
@@ -121,7 +123,7 @@ class DemoModelController {
 		NetworkHandler.default.transferMahCodableDatas(with: request, completion: completion)
 	}
 
-	func deleteFromServer(model: DemoModel, completion: @escaping (Result<Data?, Error>) -> Void) {
+	public func deleteFromServer(model: DemoModel, completion: @escaping (Result<Data?, Error>) -> Void) {
 		let deleteURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
@@ -134,7 +136,7 @@ class DemoModelController {
 
 	// MARK: - demo purposes
 
-	func generateDemoData(completion: @escaping () -> Void) {
+	public func generateDemoData(completion: @escaping () -> Void) {
 		DispatchQueue.global().async {
 			// confirm latest information
 			let semaphore = DispatchSemaphore(value: 0)

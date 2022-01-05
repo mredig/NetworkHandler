@@ -1,5 +1,5 @@
 import Foundation
-import NetworkHelpers
+import NetworkHaalpers
 
 /// Conforms to `NetworkLoadingTask`, which in turn is designed to be similar to `URLSessionDataTask`
 public class NetworkMockingDataTask: NetworkLoadingTaskEditor, Hashable {

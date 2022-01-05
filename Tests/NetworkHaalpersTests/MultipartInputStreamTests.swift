@@ -1,5 +1,6 @@
 import XCTest
-import NetworkHandler
+import NetworkHaalpers
+import TestSupport
 
 class MultipartInputStreamTests: NetworkHandlerBaseTest {
 

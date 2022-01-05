@@ -1,11 +1,10 @@
-
 import Foundation
 import CommonCrypto
 
-enum HMACAlgorithm {
+public enum HMACAlgorithm {
 	case md5, sha1, sha224, sha256, sha384, sha512
 
-	var hmacAlgValue: CCHmacAlgorithm {
+	public var hmacAlgValue: CCHmacAlgorithm {
 		let value: Int
 		switch self {
 		case .md5:
@@ -25,7 +24,7 @@ enum HMACAlgorithm {
 	}
 
 
-	var digestLength: Int {
+	public var digestLength: Int {
 		let result: Int32
 		switch self {
 		case .md5:
@@ -45,7 +44,7 @@ enum HMACAlgorithm {
 	}
 }
 
-extension String {
+public extension String {
 	func hmac(algorithm: HMACAlgorithm, key: String) -> String {
 		var result = [UInt8].init(repeating: 0, count: algorithm.digestLength)
 		CCHmac(algorithm.hmacAlgValue, key, key.count, self, self.count, &result)

@@ -8,9 +8,9 @@
 import Foundation
 
 /// most easily populated by setting up env vars in xcode scheme. not sure how to do on linux...
-enum TestEnvironment {
-	static let s3AccessKey = ProcessInfo.processInfo.environment[.s3AccessKeyKey] ?? ""
-	static let s3AccessSecret = ProcessInfo.processInfo.environment[.s3AccessSecretKey] ?? ""
+public enum TestEnvironment {
+	public static let s3AccessKey = ProcessInfo.processInfo.environment[.s3AccessKeyKey] ?? ""
+	public static let s3AccessSecret = ProcessInfo.processInfo.environment[.s3AccessSecretKey] ?? ""
 }
 
 fileprivate extension String {

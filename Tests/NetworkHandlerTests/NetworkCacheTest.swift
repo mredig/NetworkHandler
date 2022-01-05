@@ -1,5 +1,6 @@
 @testable import NetworkHandler
 import XCTest
+import TestSupport
 
 class NetworkCacheTest: NetworkHandlerBaseTest {
 	func waitForCacheToFinishActivity(_ cache: NetworkDiskCache, timeout: TimeInterval = 10) {
