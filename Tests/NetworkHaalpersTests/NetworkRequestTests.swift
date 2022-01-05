@@ -14,7 +14,7 @@ import TestSupport
 class NetworkRequestTests: NetworkHandlerBaseTest {
 
 	/// Tests encoding and decoding a request body
-	func testEncodingGeneric() {
+	func testEncodingGeneric() throws {
 		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
 
 		let dummyURL = URL(string: "https://redeggproductions.com")!
@@ -24,8 +24,10 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 
 		XCTAssertNotNil(request.httpBody)
 
-		XCTAssertNoThrow(try request.decoder.decode(DummyType.self, from: request.httpBody!))
-		XCTAssertEqual(testDummy, try request.decoder.decode(DummyType.self, from: request.httpBody!))
+		let bodyData = try XCTUnwrap(request.httpBody)
+
+		XCTAssertNoThrow(try request.decoder.decode(DummyType.self, from: bodyData))
+		XCTAssertEqual(testDummy, try request.decoder.decode(DummyType.self, from: bodyData))
 	}
 
 	/// Tests adding, setting, and getting header values
