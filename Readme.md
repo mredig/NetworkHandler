@@ -1,5 +1,11 @@
 # Network Handler
 
+## Network Handler is now deprecated! 
+Async/Await has nearly completely nullified most of the advantages of NetworkHandler. The remaining advantages were primarily the type safety provided by allowing you to specify http methods and headers on `NetworkRequest`, so I've spun off this kind of functionality into `NetworkHalper`. `NetworkHalper` is currently a secondary library supporting the existing NetworkHandler, but will probably eventually be spun off into its own repo.
+
+![Halp](Misc/Halp.jpg)
+
+
 ### NOTE!
 the current version says "1.0" even though it is 100% in active development (consider it beta-ish)! The app store, however, freaks out if a version string (or build number) has a 'b' in it (god forbid), so to allow for it to work for appstore submissions, the current version says "1.0".
 (It's getting close to what I'd feel comforable releasing, but there are definitely a few things that still need to be smoothed over)
