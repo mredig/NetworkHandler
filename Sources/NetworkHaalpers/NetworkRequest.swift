@@ -11,17 +11,6 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Pre-typed strings for use with NetworkRequest.httpMethod (or URLRequest.httpMethod)
-public enum HTTPMethod: String {
-	case post = "POST"
-	case put = "PUT"
-	case delete = "DELETE"
-	case get = "GET"
-	case head = "HEAD"
-	case patch = "PATCH"
-	case options = "OPTIONS"
-}
-
 public struct NetworkRequest {
 
 	// MARK: - New Properties
