@@ -1,5 +1,4 @@
 import Foundation
-import NetworkHaalpers
 #if os(Linux)
 import FoundationNetworking
 #endif

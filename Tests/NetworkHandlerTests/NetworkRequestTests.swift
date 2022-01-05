@@ -1,7 +1,7 @@
 // swiftlint:disable function_body_length
 
 import XCTest
-import NetworkHaalpers
+import NetworkHalpers
 import TestSupport
 
 /// Obviously dependent on network conditions

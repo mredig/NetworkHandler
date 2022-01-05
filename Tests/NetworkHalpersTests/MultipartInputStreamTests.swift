@@ -1,5 +1,5 @@
 import XCTest
-import NetworkHaalpers
+import NetworkHalpers
 import TestSupport
 
 class MultipartInputStreamTests: XCTestCase {
