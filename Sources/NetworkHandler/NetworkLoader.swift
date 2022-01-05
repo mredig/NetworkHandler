@@ -18,7 +18,7 @@ public protocol NetworkLoader {
 	func synchronousLoadData(with request: URLRequest) -> (Data?, URLResponse?, Error?)
 }
 
-public enum NetworkLoadingTaskStatus {
+public enum NetworkLoadingTaskStatus: Int, Hashable {
 	case running, suspended, canceling, completed
 }
 

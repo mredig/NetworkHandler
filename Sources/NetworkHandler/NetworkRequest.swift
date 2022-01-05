@@ -22,8 +22,8 @@ public struct NetworkRequest {
 
 	// MARK: - Upgraded Properties
 	public var httpMethod: HTTPMethod? {
-		get { HTTPMethod(rawValue: urlRequest.httpMethod ?? "") }
-		set { urlRequest.httpMethod = newValue?.rawValue }
+		get { urlRequest.method }
+		set { urlRequest.method = newValue }
 	}
 
 	// MARK: - Mirrored Properties
@@ -146,24 +146,15 @@ public struct NetworkRequest {
 
 	// MARK: - Methods
 	public mutating func addValue(_ headerValue: HTTPHeaderValue, forHTTPHeaderField key: HTTPHeaderKey) {
-		let strKey = key.key
-
-		urlRequest.addValue(headerValue.value, forHTTPHeaderField: strKey)
+		urlRequest.addValue(headerValue, forHTTPHeaderField: key)
 	}
 
 	public mutating func setValue(_ headerValue: HTTPHeaderValue?, forHTTPHeaderField key: HTTPHeaderKey) {
-		let strKey = key.key
-
-		guard let headerValue = headerValue else {
-			urlRequest.setValue(nil, forHTTPHeaderField: strKey)
-			return
-		}
-		urlRequest.setValue(headerValue.value, forHTTPHeaderField: strKey)
+		urlRequest.setValue(headerValue, forHTTPHeaderField: key)
 	}
 
 	public func value(forHTTPHeaderField key: HTTPHeaderKey) -> String? {
-		let strKey = key.key
-		return urlRequest.value(forHTTPHeaderField: strKey)
+		urlRequest.value(forHTTPHeaderField: key)
 	}
 
 	/// Sets `.httpBody` data to the result of encoding an encodable object passed in. If successful, returns the data.
@@ -187,11 +178,11 @@ public struct NetworkRequest {
 
 public extension NetworkRequest {
 	mutating func setContentType(_ contentType: HTTPHeaderValue) {
-		setValue(contentType, forHTTPHeaderField: .contentType)
+		urlRequest.setValue(contentType, forHTTPHeaderField: .contentType)
 	}
 
 	mutating func setAuthorization(_ value: HTTPHeaderValue) {
-		setValue(value, forHTTPHeaderField: .authorization)
+		urlRequest.setValue(value, forHTTPHeaderField: .authorization)
 	}
 }
 

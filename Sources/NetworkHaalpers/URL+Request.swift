@@ -14,7 +14,7 @@ import FoundationNetworking
 
 public extension URL {
 	/// Easy request generation.
-	var request: NetworkRequest {
-		NetworkRequest((URLRequest(url: self)))
+	var urlRequest: URLRequest {
+		URLRequest(url: self)
 	}
 }
