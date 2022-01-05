@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import NetworkHelpers
 #if os(Linux)
 import FoundationNetworking
 #endif
