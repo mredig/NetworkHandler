@@ -1,9 +1,3 @@
-//
-//  File.swift
-//
-//
-//  Created by Michael Redig on 5/10/20.
-//
 // swiftlint:disable function_body_length
 
 import XCTest

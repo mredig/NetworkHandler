@@ -1,11 +1,3 @@
-//
-//  NetworkMockingSession.swift
-//  NetworkHandler
-//
-//  Created by Michael Redig on 6/17/19.
-//  Copyright © 2019 Red_Egg Productions. All rights reserved.
-//
-
 import Foundation
 #if os(Linux)
 import FoundationNetworking

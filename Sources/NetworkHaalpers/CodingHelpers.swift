@@ -1,11 +1,3 @@
-//
-//  CodingHelpers.swift
-//  NetworkHandler-iOS
-//
-//  Created by Michael Redig on 2/13/20.
-//  Copyright © 2020 Red_Egg Productions. All rights reserved.
-//
-
 import Foundation
 #if os(Linux)
 import FoundationNetworking

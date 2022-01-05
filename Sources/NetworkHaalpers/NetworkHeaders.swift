@@ -1,11 +1,3 @@
-//
-//  NetworkHeaders.swift
-//  NetworkHandler-iOS
-//
-//  Created by Michael Redig on 12/6/19.
-//  Copyright © 2019 Red_Egg Productions. All rights reserved.
-//
-
 import Foundation
 
 public struct HTTPHeader: Hashable {

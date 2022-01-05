@@ -1,10 +1,3 @@
-//
-//  DemoModelController+DemoText.swift
-//  NetworkHandler
-//
-//  Created by Michael Redig on 6/16/19.
-//  Copyright © 2019 Red_Egg Productions. All rights reserved.
-//
 //swiftlint:disable line_length
 
 import Foundation

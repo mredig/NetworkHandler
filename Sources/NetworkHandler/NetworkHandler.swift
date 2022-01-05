@@ -1,9 +1,3 @@
-//
-//  NetworkHandler.swift
-//
-//  Created by Michael Redig on 5/7/19.
-//  Copyright © 2019 Michael Redig. All rights reserved.
-//
 //swiftlint:disable line_length
 
 import Foundation

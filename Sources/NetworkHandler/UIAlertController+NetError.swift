@@ -1,9 +1,3 @@
-//
-//  ErrorAlertController.swift
-//
-//  Created by Michael Redig on 5/9/19.
-//  Copyright © 2019 Michael Redig. All rights reserved.
-//
 // swiftlint:disable function_body_length
 
 #if os(iOS)

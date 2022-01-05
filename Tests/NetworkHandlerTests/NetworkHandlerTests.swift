@@ -1,10 +1,3 @@
-//
-//  NetworkHandlerTests.swift
-//  NetworkHandlerTests
-//
-//  Created by Michael Redig on 5/29/19.
-//  Copyright © 2019 Red_Egg Productions. All rights reserved.
-//
 //swiftlint:disable
 
 import XCTest

@@ -1,10 +1,3 @@
-//
-//  File.swift
-//
-//
-//  Created by Michael Redig on 5/10/20.
-//
-
 import Foundation
 
 public struct DummyType: Codable, Equatable {

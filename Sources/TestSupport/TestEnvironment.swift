@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Michael Redig on 7/26/20.
-//
-
 import Foundation
 
 /// most easily populated by setting up env vars in xcode scheme. not sure how to do on linux...

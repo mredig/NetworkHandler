@@ -1,10 +1,3 @@
-//
-//  File.swift
-//
-//
-//  Created by Michael Redig on 5/10/20.
-//
-
 import XCTest
 @testable import NetworkHandler
 @testable import TestSupport
