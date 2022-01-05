@@ -16,6 +16,9 @@ let package = Package(
         .library(
             name: "NetworkHandler",
             targets: ["NetworkHandler"]),
+		.library(
+			name: "NetworkHelpers",
+			targets: ["NetworkHelpers"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -29,9 +32,18 @@ let package = Package(
             name: "NetworkHandler",
             dependencies: [
 				"CryptoSwift",
+				"NetworkHelpers"
+			]),
+		.target(
+			name: "NetworkHelpers",
+			dependencies: [
+//				"CryptoSwift",
 			]),
         .testTarget(
             name: "NetworkHandlerTests",
             dependencies: ["NetworkHandler"]),
+		.testTarget(
+			name: "NetworkHelpersTests",
+			dependencies: ["NetworkHelpers"]),
     ]
 )
