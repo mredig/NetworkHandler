@@ -2,7 +2,7 @@ import XCTest
 import NetworkHaalpers
 import TestSupport
 
-class MultipartInputStreamTests: NetworkHandlerBaseTest {
+class MultipartInputStreamTests: XCTestCase {
 
 	func testStreamConcatenationLargeChunks() throws {
 		let expectedFinal = "Hello World!<html><body>this is a body</body></html>"
@@ -112,47 +112,47 @@ class MultipartInputStreamTests: NetworkHandlerBaseTest {
 	}
 
 	/// Dependent on the service at `https://httpbin.org/`
-	func testMultipartUpload() throws {
-		let networkHandler = generateNetworkHandlerInstance()
-
-		let boundary = "alskdglkasdjfglkajsdf"
-		let multipart = MultipartFormInputStream(boundary: boundary)
-
-		let arbText = "Odd input stream"
-		let arbitraryData = arbText.data(using: .utf8)!
-
-		let testedText = "tested"
-		multipart.addPart(named: "Text", string: testedText)
-		multipart.addPart(named: "File1", data: arbitraryData, filename: "text.txt")
-		let (fileURL, fileContents) = try createTestFile()
-		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
-
-		let url = URL(string: "https://httpbin.org/post")!
-		let waitForDownload = expectation(description: "Wait for download")
-		var request = url.request
-		request.httpMethod = .post
-		request.setValue(multipart.multipartContentTypeHeaderValue, forHTTPHeaderField: .contentType)
-		request.httpBodyStream = multipart
-		let handle = networkHandler.transferMahDatas(with: request, completion: { result in
-			do {
-				XCTAssertNoThrow(try result.get())
-				let uploadedData = try result.get()
-				let dict = try? JSONSerialization.jsonObject(with: uploadedData, options: []) as? [String: Any]
-				let	form = dict?["form"] as? [String: String]
-				let files = dict?["files"] as? [String: String]
-
-				XCTAssertEqual(arbText, files?["File1"])
-				XCTAssertEqual(fileContents, files?["File2"]?.data(using: .utf8))
-				XCTAssertEqual(testedText, form?["Text"])
-			} catch {
-				print("Error confirming upload: \(error)")
-			}
-			waitForDownload.fulfill()
-		})
-
-		wait(for: [waitForDownload], timeout: 30)
-		XCTAssertEqual(handle.status, .completed)
-	}
+//	func testMultipartUpload() throws {
+//		let networkHandler = generateNetworkHandlerInstance()
+//
+//		let boundary = "alskdglkasdjfglkajsdf"
+//		let multipart = MultipartFormInputStream(boundary: boundary)
+//
+//		let arbText = "Odd input stream"
+//		let arbitraryData = arbText.data(using: .utf8)!
+//
+//		let testedText = "tested"
+//		multipart.addPart(named: "Text", string: testedText)
+//		multipart.addPart(named: "File1", data: arbitraryData, filename: "text.txt")
+//		let (fileURL, fileContents) = try createTestFile()
+//		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
+//
+//		let url = URL(string: "https://httpbin.org/post")!
+//		let waitForDownload = expectation(description: "Wait for download")
+//		var request = url.request
+//		request.httpMethod = .post
+//		request.setValue(multipart.multipartContentTypeHeaderValue, forHTTPHeaderField: .contentType)
+//		request.httpBodyStream = multipart
+//		let handle = networkHandler.transferMahDatas(with: request, completion: { result in
+//			do {
+//				XCTAssertNoThrow(try result.get())
+//				let uploadedData = try result.get()
+//				let dict = try? JSONSerialization.jsonObject(with: uploadedData, options: []) as? [String: Any]
+//				let	form = dict?["form"] as? [String: String]
+//				let files = dict?["files"] as? [String: String]
+//
+//				XCTAssertEqual(arbText, files?["File1"])
+//				XCTAssertEqual(fileContents, files?["File2"]?.data(using: .utf8))
+//				XCTAssertEqual(testedText, form?["Text"])
+//			} catch {
+//				print("Error confirming upload: \(error)")
+//			}
+//			waitForDownload.fulfill()
+//		})
+//
+//		wait(for: [waitForDownload], timeout: 30)
+//		XCTAssertEqual(handle.status, .completed)
+//	}
 
 	func testStreamCopy() throws {
 		let expected = """

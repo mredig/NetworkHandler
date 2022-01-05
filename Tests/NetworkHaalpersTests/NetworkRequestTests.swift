@@ -11,7 +11,7 @@ import NetworkHaalpers
 import TestSupport
 
 /// Obviously dependent on network conditions
-class NetworkRequestTests: NetworkHandlerBaseTest {
+class NetworkRequestTests: XCTestCase {
 
 	/// Tests encoding and decoding a request body
 	func testEncodingGeneric() throws {
@@ -149,24 +149,25 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 
 	func testPriority() {
 		let dummyURL = URL(string: "https://redeggproductions.com")!
-		let networkHandler = generateNetworkHandlerInstance()
+		let config = URLSessionConfiguration.default
+		let urlSession = URLSession(configuration: config)
 
 		var defaultRequest = dummyURL.request
 		defaultRequest.automaticStart = false
-		let defTask = networkHandler.transferMahOptionalDatas(with: defaultRequest, completion: { _ in })
-		XCTAssertEqual(defTask.priority, defaultRequest.priority)
+		let defTask = urlSession.dataTask(with: defaultRequest)
+		XCTAssertTrue(defTask.priority == defaultRequest.priority)
 
 		var highRequest = dummyURL.request
 		highRequest.priority = .highPriority
 		highRequest.automaticStart = false
-		let highTask = networkHandler.transferMahOptionalDatas(with: highRequest, completion: { _ in })
-		XCTAssertEqual(highTask.priority, highRequest.priority)
+		let highTask = urlSession.dataTask(with: highRequest, completionHandler: { _, _, _ in })
+		XCTAssertTrue(highTask.priority == highRequest.priority)
 
 		var lowRequest = dummyURL.request
 		lowRequest.priority = .highPriority
 		lowRequest.automaticStart = false
-		let lowTask = networkHandler.transferMahOptionalDatas(with: lowRequest, completion: { _ in })
-		XCTAssertEqual(lowTask.priority, lowRequest.priority)
+		let lowTask = urlSession.dataTask(with: lowRequest, completionHandler: { _, _, _ in })
+		XCTAssertTrue(lowTask.priority == lowRequest.priority)
 
 		var arbitraryRequest = dummyURL.request
 		arbitraryRequest.priority = -1
@@ -185,4 +186,18 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(1, arbitraryRequest.priority.rawValue)
 	}
 
+	func testAutoStart() {
+		let dummyURL = URL(string: "https://redeggproductions.com")!
+		let config = URLSessionConfiguration.default
+		let urlSession = URLSession(configuration: config)
+
+		let defaultRequest = dummyURL.request
+		let startedTask = urlSession.dataTask(with: defaultRequest)
+		XCTAssertEqual(startedTask.state, .running)
+
+		var noStartRequest = dummyURL.request
+		noStartRequest.automaticStart = false
+		let noStart = urlSession.dataTask(with: noStartRequest)
+		XCTAssertEqual(noStart.state, .suspended)
+	}
 }

@@ -28,6 +28,7 @@ public struct NetworkRequest {
 	public private(set) var urlRequest: URLRequest
 	public var expectedResponseCodes: Set<Int>
 
+	/// Only affects methods that return a `URLSessionTask`
 	public var automaticStart = true
 
 	// MARK: - Upgraded Properties
@@ -86,6 +87,7 @@ public struct NetworkRequest {
 		set { urlRequest.networkServiceType = newValue }
 	}
 
+	/// Only affects methods that return a `URLSessionTask`
 	public var priority: Priority = .defaultPriority
 
 	#if !os(Linux)
@@ -238,6 +240,14 @@ public extension NetworkRequest {
 
 		public init() {
 			rawValue = URLSessionTask.defaultPriority
+		}
+
+		public static func == (lhs: Priority, rhs: Float) -> Bool {
+			lhs.rawValue == rhs
+		}
+
+		public static func == (lhs: Float, rhs: Priority) -> Bool {
+			rhs == lhs
 		}
 	}
 }
