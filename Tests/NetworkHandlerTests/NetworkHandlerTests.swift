@@ -219,35 +219,27 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 	}
 
 	/// Tests using a mock session that expected response ranges are respsected
-//	func testRespectResponseRangeGetValidResponse() {
-//		let networkHandler = generateNetworkHandlerInstance()
-//		// expected result
-//		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
-//
-//		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
-//		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
-//		let dummyModelURL = dummyBaseURL
-//			.appendingPathComponent(demoModel.id.uuidString)
-//			.appendingPathExtension("json")
-//
-//		let mockData = {
-//			try? JSONEncoder().encode(demoModel)
-//		}()
-//		let mockSession200 = NetworkMockingSession(mockData: mockData, mockError: nil, mockResponseCode: 200)
-//
-//		let waitForMocking = expectation(description: "Wait for mocking")
-//		var request = dummyModelURL.request
-//		request.expectedResponseCodes.insertRange(200...299)
-//		var theResult: Result<DemoModel, Error>?
-//		networkHandler.transferMahCodableDatas(with: request, session: mockSession200) { (result: Result<DemoModel, Error>) in
-//			theResult = result
-//			waitForMocking.fulfill()
-//		}
-//		wait(for: [waitForMocking], timeout: 10)
-//
-//		XCTAssertNoThrow(try theResult?.get())
-//		XCTAssertEqual(demoModel, try theResult?.get())
-//	}
+	func testRespectResponseRangeGetValidResponse() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+		// expected result
+		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
+
+		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
+		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
+		let dummyModelURL = dummyBaseURL
+			.appendingPathComponent(demoModel.id.uuidString)
+			.appendingPathExtension("json")
+
+		let mockData = try JSONEncoder().encode(demoModel)
+
+		await NetworkHandlerMocker.addMock(for: dummyModelURL, method: .get, data: mockData, code: 200)
+
+		var request = dummyModelURL.request
+		request.expectedResponseCodes.insertRange(200...299)
+		let result: DemoModel = try await networkHandler.transferMahCodableDatas(for: request).decoded
+
+		XCTAssertEqual(demoModel, result)
+	}
 
 	/// Tests using a mock session that values outside the expected response ranges are thrown
 //	func testRespectResponseRangeGetInvalidResponse() {
