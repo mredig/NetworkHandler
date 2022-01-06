@@ -189,38 +189,34 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 	}
 
 	/// Tests using a Mock session that when expecting ONLY a 200 response code, even a 202 code will cause an error to be thrown
-//	func testRespect200OnlyButGet202() {
-//
-//		let networkHandler = generateNetworkHandlerInstance()
-//		// expected result
-//		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
-//
-//		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
-//		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
-//		let dummyModelURL = dummyBaseURL
-//			.appendingPathComponent(demoModel.id.uuidString)
-//			.appendingPathExtension("json")
-//
-//		let mockData = {
-//			try? JSONEncoder().encode(demoModel)
-//		}()
-//		let mockSession202 = NetworkMockingSession(mockData: mockData, mockError: nil, mockResponseCode: 202)
-//
-//		let waitForMocking = expectation(description: "Wait for mocking")
-//		var request = dummyModelURL.request
-//		request.expectedResponseCodes = 200
-//		var theResult: Result<DemoModel, Error>?
-//		networkHandler.transferMahCodableDatas(with: request, session: mockSession202) { (result: Result<DemoModel, Error>) in
-//			theResult = result
-//			waitForMocking.fulfill()
-//		}
-//
-//		wait(for: [waitForMocking], timeout: 10)
-//
-//		XCTAssertThrowsError(try theResult?.get(), "Got unexpected error") { error in
-//			XCTAssertEqual(NetworkError.httpNon200StatusCode(code: 202, data: mockData), error as? NetworkError)
-//		}
-//	}
+	func testRespect200OnlyButGet202() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+		// expected result
+		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
+
+		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
+		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
+		let dummyModelURL = dummyBaseURL
+			.appendingPathComponent(demoModel.id.uuidString)
+			.appendingPathExtension("json")
+
+		let mockData = try JSONEncoder().encode(demoModel)
+
+		await NetworkHandlerMocker.addMock(for: dummyModelURL, method: .get, data: mockData, code: 202)
+
+		var request = dummyModelURL.request
+		request.expectedResponseCodes = 200
+
+		let task = Task { [request] () -> DemoModel in
+			try await networkHandler.transferMahCodableDatas(for: request).decoded
+		}
+
+		let result = await task.result
+
+		XCTAssertThrowsError(try result.get(), "Got unexpected error") { error in
+			XCTAssertEqual(NetworkError.httpNon200StatusCode(code: 202, data: mockData), error as? NetworkError)
+		}
+	}
 
 //	func testUploadFile() throws {
 //		let networkHandler = generateNetworkHandlerInstance()
