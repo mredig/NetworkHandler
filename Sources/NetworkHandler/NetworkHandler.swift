@@ -22,18 +22,28 @@ public class NetworkHandler {
 	public static let `default` = NetworkHandler(name: "NHDefault", diskCacheCapacity: .max)
 
 	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is handled via `NetworkCache`
-	public var defaultSession: URLSession = {
-		let config = URLSessionConfiguration.default
-		config.requestCachePolicy = .reloadIgnoringLocalCacheData
-		config.urlCache = nil
-		return URLSession(configuration: config)
-	}()
+	public let defaultSession: URLSession
+	private let sessionDelegate: TheDelegate
+
+	private var bag: Set<AnyCancellable> = []
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
-	public init(name: String, diskCacheCapacity: UInt64 = .max) {
+	public init(name: String, diskCacheCapacity: UInt64 = .max, configuration: URLSessionConfiguration? = nil) {
 		self.name = name
 		self.cache = NetworkCache(name: "\(name)-Cache", diskCacheCapacity: diskCacheCapacity)
+
+		let config = configuration ?? {
+			let c = URLSessionConfiguration.default
+			c.requestCachePolicy = .reloadIgnoringLocalCacheData
+			c.urlCache = nil
+			return c
+		}()
+
+		let sessionDelegate = TheDelegate()
+
+		self.defaultSession = URLSession(configuration: config, delegate: sessionDelegate, delegateQueue: nil)
+		self.sessionDelegate = sessionDelegate
 	}
 
 	// MARK: - Network Handling
@@ -50,10 +60,10 @@ public class NetworkHandler {
 	*/
 	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(
 		for request: NetworkRequest,
-		with delegate: URLSessionTaskDelegate? = nil,
+//		with delegate: URLSessionTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		session: URLSession? = nil) async throws -> (decoded: DecodableType, response: URLResponse) {
-			let totalResponse = try await transferMahDatas(for: request, with: delegate, usingCache: cacheOption, session: session)
+			let totalResponse = try await transferMahDatas(for: request, usingCache: cacheOption, session: session)
 
 			let decoder = request.decoder
 			do {
@@ -77,7 +87,7 @@ public class NetworkHandler {
 	*/
 	@discardableResult public func transferMahDatas(
 		for request: NetworkRequest,
-		with delegate: URLSessionTaskDelegate? = nil,
+//		with delegate: URLSessionTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		session: URLSession? = nil) async throws -> (data: Data, response: URLResponse) {
 			if let cacheKey = cacheOption.cacheKey(url: request.url) {
@@ -86,45 +96,85 @@ public class NetworkHandler {
 				}
 			}
 
-			let session = session ?? defaultSession
+//			let session = session ?? defaultSession
+			let session = defaultSession
 
-			let totalResponse: (data: Data, response: URLResponse)
-			if #available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *) {
-				totalResponse = try await session.data(for: request.urlRequest, delegate: delegate)
-			} else {
-				totalResponse = try await withCheckedThrowingContinuation({ continuation in
-					let task = session.dataTask(with: request.urlRequest) { data, response, error in
-						if let error = error {
-							continuation.resume(throwing: error)
-							return
-						}
+			let task = session.dataTask(with: request.urlRequest)
 
-						let data = data ?? Data()
+			let publisher = sessionDelegate.publisher(for: task)
 
-						guard let response = response else {
-							continuation.resume(throwing: NetworkError.noURLResponse)
-							return
-						}
+			var bag: Set<AnyCancellable> = []
+			let data: Data = try await withCheckedThrowingContinuation({ continuation in
+				var totalData = Data()
+				publisher
+					.sink(
+						receiveCompletion: { completionInfo in
+							switch completionInfo {
+							case .finished:
+								continuation.resume(returning: totalData)
+							case .failure(let error):
+								continuation.resume(throwing: error)
+							}
+						},
+						receiveValue: {
+							totalData.append($0)
+						})
+					.store(in: &bag)
 
-						continuation.resume(returning: (data, response))
-					}
-					task.resume()
-				})
-			}
+				task.resume()
+			})
 
-			guard let httpResponse = totalResponse.response as? HTTPURLResponse else {
+			guard let httpResponse = task.response as? HTTPURLResponse else {
 				throw NetworkError.noStatusCodeResponse
 			}
 			guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
-				throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: totalResponse.data)
+				throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: data)
 			}
 
 			if let cacheKey = cacheOption.cacheKey(url: request.url) {
-				self.cache[cacheKey] = NetworkCacheItem(response: totalResponse.response, data: totalResponse.data)
+				self.cache[cacheKey] = NetworkCacheItem(response: httpResponse, data: data)
 			}
 
-			return totalResponse
+			return (data, httpResponse)
 		}
+
+	private var taskDataAccumulator: [URLSessionTask: [Data]] = [:]
+
+	static private let taskTrackQueue = DispatchQueue(label: "Task Tracking")
+	private var _trackedTasks: [URLSessionTask: CheckedContinuation<Data, Error>] = [:]
+	private var trackedTasks: [URLSessionTask: CheckedContinuation<Data, Error>] {
+		get { Self.taskTrackQueue.sync { _trackedTasks } }
+		set { Self.taskTrackQueue.sync { _trackedTasks = newValue } }
+	}
+
+	private func finishTask(_ task: URLSessionTask, with result: Result<Data, Error>) {
+		let cont = trackedTasks.removeValue(forKey: task)
+		cont?.resume(with: result)
+	}
+
+//	@discardableResult public func downloadMahDatas(
+//		for request: NetworkRequest,
+////		with delegate: URLSessionTaskDelegate? = nil,
+//		task: inout URLSessionDownloadTask?
+////		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
+//		) async throws -> (fileURL: URL, response: URLResponse) {
+////			if let cacheKey = cacheOption.cacheKey(url: request.url) {
+////				if let cachedData = cache[cacheKey] {
+////					return (cachedData.data, cachedData.response)
+////				}
+////			}
+//
+//			let newTask = defaultSession.downloadTask(with: request.urlRequest)
+//			task = newTask
+//			let url: URL = try await withCheckedThrowingContinuation({ continuation in
+//				trackedTasks[newTask] = continuation
+//				newTask.resume()
+//			})
+//
+//			guard let response = newTask.response else { throw NetworkError.noURLResponse }
+//			return (url, response)
+//		}
+
 
 	private func printToConsole(_ string: String) {
 		if printErrorsToConsole {
@@ -155,5 +205,70 @@ public class NetworkHandler {
 				return value
 			}
 		}
+	}
+}
+
+import Combine
+private class TheDelegate: NSObject, URLSessionDelegate {
+	let dataReceived = PassthroughSubject<(URLSessionTask, Data), Never>()
+
+	static private let queue = OperationQueue()
+
+	typealias DataPublisher = PassthroughSubject<Data, Error>
+	private var publishers: [URLSessionTask: DataPublisher] = [:]
+
+	func publisher(for task: URLSessionTask) -> DataPublisher {
+		Self.queue.addOperationAndWaitUntilFinished {
+			let pub = self.publishers[task, default: DataPublisher()]
+			self.publishers[task] = pub
+			return pub
+		}
+	}
+}
+
+extension TheDelegate: URLSessionTaskDelegate {
+//	func urlSession(_ session: URLSession, needNewBodyStreamForTask task: URLSessionTask) async -> InputStream? {
+//		<#code#>
+//	}
+
+//	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+//		<#code#>
+//	}
+
+	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+		let completion: Subscribers.Completion<Error>
+		if let error = error {
+			completion = .failure(error)
+		} else {
+			completion = .finished
+		}
+		Self.queue.addOperationAndWaitUntilFinished {
+			self.publishers[task]?.send(completion: completion)
+		}
+	}
+}
+
+extension TheDelegate: URLSessionDataDelegate {
+	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+		Self.queue.addOperationAndWaitUntilFinished {
+			self.publishers[dataTask]?.send(data)
+		}
+	}
+}
+
+extension TheDelegate: URLSessionDownloadDelegate {
+	func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+		print("Got a download task to location: \(location)")
+	}
+}
+
+extension OperationQueue {
+	func addOperationAndWaitUntilFinished<T>(_ block: @escaping () -> T) -> T {
+		var output: T!
+		let operation = BlockOperation(block: {
+			output = block()
+		})
+		addOperations([operation], waitUntilFinished: true)
+		return output
 	}
 }

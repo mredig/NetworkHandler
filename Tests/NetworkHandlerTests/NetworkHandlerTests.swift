@@ -28,7 +28,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 	// MARK: - Live Network Tests
 	/// Tests downloading over a live connection, caching the download, and subsequently loading the file from cache.
 	func testImageDownloadAndCache() async throws {
-		let networkHandler = generateNetworkHandlerInstance()
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
 
 		// completely disabling cache and creating a new url session with each request isn't strictly or even typically
 		// necessary. This is done just to absolutely confirm the test is working.
@@ -40,7 +40,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		}
 
 		let networkStart = CFAbsoluteTimeGetCurrent()
-		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), session: loader())
+		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"))//, session: loader())
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 		addTeardownBlock {
 			networkHandler.cache.reset()
@@ -48,7 +48,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// now try retrieving from cache
 		let cacheStart = CFAbsoluteTimeGetCurrent()
-		let image2Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), session: loader())
+		let image2Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"))//, session: loader())
 		let cacheFinish = CFAbsoluteTimeGetCurrent()
 
 
@@ -354,5 +354,18 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				return
 			}
 		}
+	}
+
+	func testDownload() async throws {
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
+
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		var task: URLSessionDownloadTask?
+		
+//		let downloadResponse = try await networkHandler.downloadMahDatas(for: url.request, task: &task)
+//
+//		print(task)
+//		print(downloadResponse)
 	}
 }
