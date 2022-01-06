@@ -79,8 +79,6 @@ public class DemoModelController {
 		do {
 			let stuff: [DemoModel] = try await NetworkHandler.default.transferMahCodableDatas(for: request).decoded
 			self.demoModels = stuff
-		} catch NetworkError.dataWasNull {
-			self.demoModels.removeAll()
 		} catch {
 			throw error
 		}

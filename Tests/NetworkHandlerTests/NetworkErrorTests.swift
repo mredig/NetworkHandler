@@ -50,7 +50,6 @@ extension NetworkError {
 		let allErrorCases: [NetworkError] = [.badData(sourceData: nil),
 											 .databaseFailure(specifically: dummyError),
 											 .dataCodingError(specifically: dummyError, sourceData: nil),
-											 .dataWasNull,
 											 .httpNon200StatusCode(code: 404, data: nil),
 											 .imageDecodeError,
 											 .noStatusCodeResponse,

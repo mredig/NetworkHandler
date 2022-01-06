@@ -72,7 +72,6 @@ public enum NetworkError: Error, Equatable {
 	}
 	```
 	*/
-	case dataWasNull
 	case noURLResponse
 	/**
 	If you need to provide an error state but none of the other specified cases
@@ -90,8 +89,6 @@ public enum NetworkError: Error, Equatable {
 			if case .dataCodingError(let rhsError, let rhsSourceData) = rhs,
 				otherError.localizedDescription == rhsError.localizedDescription,
 			lhsSourceData == rhsSourceData { return true } else { return false }
-		case .dataWasNull:
-			if case .dataWasNull = rhs { return true } else { return false }
 		case .httpNon200StatusCode(code: let code, data: let data):
 			if case .httpNon200StatusCode(let rhsCode, let rhsData) = rhs, code == rhsCode, data == rhsData { return true } else { return false }
 		case .imageDecodeError:
@@ -129,8 +126,6 @@ extension NetworkError: CustomDebugStringConvertible {
 			return "NetworkError: Database Failure: (\(error))"
 		case .dataCodingError(specifically: let error, sourceData: let sourceData):
 			return "NetworkError: Data Coding Error\n Error: \(error)\nSourceData: \(stringifyData(sourceData))"
-		case .dataWasNull:
-			return "NetworkError: Data was Null"
 		case .httpNon200StatusCode(code: let code, data: let data):
 			return "NetworkError: Bad Response Code (\(code)) with data: \(stringifyData(data))"
 		case .imageDecodeError:
