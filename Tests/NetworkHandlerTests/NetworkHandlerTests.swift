@@ -83,7 +83,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let mockData = try JSONEncoder().encode(demoModel)
 
-		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
 		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
 		let dummyModelURL = dummyBaseURL
 			.appendingPathComponent(demoModel.id.uuidString)
@@ -95,9 +94,8 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(demoModel, result)
 	}
 
-	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
+//	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
 //	func testMockDataErrors() {
-//
 //		let networkHandler = generateNetworkHandlerInstance()
 //		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
 //
@@ -143,33 +141,28 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 //	}
 
 	/// Tests a Mock session giving a 404 response code
-//	func testMock404Response() {
-//
-//		let networkHandler = generateNetworkHandlerInstance()
-//		// expected result
-//		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
-//
-//		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
-//		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
-//		let dummyModelURL = dummyBaseURL
-//			.appendingPathComponent(demoModel.id.uuidString)
-//			.appendingPathExtension("json")
-//
-//		let waitForMocking = expectation(description: "Wait for mocking")
-//		let mockSession = NetworkMockingSession(mockData: nil, mockError: nil, mockResponseCode: 404)
-//
-//		var theResult: Result<DemoModel, Error>?
-//		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
-//			theResult = result
-//			waitForMocking.fulfill()
-//		}
-//
-//		wait(for: [waitForMocking], timeout: 10)
-//		XCTAssertThrowsError(try theResult?.get(), "No error when error expected") { error in
-//			let expectedError = NetworkError.httpNon200StatusCode(code: 404, data: nil)
-//			XCTAssertEqual(expectedError, error as? NetworkError)
-//		}
-//	}
+	func testMock404Response() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
+
+		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
+		let dummyModelURL = dummyBaseURL
+			.appendingPathComponent(demoModel.id.uuidString)
+			.appendingPathExtension("json")
+
+		await NetworkHandlerMocker.addMock(for: dummyModelURL, method: .get, data: Data(), code: 404)
+
+		let task = Task { () -> DemoModel in
+			try await networkHandler.transferMahCodableDatas(for: dummyModelURL.request).decoded
+		}
+		let theResult = await task.result
+
+		XCTAssertThrowsError(try theResult.get(), "No error when error expected") { error in
+			let expectedError = NetworkError.httpNon200StatusCode(code: 404, data: Data())
+			XCTAssertEqual(expectedError, error as? NetworkError)
+		}
+	}
 
 	/// Tests using a mock session that when expecting ONLY a 200 response code, a 200 code will be an expected success
 //	func testRespect200OnlyAndGet200() {
