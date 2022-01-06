@@ -27,63 +27,44 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 	// MARK: - Live Network Tests
 	/// Tests downloading over a live connection, caching the download, and subsequently loading the file from cache.
-//	func testImageDownloadAndCache() {
-//		let waitForInitialDownload = expectation(description: "Waiting for things")
-//		let networkHandler = generateNetworkHandlerInstance()
-//
-//		// completely disabling cache and creating a new url session with each request isn't strictly or even typically
-//		// necessary. This is done just to absolutely confirm the test is working.
-//		let loader = { () -> URLSession in
-//			let config = URLSessionConfiguration.ephemeral
-//			config.urlCache = nil
-//			config.requestCachePolicy = .reloadIgnoringCacheData
-//			return URLSession(configuration: config)
-//		}
-//
-//		let networkStart = CFAbsoluteTimeGetCurrent()
-//
-//		var image1Result: Result<Data, Error>?
-//		// retrieve from live server (placekitten as of writing)
-//		networkHandler.transferMahDatas(with: imageURL.request, usingCache: .key("kitten"), session: loader()) { (result: Result<Data, Error>) in
-//			image1Result = result
-//			waitForInitialDownload.fulfill()
-//		}
-//		wait(for: [waitForInitialDownload], timeout: 10)
-//		let networkFinish = CFAbsoluteTimeGetCurrent()
-//
-//		XCTAssertNoThrow(try image1Result?.get())
-//
-//		// now try retrieving from cache
-//		let waitForCacheLoad = expectation(description: "Watiting for cache")
-//		let cacheStart = CFAbsoluteTimeGetCurrent()
-//		var image2Result: Result<Data, Error>?
-//		networkHandler.transferMahDatas(with: imageURL.request, usingCache: .key("kitten"), session: loader()) { (result: Result<Data, Error>) in
-//			image2Result = result
-//			waitForCacheLoad.fulfill()
-//		}
-//		wait(for: [waitForCacheLoad], timeout: 10)
-//		let cacheFinish = CFAbsoluteTimeGetCurrent()
-//
-//		XCTAssertNoThrow(try image2Result?.get())
-//
-//		// calculate cache speed improvement, just for funsies
-//		let networkDuration = networkFinish - networkStart
-//		let cacheDuration = cacheFinish - cacheStart
-//		let cacheRatio = cacheDuration / networkDuration
-//		print("netDuration: \(networkDuration)\ncacheDuration: \(cacheDuration)\ncache took \(cacheRatio)x as long")
-//		XCTAssertLessThan(cacheDuration,
-//						  networkDuration * 0.5,
-//						  "The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
-//
-//		// assert cache and original match (and are in fact valid images)
-//		let imageOneData = try? image1Result?.get()
-//		let imageTwoData = try? image2Result?.get()
-//		XCTAssertNotNil(imageOneData)
-//		XCTAssertNotNil(imageTwoData)
-//		XCTAssertEqual(imageOneData, imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
-//
-//		XCTAssertNotNil(TestImage(data: imageOneData!))
-//	}
+	func testImageDownloadAndCache() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		// completely disabling cache and creating a new url session with each request isn't strictly or even typically
+		// necessary. This is done just to absolutely confirm the test is working.
+		let loader = { () -> URLSession in
+			let config = URLSessionConfiguration.ephemeral
+			config.urlCache = nil
+			config.requestCachePolicy = .reloadIgnoringCacheData
+			return URLSession(configuration: config)
+		}
+
+		let networkStart = CFAbsoluteTimeGetCurrent()
+		let image1Result = try await networkHandler.transferMyDatas(for: imageURL.request, usingCache: .key("kitten"), session: loader())
+		let networkFinish = CFAbsoluteTimeGetCurrent()
+
+
+		// now try retrieving from cache
+		let cacheStart = CFAbsoluteTimeGetCurrent()
+		let image2Result = try await networkHandler.transferMyDatas(for: imageURL.request, usingCache: .key("kitten"), session: loader())
+		let cacheFinish = CFAbsoluteTimeGetCurrent()
+
+
+		// calculate cache speed improvement, just for funsies
+		let networkDuration = networkFinish - networkStart
+		let cacheDuration = cacheFinish - cacheStart
+		let cacheRatio = cacheDuration / networkDuration
+		print("netDuration: \(networkDuration)\ncacheDuration: \(cacheDuration)\ncache took \(cacheRatio)x as long")
+		XCTAssertLessThan(cacheDuration,
+						  networkDuration * 0.5,
+						  "The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
+
+		let imageOneData = image1Result.data
+		let imageTwoData = image2Result.data
+		XCTAssertEqual(imageOneData, imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
+
+		XCTAssertNotNil(TestImage(data: imageOneData))
+	}
 
 
 	// MARK: - Mock Network Tests
