@@ -11,6 +11,34 @@ for you. Directly exposes some properties like `countLimit` and `totalCostLimit`
 */
 public class NetworkCache {
 
+	class CachedItem: Codable {
+		let response: URLResponse
+		let data: Data
+
+		enum CodingKeys: String, CodingKey {
+			case response
+			case data
+		}
+
+		required init(from decoder: Decoder) throws {
+			let container = try decoder.container(keyedBy: CodingKeys.self)
+			let responseData = try container.decode(Data.self, forKey: .response)
+			guard let response = URLResponseCoder.decodeResponse(from: responseData) else { throw CachedItemError.responseDataCorrupt }
+			self.response = response
+			self.data = try container.decode(Data.self, forKey: .data)
+		}
+
+		func encode(to encoder: Encoder) throws {
+			var container = encoder.container(keyedBy: CodingKeys.self)
+			try container.encode(data, forKey: .data)
+			try container.encode(URLResponseCoder.encode(response: response), forKey: .response)
+		}
+
+		enum CachedItemError: Error {
+			case responseDataCorrupt
+		}
+	}
+
 	// MARK: - Properties
 	private let cache = NSCache<NSString, NSData>()
 	let diskCache: NetworkDiskCache
@@ -79,5 +107,21 @@ public class NetworkCache {
 		cache.removeObject(forKey: key as NSString)
 		diskCache.deleteData(for: key)
 		return data
+	}
+}
+
+enum URLResponseCoder {
+	private static let key = "life.knowme.urlresponse"
+
+	static func encode(response: URLResponse) -> Data {
+		let keyedCoder = NSKeyedArchiver(requiringSecureCoding: true)
+		keyedCoder.encode(response, forKey: Self.key)
+		keyedCoder.finishEncoding()
+		return keyedCoder.encodedData
+	}
+
+	static func decodeResponse(from data: Data) -> URLResponse? {
+		let uncoder = try? NSKeyedUnarchiver(forReadingFrom: data)
+		return uncoder?.decodeObject(of: URLResponse.self, forKey: Self.key)
 	}
 }
