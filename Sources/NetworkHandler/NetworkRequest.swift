@@ -163,52 +163,6 @@ public extension NetworkRequest {
 	}
 }
 
-public extension NetworkRequest {
-	struct Priority: RawRepresentable, ExpressibleByFloatLiteral, ExpressibleByIntegerLiteral, Hashable {
-		static public let highPriority: Priority = Priority(URLSessionTask.highPriority)
-		static public let defaultPriority: Priority = Priority(URLSessionTask.defaultPriority)
-		static public let lowPriority: Priority = Priority(URLSessionTask.lowPriority)
-
-		public let rawValue: Float
-
-		public init?(rawValue: Float) {
-			guard (0...1).contains(rawValue) else { return nil }
-			self.rawValue = rawValue
-		}
-
-		public init(floatLiteral value: FloatLiteralType) {
-			switch value {
-			case ...0:
-				self.rawValue = 0
-			case 0...1:
-				self.rawValue = Float(value)
-			default:
-				self.rawValue = 1
-			}
-		}
-
-		public init(integerLiteral value: IntegerLiteralType) {
-			self.init(floatLiteral: Double(value))
-		}
-
-		public init(_ floatValue: Float) {
-			self.init(floatLiteral: Double(floatValue))
-		}
-
-		public init() {
-			rawValue = URLSessionTask.defaultPriority
-		}
-
-		public static func == (lhs: Priority, rhs: Float) -> Bool {
-			lhs.rawValue == rhs
-		}
-
-		public static func == (lhs: Float, rhs: Priority) -> Bool {
-			rhs == lhs
-		}
-	}
-}
-
 extension Set: ExpressibleByIntegerLiteral where Element: FixedWidthInteger {
 
 	public init(integerLiteral value: Int) {
