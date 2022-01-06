@@ -32,6 +32,20 @@ class NetworkCacheTests: NetworkCacheTest {
 		let data1 = Data([1, 2, 3, 4, 5])
 		let data2 = Data(data1.reversed())
 
+		let response1 = URLResponse(
+			url: URL(string: "https://redeggproductions.com")!,
+			mimeType: nil,
+			expectedContentLength: 1024,
+			textEncodingName: nil)
+		let response2 = URLResponse(
+			url: URL(string: "https://github.com")!,
+			mimeType: nil,
+			expectedContentLength: 2048,
+			textEncodingName: nil)
+
+		let cachedItem1 = NetworkCacheItem(response: response1, data: data1)
+		let cachedItem2 = NetworkCacheItem(response: response2, data: data2)
+
 		let cache = generateNetworkHandlerInstance().cache
 		let diskCache = cache.diskCache
 
@@ -39,29 +53,29 @@ class NetworkCacheTests: NetworkCacheTest {
 		let key2 = URL(fileURLWithPath: "/etc").absoluteString
 		let key3 = URL(fileURLWithPath: "/usr").absoluteString
 
-		cache[key1] = data1
-		XCTAssertEqual(data1, cache[key1])
-		cache[key1] = data2
-		XCTAssertEqual(data2, cache[key1])
+		cache[key1] = cachedItem1
+		XCTAssertEqual(cachedItem1.data, cache[key1]?.data)
+		cache[key1] = cachedItem2
+		XCTAssertEqual(cachedItem2.data, cache[key1]?.data)
 
-		cache[key2] = data1
-		XCTAssertEqual(data1, cache[key2])
-		XCTAssertEqual(data2, cache[key1])
+		cache[key2] = cachedItem1
+		XCTAssertEqual(cachedItem1.data, cache[key2]?.data)
+		XCTAssertEqual(cachedItem2.data, cache[key1]?.data)
 
-		cache[key3] = data1
-		XCTAssertEqual(data1, cache[key3])
+		cache[key3] = cachedItem1
+		XCTAssertEqual(cachedItem1.data, cache[key3]?.data)
 		waitForCacheToFinishActivity(diskCache)
 		cache[key3] = nil
 		XCTAssertNil(cache[key3])
-		XCTAssertEqual(data1, cache[key2])
-		XCTAssertEqual(data2, cache[key1])
+		XCTAssertEqual(cachedItem1.data, cache[key2]?.data)
+		XCTAssertEqual(cachedItem2.data, cache[key1]?.data)
 
-		cache[key3] = data1
-		XCTAssertEqual(data1, cache[key3])
+		cache[key3] = cachedItem1
+		XCTAssertEqual(cachedItem1.data, cache[key3]?.data)
 		waitForCacheToFinishActivity(diskCache)
 		let removed = cache.remove(objectFor: key3)
 		XCTAssertNil(cache[key3])
-		XCTAssertEqual(data1, removed)
+		XCTAssertEqual(cachedItem1.data, removed?.data)
 
 		cache.reset()
 		XCTAssertNil(cache[key1])
