@@ -56,8 +56,12 @@ public class NetworkHandler {
 			let totalResponse = try await transferMyDatas(for: request, with: delegate, usingCache: cacheOption, session: session)
 
 			let decoder = request.decoder
-			let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
-			return (decodedValue, totalResponse.response)
+			do {
+				let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
+				return (decodedValue, totalResponse.response)
+			} catch {
+				throw NetworkError.dataCodingError(specifically: error, sourceData: totalResponse.data)
+			}
 		}
 
 	/**
