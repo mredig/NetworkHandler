@@ -94,7 +94,7 @@ public class DemoModelController {
 		var request = putURL.request
 		request.httpMethod = .put
 
-		request.encodeData(model)
+		try request.encodeData(model)
 
 		return try await NetworkHandler.default.transferMahCodableDatas(for: request).decoded
 	}

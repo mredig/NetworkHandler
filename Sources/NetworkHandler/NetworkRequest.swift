@@ -65,9 +65,6 @@ public struct NetworkRequest {
 		set { urlRequest.networkServiceType = newValue }
 	}
 
-	/// Only affects methods that return a `URLSessionTask`
-	public var priority: Priority = .defaultPriority
-
 	#if !os(Linux)
 	public var allowsExpensiveNetworkAccess: Bool {
 		get { urlRequest.allowsExpensiveNetworkAccess }
@@ -151,15 +148,8 @@ public struct NetworkRequest {
 	}
 
 	/// Sets `.httpBody` data to the result of encoding an encodable object passed in. If successful, returns the data.
-	@discardableResult public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType) -> Data? {
-		do {
-			let data = try urlRequest.encodeData(encodableType, encoder: encoder)
-			httpBody = data
-			return data
-		} catch {
-			NSLog("Failed encoding \(type(of: encodableType)) as json: \(error)")
-			return nil
-		}
+	@discardableResult public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType) throws -> Data {
+		try urlRequest.encodeData(encodableType, encoder: encoder)
 	}
 }
 
