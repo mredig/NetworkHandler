@@ -40,7 +40,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		}
 
 		let networkStart = CFAbsoluteTimeGetCurrent()
-		let image1Result = try await networkHandler.transferMyDatas(for: imageURL.request, usingCache: .key("kitten"), session: loader())
+		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), session: loader())
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 		addTeardownBlock {
 			networkHandler.cache.reset()
@@ -48,7 +48,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// now try retrieving from cache
 		let cacheStart = CFAbsoluteTimeGetCurrent()
-		let image2Result = try await networkHandler.transferMyDatas(for: imageURL.request, usingCache: .key("kitten"), session: loader())
+		let image2Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), session: loader())
 		let cacheFinish = CFAbsoluteTimeGetCurrent()
 
 
@@ -318,11 +318,11 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			try? FileManager.default.removeItem(at: dummyFile)
 		}
 
-		_ = try await networkHandler.transferMyDatas(for: request)
+		_ = try await networkHandler.transferMahDatas(for: request)
 
 		let dlRequest = url.request
 
-		let downloadedResult = try await networkHandler.transferMyDatas(for: dlRequest)
+		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
 		XCTAssertEqual(downloadedResult.data.md5().toHexString(), dataHash.toHexString())
 	}
 

@@ -53,7 +53,7 @@ public class NetworkHandler {
 		with delegate: URLSessionTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		session: URLSession? = nil) async throws -> (decoded: DecodableType, response: URLResponse) {
-			let totalResponse = try await transferMyDatas(for: request, with: delegate, usingCache: cacheOption, session: session)
+			let totalResponse = try await transferMahDatas(for: request, with: delegate, usingCache: cacheOption, session: session)
 
 			let decoder = request.decoder
 			do {
@@ -75,7 +75,7 @@ public class NetworkHandler {
 
 	 Note that delegate is only valid in iOS 15, macOS 12, tvOS 15, and watchOS 8 and higher
 	*/
-	@discardableResult public func transferMyDatas(
+	@discardableResult public func transferMahDatas(
 		for request: NetworkRequest,
 		with delegate: URLSessionTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,

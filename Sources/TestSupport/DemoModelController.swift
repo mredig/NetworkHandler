@@ -105,7 +105,7 @@ public class DemoModelController {
 		var request = deleteURL.request
 		request.httpMethod = .delete
 
-		try await NetworkHandler.default.transferMyDatas(for: request)
+		try await NetworkHandler.default.transferMahDatas(for: request)
 	}
 
 	// MARK: - demo purposes
