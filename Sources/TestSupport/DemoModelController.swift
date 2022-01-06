@@ -15,59 +15,52 @@ public class DemoModelController {
 
 	public init() {}
 
-	@discardableResult public func create(modelWithTitle title: String,
-								   andSubtitle subtitle: String,
-								   imageURL: URL,
-								   completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel {
-		let model = DemoModel(title: title, subtitle: subtitle, imageURL: imageURL)
-		demoModels.append(model)
-		put(model: model) { (result: Result<DemoModel, Error>) in
-			do {
-				_ = try result.get()
-				completion(nil)
-			} catch {
-				NSLog("There was an error creating the new model on the server: \(error)")
-				completion(error as? NetworkError ?? NetworkError.otherError(error: error))
+	@discardableResult public func create(
+		modelWithTitle title: String,
+		andSubtitle subtitle: String,
+		imageURL: URL,
+		completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel {
+			let model = DemoModel(title: title, subtitle: subtitle, imageURL: imageURL)
+			demoModels.append(model)
+			Task {
+				do {
+					_ = try await put(model: model)
+					completion(nil)
+				} catch {
+					completion(error)
+				}
 			}
+			return model
 		}
-		return model
-	}
 
-	@discardableResult public func update(model: DemoModel,
-								   withTitle title: String,
-								   subtitle: String,
-								   imageURL: URL,
-								   completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel? {
-		guard let index = demoModels.firstIndex(of: model) else { return nil }
-		var updatedModel = demoModels[index]
-		updatedModel.title = title
-		updatedModel.subtitle = subtitle
-		updatedModel.imageURL = imageURL
-		demoModels[index] = updatedModel
-		put(model: updatedModel) { (result: Result<DemoModel, Error>) in
-			do {
-				_ = try result.get()
-				completion(nil)
-			} catch {
-				NSLog("There was an error updating the model on the server: \(error)")
-				completion(error as? NetworkError ?? NetworkError.otherError(error: error))
+	@discardableResult public func update(
+		model: DemoModel,
+		withTitle title: String,
+		subtitle: String,
+		imageURL: URL,
+		completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel? {
+			guard let index = demoModels.firstIndex(of: model) else { return nil }
+			var updatedModel = demoModels[index]
+			updatedModel.title = title
+			updatedModel.subtitle = subtitle
+			updatedModel.imageURL = imageURL
+			demoModels[index] = updatedModel
+
+			Task { [updatedModel] in
+				do {
+					_ = try await put(model: updatedModel)
+					completion(nil)
+				} catch {
+					completion(error)
+				}
 			}
+			return updatedModel
 		}
-		return updatedModel
-	}
 
-	public func delete(model: DemoModel, completion: @escaping (NetworkError?) -> Void = { _ in }) {
+	public func delete(model: DemoModel) async throws {
 		guard let index = demoModels.firstIndex(of: model) else { return }
 		demoModels.remove(at: index)
-		deleteFromServer(model: model) { (result: Result<Data?, Error>) in
-			do {
-				_ = try result.get()
-				completion(nil)
-			} catch {
-				NSLog("There was an error deleting the model on the server: \(error)")
-				completion(error as? NetworkError ?? NetworkError.otherError(error: error))
-			}
-		}
+		try await deleteFromServer(model: model)
 	}
 
 	public func clearLocalModelCache() {
@@ -78,26 +71,22 @@ public class DemoModelController {
 
 	let baseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
 
-	public func fetchDemoModels(completion: @escaping (NetworkError?) -> Void = { _ in }) {
+	public func fetchDemoModels() async throws {
 		let getURL = baseURL.appendingPathExtension("json")
 
 		let request = getURL.request
-		NetworkHandler.default.transferMahCodableDatas(with: request) { [weak self] (result: Result<[String: DemoModel], Error>) in
-			do {
-				let results = try result.get()
-				self?.demoModels = Array(results.values)
-				completion(nil)
-			} catch NetworkError.dataWasNull {
-				self?.demoModels.removeAll()
-				completion(nil)
-			} catch {
-				NSLog("Error loading demo models: \(error)")
-				completion(error as? NetworkError ?? NetworkError.otherError(error: error))
-			}
+
+		do {
+			let stuff: [DemoModel] = try await NetworkHandler.default.transferMahCodableDatas(for: request).decoded
+			self.demoModels = stuff
+		} catch NetworkError.dataWasNull {
+			self.demoModels.removeAll()
+		} catch {
+			throw error
 		}
 	}
 
-	public func put(model: DemoModel, completion: @escaping (Result<DemoModel, Error>) -> Void) {
+	public func put(model: DemoModel) async throws -> DemoModel {
 		let putURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
@@ -105,17 +94,12 @@ public class DemoModelController {
 		var request = putURL.request
 		request.httpMethod = .put
 
-		do {
-			request.httpBody = try JSONEncoder().encode(model)
-		} catch {
-			completion(.failure(NetworkError.otherError(error: error)))
-			return
-		}
+		request.encodeData(model)
 
-		NetworkHandler.default.transferMahCodableDatas(with: request, completion: completion)
+		return try await NetworkHandler.default.transferMahCodableDatas(for: request).decoded
 	}
 
-	public func deleteFromServer(model: DemoModel, completion: @escaping (Result<Data?, Error>) -> Void) {
+	public func deleteFromServer(model: DemoModel) async throws {
 		let deleteURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
@@ -123,33 +107,26 @@ public class DemoModelController {
 		var request = deleteURL.request
 		request.httpMethod = .delete
 
-		NetworkHandler.default.transferMahOptionalDatas(with: request, completion: completion)
+		try await NetworkHandler.default.transferMyDatas(for: request)
 	}
 
 	// MARK: - demo purposes
 
-	public func generateDemoData(completion: @escaping () -> Void) {
-		DispatchQueue.global().async {
-			// confirm latest information
-			let semaphore = DispatchSemaphore(value: 0)
-			self.fetchDemoModels { _ in
-				semaphore.signal()
-			}
-			semaphore.wait()
+	public func generateDemoData() async throws {
 
-			let baseURL = URL(string: "https://placekitten.com/")!
+		try await fetchDemoModels()
+		
 
-			while self.demoModels.count < 100 {
-				let dimensions = Int.random(in: 400...800)
-				let kittenURL = baseURL
-					.appendingPathComponent("\(dimensions)")
-					.appendingPathComponent("\(dimensions)")
+		let baseURL = URL(string: "https://placekitten.com/")!
 
-				self.create(modelWithTitle: DemoText.demoNames.randomElement()!, andSubtitle: DemoText.demoSubtitles.randomElement()!, imageURL: kittenURL)
-				print(self.demoModels.count)
-			}
-			completion()
+		while self.demoModels.count < 100 {
+			let dimensions = Int.random(in: 400...800)
+			let kittenURL = baseURL
+				.appendingPathComponent("\(dimensions)")
+				.appendingPathComponent("\(dimensions)")
+
+			create(modelWithTitle: DemoText.demoNames.randomElement()!, andSubtitle: DemoText.demoSubtitles.randomElement()!, imageURL: kittenURL)
+			print(self.demoModels.count)
 		}
-
 	}
 }

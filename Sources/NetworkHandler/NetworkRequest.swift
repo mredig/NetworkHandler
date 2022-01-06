@@ -9,9 +9,6 @@ public struct NetworkRequest {
 	public private(set) var urlRequest: URLRequest
 	public var expectedResponseCodes: Set<Int>
 
-	/// Only affects methods that return a `URLSessionTask`
-	public var automaticStart = true
-
 	// MARK: - Upgraded Properties
 	public var httpMethod: HTTPMethod? {
 		get { urlRequest.method }
@@ -72,12 +69,10 @@ public struct NetworkRequest {
 	public var priority: Priority = .defaultPriority
 
 	#if !os(Linux)
-	@available(iOS 13.0, OSX 10.15, *)
 	public var allowsExpensiveNetworkAccess: Bool {
 		get { urlRequest.allowsExpensiveNetworkAccess }
 		set { urlRequest.allowsExpensiveNetworkAccess = newValue }
 	}
-	@available(iOS 13.0, OSX 10.15, *)
 	public var allowsConstrainedNetworkAccess: Bool {
 		get { urlRequest.allowsConstrainedNetworkAccess }
 		set { urlRequest.allowsConstrainedNetworkAccess = newValue }

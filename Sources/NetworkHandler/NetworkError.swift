@@ -73,12 +73,12 @@ public enum NetworkError: Error, Equatable {
 	```
 	*/
 	case dataWasNull
+	case noURLResponse
 	/**
 	If you need to provide an error state but none of the other specified cases
 	apply, use this. Optionally provide a reason. Useful for when guard statements fail.
 	*/
 	case unspecifiedError(reason: String?)
-	case graphQLError(error: GQLError)
 
 	public static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
 		switch lhs {
@@ -104,8 +104,8 @@ public enum NetworkError: Error, Equatable {
 			if case .urlInvalid(let rhsURLString) = rhs, urlString == rhsURLString { return true } else { return false }
 		case .unspecifiedError(let lhsReason):
 			if case .unspecifiedError(let rhsReason) = rhs, lhsReason == rhsReason { return true } else { return false }
-		case .graphQLError(let lhsError):
-			if case .graphQLError(let rhsError) = rhs, lhsError == rhsError { return true } else { return false }
+		case .noURLResponse:
+			if case .noURLResponse = rhs { return true } else { return false }
 		}
 	}
 }
@@ -131,8 +131,6 @@ extension NetworkError: CustomDebugStringConvertible {
 			return "NetworkError: Data Coding Error\n Error: \(error)\nSourceData: \(stringifyData(sourceData))"
 		case .dataWasNull:
 			return "NetworkError: Data was Null"
-		case .graphQLError(error: let gqlError):
-			return "NetworkError: \(gqlError)"
 		case .httpNon200StatusCode(code: let code, data: let data):
 			return "NetworkError: Bad Response Code (\(code)) with data: \(stringifyData(data))"
 		case .imageDecodeError:
@@ -143,6 +141,8 @@ extension NetworkError: CustomDebugStringConvertible {
 			return "NetworkError: Unspecified Error: \(reason ?? "nil value")"
 		case .urlInvalid(urlString: let urlString):
 			return "NetworkError: Invalid URL: \(urlString ?? "nil value")"
+		case .noURLResponse:
+			return "NetworkError: No URL Response"
 		}
 	}
 }
