@@ -9,39 +9,12 @@ Essentially just a wrapper for NSCache, but specifically purposed for use with
 NetworkHandler and does the work of converting `String` <-> `NSString` and `Data` <-> `NSData`
 for you. Directly exposes some properties like `countLimit` and `totalCostLimit`
 */
-public class NetworkCache {
-
-	class CachedItem: Codable {
-		let response: URLResponse
-		let data: Data
-
-		enum CodingKeys: String, CodingKey {
-			case response
-			case data
-		}
-
-		required init(from decoder: Decoder) throws {
-			let container = try decoder.container(keyedBy: CodingKeys.self)
-			let responseData = try container.decode(Data.self, forKey: .response)
-			guard let response = URLResponseCoder.decodeResponse(from: responseData) else { throw CachedItemError.responseDataCorrupt }
-			self.response = response
-			self.data = try container.decode(Data.self, forKey: .data)
-		}
-
-		func encode(to encoder: Encoder) throws {
-			var container = encoder.container(keyedBy: CodingKeys.self)
-			try container.encode(data, forKey: .data)
-			try container.encode(URLResponseCoder.encode(response: response), forKey: .response)
-		}
-
-		enum CachedItemError: Error {
-			case responseDataCorrupt
-		}
-	}
-
+class NetworkCache {
 	// MARK: - Properties
-	private let cache = NSCache<NSString, NSData>()
+	private let cache = NSCache<NSString, NetworkCacheItem>()
 	let diskCache: NetworkDiskCache
+	private static let diskEncoder = PropertyListEncoder()
+	private static let diskDecoder = PropertyListDecoder()
 
 	/**
 	The maximum number of objects the cache should hold.
@@ -75,14 +48,19 @@ public class NetworkCache {
 		set { cache.name = newValue }
 	}
 
-	public subscript(key: String) -> Data? {
+	public subscript(key: String) -> NetworkCacheItem? {
 		get {
-			(cache.object(forKey: key as NSString) as Data?) ?? diskCache.getData(for: key)
+			if let cachedItem = cache.object(forKey: key as NSString) {
+				return cachedItem
+			} else if let codedData = diskCache.getData(for: key) {
+				return try? Self.diskDecoder.decode(NetworkCacheItem.self, from: codedData)
+			}
+			return nil
 		}
 		set {
 			if let newData = newValue {
-				cache.setObject(newData as NSData, forKey: key as NSString, cost: newData.count)
-				diskCache.setData(newData, key: key)
+				cache.setObject(newData, forKey: key as NSString, cost: newData.data.count)
+				diskCache.setData(try? Self.diskEncoder.encode(newData), key: key)
 			} else {
 				cache.removeObject(forKey: key as NSString)
 				diskCache.deleteData(for: key)
@@ -102,11 +80,11 @@ public class NetworkCache {
 		diskCache.resetCache()
 	}
 
-	@discardableResult public func remove(objectFor key: String) -> Data? {
-		let data = cache.object(forKey: key as NSString) as Data?
+	@discardableResult public func remove(objectFor key: String) -> NetworkCacheItem? {
+		let cachedItem = cache.object(forKey: key as NSString)
 		cache.removeObject(forKey: key as NSString)
 		diskCache.deleteData(for: key)
-		return data
+		return cachedItem
 	}
 }
 
@@ -123,5 +101,42 @@ enum URLResponseCoder {
 	static func decodeResponse(from data: Data) -> URLResponse? {
 		let uncoder = try? NSKeyedUnarchiver(forReadingFrom: data)
 		return uncoder?.decodeObject(of: URLResponse.self, forKey: Self.key)
+	}
+}
+
+class NetworkCacheItem: Codable {
+	let response: URLResponse
+	let data: Data
+
+	var cacheTuple: (Data, URLResponse) {
+		(data, response)
+	}
+
+	enum CodingKeys: String, CodingKey {
+		case response
+		case data
+	}
+
+	init(response: URLResponse, data: Data) {
+		self.response = response
+		self.data = data
+	}
+
+	required init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+		let responseData = try container.decode(Data.self, forKey: .response)
+		guard let response = URLResponseCoder.decodeResponse(from: responseData) else { throw CachedItemError.responseDataCorrupt }
+		self.response = response
+		self.data = try container.decode(Data.self, forKey: .data)
+	}
+
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		try container.encode(data, forKey: .data)
+		try container.encode(URLResponseCoder.encode(response: response), forKey: .response)
+	}
+
+	enum CachedItemError: Error {
+		case responseDataCorrupt
 	}
 }

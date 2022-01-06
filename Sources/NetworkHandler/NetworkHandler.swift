@@ -14,7 +14,7 @@ public class NetworkHandler {
 	An instance of Network Cache to speed up subsequent requests. Usage is
 	optional, but automatic when making requests using the `usingCache` flag.
 	*/
-	public let cache: NetworkCache
+	let cache: NetworkCache
 
 	public let name: String
 
@@ -78,7 +78,7 @@ public class NetworkHandler {
 		session: URLSession? = nil) async throws -> (data: Data, response: URLResponse) {
 			if let cacheKey = cacheOption.cacheKey(url: request.url) {
 				if let cachedData = cache[cacheKey] {
-					// return response here
+					return (cachedData.data, cachedData.response)
 				}
 			}
 
@@ -115,7 +115,10 @@ public class NetworkHandler {
 				throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: totalResponse.data)
 			}
 
-//			cache.set it
+			if let cacheKey = cacheOption.cacheKey(url: request.url) {
+				self.cache[cacheKey] = NetworkCacheItem(response: totalResponse.response, data: totalResponse.data)
+			}
+
 			return totalResponse
 		}
 
