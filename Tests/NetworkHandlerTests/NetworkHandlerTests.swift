@@ -25,6 +25,13 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		demoModelController = DemoModelController()
 	}
 
+	override func tearDown() {
+		super.tearDown()
+
+		let networkHandler = generateNetworkHandlerInstance()
+		networkHandler.cache.reset()
+	}
+
 	// MARK: - Live Network Tests
 	/// Tests downloading over a live connection, caching the download, and subsequently loading the file from cache.
 	func testImageDownloadAndCache() async throws {
@@ -66,38 +73,27 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertNotNil(TestImage(data: imageOneData))
 	}
 
-
 	// MARK: - Mock Network Tests
 	/// Tests using a Mock Session that is successful.
-//	func testMockDataSuccess() {
-//		let networkHandler = generateNetworkHandlerInstance()
-//		let waitForMocking = expectation(description: "Wait for mocking")
-//
-//		// expected result
-//		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
-//
-//		let mockData = {
-//			try? JSONEncoder().encode(demoModel)
-//		}()
-//		let mockSession = NetworkMockingSession(mockData: mockData, mockError: nil)
-//
-//		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
-//		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
-//		let dummyModelURL = dummyBaseURL
-//			.appendingPathComponent(demoModel.id.uuidString)
-//			.appendingPathExtension("json")
-//
-//		var theResult: Result<DemoModel, Error>?
-//		networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
-//			theResult = result
-//			waitForMocking.fulfill()
-//		}
-//
-//		wait(for: [waitForMocking], timeout: 10)
-//
-//		XCTAssertNoThrow(try theResult?.get())
-//		XCTAssertEqual(demoModel, try theResult?.get())
-//	}
+	func testMockDataSuccess() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		// expected result
+		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
+
+		let mockData = try JSONEncoder().encode(demoModel)
+
+		// mock data doesn't need a valid data source passed in, but it's wise to make it the same as your actual source
+		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
+		let dummyModelURL = dummyBaseURL
+			.appendingPathComponent(demoModel.id.uuidString)
+			.appendingPathExtension("json")
+
+		await NetworkHandlerMocker.addMock(for: dummyModelURL, method: .get, data: mockData, code: 200)
+
+		let result: DemoModel = try await networkHandler.transferMahCodableDatas(for: dummyModelURL.request).decoded
+		XCTAssertEqual(demoModel, result)
+	}
 
 	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
 //	func testMockDataErrors() {
