@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "NetworkHandler",
 	platforms: [
-		.macOS(.v10_13),
-		.iOS(.v11),
-		.tvOS(.v11),
+		.macOS(.v10_15),
+		.iOS(.v13),
+		.tvOS(.v13),
 		.watchOS(.v6),
 	],
     products: [
@@ -19,10 +19,6 @@ let package = Package(
 		.library(
 			name: "NetworkHalpers",
 			targets: ["NetworkHalpers"]),
-//		.library(
-//			name: "TestSupport",
-//			targets: ["NetworkHaalpers"])
-
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
