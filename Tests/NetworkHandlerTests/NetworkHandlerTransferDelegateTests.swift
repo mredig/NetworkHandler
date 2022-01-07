@@ -37,7 +37,6 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 		myDel.progressPub
 			.sink {
 				progressTracker.append($0)
-				print($0)
 			}
 
 		try await networkHandler.transferMahDatas(for: url.request, delegate: myDel)
@@ -110,7 +109,6 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 		let myDel = DownloadDelegate()
 		myDel.progressPub.sink {
 			progressTracker.append($0)
-			print($0)
 		}
 
 		try await networkHandler.transferMahDatas(for: request, delegate: myDel)
