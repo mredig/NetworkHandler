@@ -96,7 +96,8 @@ public class NetworkHandler {
 			let session = defaultSession
 
 			let task = session.dataTask(with: request.urlRequest)
-
+			task.priority = request.priority.rawValue
+			
 			let publisher = sessionDelegate.publisher(for: task)
 
 			let data: Data = try await withCheckedThrowingContinuation({ continuation in

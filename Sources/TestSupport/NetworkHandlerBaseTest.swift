@@ -1,4 +1,4 @@
-@testable import NetworkHandler
+import NetworkHandler
 import XCTest
 
 open class NetworkHandlerBaseTest: XCTestCase {
@@ -16,4 +16,18 @@ open class NetworkHandlerBaseTest: XCTestCase {
 		return networkHandler
 	}
 
+	public func wait(forArbitraryCondition arbitraryCondition: @autoclosure () async throws -> Bool, timeout: TimeInterval = 10) async throws {
+		let start = CFAbsoluteTimeGetCurrent()
+		while try await arbitraryCondition() == false {
+			let elapsed = CFAbsoluteTimeGetCurrent() - start
+			if elapsed > timeout {
+				throw TestError(message: "Timeout")
+			}
+			try await Task.sleep(nanoseconds: 1000)
+		}
+	}
+
+	public struct TestError: Error {
+		let message: String
+	}
 }

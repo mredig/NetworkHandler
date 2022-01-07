@@ -1,5 +1,4 @@
-import XCTest
-//// swiftlint:disable function_body_length
+// swiftlint:disable function_body_length
 
 import XCTest
 import NetworkHalpers
@@ -132,11 +131,62 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 		XCTAssertFalse(request.allowsExpensiveNetworkAccess)
 		request.allowsExpensiveNetworkAccess = true
 		XCTAssertTrue(request.allowsExpensiveNetworkAccess)
-		
+
 		request.allowsConstrainedNetworkAccess = false
 		XCTAssertFalse(request.allowsConstrainedNetworkAccess)
 		request.allowsConstrainedNetworkAccess = true
 		XCTAssertTrue(request.allowsConstrainedNetworkAccess)
 		#endif
+	}
+
+	func testPriority() async throws {
+		let dummyURL = URL(string: "https://redeggproductions.com")!
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let defaultRequest = dummyURL.request
+		Task {
+			try await networkHandler.transferMahDatas(for: defaultRequest)
+		}
+		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty == false)
+		let defTask = (await networkHandler.defaultSession.allTasks).first { $0.originalRequest == defaultRequest.urlRequest }
+		XCTAssertEqual(defTask?.priority, defaultRequest.priority.rawValue)
+		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty)
+
+		var highRequest = dummyURL.request
+		highRequest.priority = .highPriority
+		Task { [highRequest] in
+			try await networkHandler.transferMahDatas(for: highRequest)
+		}
+		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty == false)
+		let highTask = (await networkHandler.defaultSession.allTasks).first { $0.originalRequest == highRequest.urlRequest }
+		XCTAssertEqual(highTask?.priority, highRequest.priority.rawValue)
+		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty)
+
+		var lowRequest = dummyURL.request
+		lowRequest.priority = .lowPriority
+
+		Task { [lowRequest] in
+			try await networkHandler.transferMahDatas(for: lowRequest)
+		}
+		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty == false)
+		let lowTask = (await networkHandler.defaultSession.allTasks).first { $0.originalRequest == lowRequest.urlRequest }
+		XCTAssertEqual(lowTask?.priority, lowRequest.priority.rawValue)
+		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty)
+
+		var arbitraryRequest = dummyURL.request
+		arbitraryRequest.priority = -1
+		XCTAssertEqual(0, arbitraryRequest.priority.rawValue)
+
+		arbitraryRequest.priority = 0
+		XCTAssertEqual(0, arbitraryRequest.priority.rawValue)
+
+		arbitraryRequest.priority = 0.4
+		XCTAssertEqual(0.4, arbitraryRequest.priority.rawValue)
+
+		arbitraryRequest.priority = 1
+		XCTAssertEqual(1, arbitraryRequest.priority.rawValue)
+
+		arbitraryRequest.priority = 4
+		XCTAssertEqual(1, arbitraryRequest.priority.rawValue)
 	}
 }
