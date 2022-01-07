@@ -1,5 +1,6 @@
 //swiftlint:disable line_length
 
+import Combine
 import Foundation
 @_exported import NetworkHalpers
 #if os(Linux)
@@ -24,8 +25,6 @@ public class NetworkHandler {
 	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is handled via `NetworkCache`
 	public let defaultSession: URLSession
 	private let sessionDelegate: TheDelegate
-
-	private var bag: Set<AnyCancellable> = []
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
@@ -132,31 +131,6 @@ public class NetworkHandler {
 			return (data, httpResponse)
 		}
 
-
-//	@discardableResult public func downloadMahDatas(
-//		for request: NetworkRequest,
-////		with delegate: URLSessionTaskDelegate? = nil,
-//		task: inout URLSessionDownloadTask?
-////		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
-//		) async throws -> (fileURL: URL, response: URLResponse) {
-////			if let cacheKey = cacheOption.cacheKey(url: request.url) {
-////				if let cachedData = cache[cacheKey] {
-////					return (cachedData.data, cachedData.response)
-////				}
-////			}
-//
-//			let newTask = defaultSession.downloadTask(with: request.urlRequest)
-//			task = newTask
-//			let url: URL = try await withCheckedThrowingContinuation({ continuation in
-//				trackedTasks[newTask] = continuation
-//				newTask.resume()
-//			})
-//
-//			guard let response = newTask.response else { throw NetworkError.noURLResponse }
-//			return (url, response)
-//		}
-
-
 	private func printToConsole(_ string: String) {
 		if printErrorsToConsole {
 			print(string)
@@ -186,70 +160,5 @@ public class NetworkHandler {
 				return value
 			}
 		}
-	}
-}
-
-import Combine
-private class TheDelegate: NSObject, URLSessionDelegate {
-	let dataReceived = PassthroughSubject<(URLSessionTask, Data), Never>()
-
-	static private let queue = OperationQueue()
-
-	typealias DataPublisher = PassthroughSubject<Data, Error>
-	private var publishers: [URLSessionTask: DataPublisher] = [:]
-
-	func publisher(for task: URLSessionTask) -> DataPublisher {
-		Self.queue.addOperationAndWaitUntilFinished {
-			let pub = self.publishers[task, default: DataPublisher()]
-			self.publishers[task] = pub
-			return pub
-		}
-	}
-}
-
-extension TheDelegate: URLSessionTaskDelegate {
-//	func urlSession(_ session: URLSession, needNewBodyStreamForTask task: URLSessionTask) async -> InputStream? {
-//		<#code#>
-//	}
-
-//	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
-//		<#code#>
-//	}
-
-	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-		let completion: Subscribers.Completion<Error>
-		if let error = error {
-			completion = .failure(error)
-		} else {
-			completion = .finished
-		}
-		Self.queue.addOperationAndWaitUntilFinished {
-			self.publishers[task]?.send(completion: completion)
-		}
-	}
-}
-
-extension TheDelegate: URLSessionDataDelegate {
-	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-		Self.queue.addOperationAndWaitUntilFinished {
-			self.publishers[dataTask]?.send(data)
-		}
-	}
-}
-
-extension TheDelegate: URLSessionDownloadDelegate {
-	func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-		print("Got a download task to location: \(location)")
-	}
-}
-
-extension OperationQueue {
-	func addOperationAndWaitUntilFinished<T>(_ block: @escaping () -> T) -> T {
-		var output: T!
-		let operation = BlockOperation(block: {
-			output = block()
-		})
-		addOperations([operation], waitUntilFinished: true)
-		return output
 	}
 }

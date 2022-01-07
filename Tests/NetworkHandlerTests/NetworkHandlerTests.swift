@@ -32,12 +32,10 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// completely disabling cache and creating a new url session with each request isn't strictly or even typically
 		// necessary. This is done just to absolutely confirm the test is working.
-		let loader = { () -> URLSession in
-			let config = URLSessionConfiguration.ephemeral
-			config.urlCache = nil
-			config.requestCachePolicy = .reloadIgnoringCacheData
-			return URLSession(configuration: config)
-		}
+		let config = URLSessionConfiguration.ephemeral
+		config.urlCache = nil
+		config.requestCachePolicy = .reloadIgnoringCacheData
+		#warning("use the config")
 
 		let networkStart = CFAbsoluteTimeGetCurrent()
 		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"))//, session: loader())
