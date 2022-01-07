@@ -352,17 +352,4 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			}
 		}
 	}
-
-	func testDownload() async throws {
-		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
-
-		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
-
-		var task: URLSessionDownloadTask?
-		
-//		let downloadResponse = try await networkHandler.downloadMahDatas(for: url.request, task: &task)
-//
-//		print(task)
-//		print(downloadResponse)
-	}
 }
