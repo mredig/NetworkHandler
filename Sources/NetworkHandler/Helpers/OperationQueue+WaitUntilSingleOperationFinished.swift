@@ -1,6 +1,6 @@
 import Foundation
 
-extension OperationQueue {
+internal extension OperationQueue {
 	func addOperationAndWaitUntilFinished<T>(_ block: @escaping () -> T) -> T {
 		var output: T!
 		let operation = BlockOperation(block: {
