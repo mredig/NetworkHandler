@@ -44,6 +44,7 @@ public class NetworkHandler {
 		self.sessionDelegate = sessionDelegate
 	}
 
+	@NHActor
 	public func resetCache(memory: Bool = true, disk: Bool = true) {
 		cache.reset(memory: memory, disk: disk)
 	}
@@ -58,6 +59,7 @@ public class NetworkHandler {
 		- session: URLSession instance. **Default**: `self.defaultSession`
 	- Returns: The resulting, decoded data safely typed as the `DecodableType` and the `URLResponse` from the task
 	*/
+	@NHActor
 	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
@@ -84,6 +86,7 @@ public class NetworkHandler {
 
 	 Note that delegate is only valid in iOS 15, macOS 12, tvOS 15, and watchOS 8 and higher
 	*/
+	@NHActor
 	@discardableResult public func transferMahDatas(
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,

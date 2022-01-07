@@ -87,6 +87,7 @@ class NHPublisher<MessageType, ErrorType: Error> {
 	}
 }
 
+@NHActor
 internal class TheDelegate: NSObject, URLSessionDelegate {
 	static private let queue = OperationQueue()
 
