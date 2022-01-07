@@ -70,6 +70,7 @@ public class NetworkHandler {
 				let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
 				return (decodedValue, totalResponse.response)
 			} catch {
+				printToConsole("Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)")
 				throw NetworkError.dataCodingError(specifically: error, sourceData: totalResponse.data)
 			}
 		}
@@ -99,15 +100,21 @@ public class NetworkHandler {
 				?? defaultSession
 
 			let task = session.dataTask(with: request.urlRequest)
-			delegate?.networkHandlerTaskDidStart(task)
-			delegate?.networkHandlerTask(task, stateChanged: task.state)
+			delegateQueue.addOperationAndWaitUntilFinished {
+				delegate?.networkHandlerTaskDidStart(task)
+				delegate?.networkHandlerTask(task, stateChanged: task.state)
+			}
 			task.priority = request.priority.rawValue
 
 			let stateObserver = task.observe(\.state, options: [.new]) { task, _ in
-				delegate?.networkHandlerTask(task, stateChanged: task.state)
+				self.delegateQueue.addOperationAndWaitUntilFinished {
+					delegate?.networkHandlerTask(task, stateChanged: task.state)
+				}
 			}
 			let progressObserver = task.progress.observe(\.fractionCompleted, options: .new) { progress, _ in
-				delegate?.networkHandlerTask(task, didProgress: task.progress.fractionCompleted)
+				self.delegateQueue.addOperationAndWaitUntilFinished {
+					delegate?.networkHandlerTask(task, didProgress: task.progress.fractionCompleted)
+				}
 			}
 			
 			let publisher = sessionDelegate.publisher(for: task)
@@ -135,9 +142,11 @@ public class NetworkHandler {
 			progressObserver.invalidate()
 
 			guard let httpResponse = task.response as? HTTPURLResponse else {
+				printToConsole("Error: Server replied with no status code")
 				throw NetworkError.noStatusCodeResponse
 			}
 			guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
+				printToConsole("Error: Server replied with expected status code: Got \(httpResponse.statusCode) expected \(request.expectedResponseCodes)")
 				throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: data)
 			}
 
