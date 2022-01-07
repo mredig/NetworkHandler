@@ -41,7 +41,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"))//, session: loader())
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 		addTeardownBlock {
-			networkHandler.cache.reset()
+			networkHandler.resetCache()
 		}
 
 		// now try retrieving from cache

@@ -46,7 +46,8 @@ class NetworkCacheTests: NetworkCacheTest {
 		let cachedItem1 = NetworkCacheItem(response: response1, data: data1)
 		let cachedItem2 = NetworkCacheItem(response: response2, data: data2)
 
-		let cache = generateNetworkHandlerInstance().cache
+		let networkHandler = generateNetworkHandlerInstance()
+		let cache = networkHandler.cache
 		let diskCache = cache.diskCache
 
 		let key1 = URL(fileURLWithPath: "/").absoluteString

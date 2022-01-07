@@ -73,9 +73,13 @@ class NetworkCache {
 	}
 
 	// MARK: - Methods
-	public func reset() {
-		cache.removeAllObjects()
-		diskCache.resetCache()
+	public func reset(memory: Bool = true, disk: Bool = true) {
+		if memory {
+			cache.removeAllObjects()
+		}
+		if disk {
+			diskCache.resetCache()
+		}
 	}
 
 	@discardableResult public func remove(objectFor key: String) -> NetworkCacheItem? {

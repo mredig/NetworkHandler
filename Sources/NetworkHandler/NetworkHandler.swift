@@ -44,6 +44,10 @@ public class NetworkHandler {
 		self.sessionDelegate = sessionDelegate
 	}
 
+	public func resetCache(memory: Bool = true, disk: Bool = true) {
+		cache.reset(memory: memory, disk: disk)
+	}
+
 	// MARK: - Network Handling
 	/**
 	Preconfigured URLSession tasking to fetch and decode decodable data.
