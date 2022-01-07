@@ -4,7 +4,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Combine isn't available on Linux and there's not much of its functionality required for this package, so this is a small portion of Combine like functionality.
+/// Combine isn't available on Linux and there's not much of its functionality required for this package, so this is an exceedingly simple portion of Combine like functionality.
 /// Definitely an internal class, not intended to be used outside of this package
 class NHPublisher<MessageType, ErrorType: Error> {
 	enum Completion {
