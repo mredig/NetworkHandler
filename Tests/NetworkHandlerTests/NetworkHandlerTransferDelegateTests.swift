@@ -149,6 +149,8 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		try await networkHandler.transferMahDatas(for: url.request, delegate: myDel)
 
+		try await wait(forArbitraryCondition: statuses.count == 3)
+
 		XCTAssertEqual(expectedStatuses, statuses)
 	}
 }
