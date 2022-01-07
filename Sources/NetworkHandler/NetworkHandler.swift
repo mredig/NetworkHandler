@@ -60,9 +60,10 @@ public class NetworkHandler {
 	*/
 	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(
 		for request: NetworkRequest,
+		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		session: URLSession? = nil) async throws -> (decoded: DecodableType, response: URLResponse) {
-			let totalResponse = try await transferMahDatas(for: request, usingCache: cacheOption, session: session)
+			let totalResponse = try await transferMahDatas(for: request, delegate: delegate, usingCache: cacheOption, session: session)
 
 			let decoder = request.decoder
 			do {
@@ -84,6 +85,7 @@ public class NetworkHandler {
 	*/
 	@discardableResult public func transferMahDatas(
 		for request: NetworkRequest,
+		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		session: URLSession? = nil) async throws -> (data: Data, response: URLResponse) {
 			if let cacheKey = cacheOption.cacheKey(url: request.url) {
@@ -96,7 +98,16 @@ public class NetworkHandler {
 			let session = defaultSession
 
 			let task = session.dataTask(with: request.urlRequest)
+			delegate?.networkHandlerTaskDidStart(task)
+			delegate?.networkHandlerTask(task, stateChanged: task.state)
 			task.priority = request.priority.rawValue
+
+			let stateObserver = task.observe(\.state, options: [.new]) { task, _ in
+				delegate?.networkHandlerTask(task, stateChanged: task.state)
+			}
+			let progressObserver = task.progress.observe(\.fractionCompleted, options: .new) { progress, _ in
+				delegate?.networkHandlerTask(task, didProgress: task.progress.fractionCompleted)
+			}
 			
 			let publisher = sessionDelegate.publisher(for: task)
 
@@ -118,6 +129,9 @@ public class NetworkHandler {
 
 				task.resume()
 			})
+
+			stateObserver.invalidate()
+			progressObserver.invalidate()
 
 			guard let httpResponse = task.response as? HTTPURLResponse else {
 				throw NetworkError.noStatusCodeResponse
@@ -163,4 +177,18 @@ public class NetworkHandler {
 			}
 		}
 	}
+}
+
+
+public protocol NetworkHandlerTransferDelegate: AnyObject {
+	func networkHandlerTaskDidStart(_ task: URLSessionTask)
+	func networkHandlerTask(_ task: URLSessionTask, didProgress progress: Double)
+	func networkHandlerTask(_ task: URLSessionTask, stateChanged state: URLSessionTask.State)
+}
+
+extension NetworkHandlerTransferDelegate {
+	func networkHandlerTaskDidStart(_ task: URLSessionTask) {}
+	func networkHandlerTask(_ task: URLSessionTask, didProgress progress: Double) {}
+	func networkHandlerTask(_ task: URLSessionTask, stateChanged state: URLSessionTask.State) {}
+
 }
