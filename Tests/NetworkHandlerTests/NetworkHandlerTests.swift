@@ -35,10 +35,9 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let config = URLSessionConfiguration.ephemeral
 		config.urlCache = nil
 		config.requestCachePolicy = .reloadIgnoringCacheData
-		#warning("use the config")
 
 		let networkStart = CFAbsoluteTimeGetCurrent()
-		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"))//, session: loader())
+		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), sessionConfiguration: config)
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 		addTeardownBlock {
 			networkHandler.resetCache()
@@ -46,7 +45,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// now try retrieving from cache
 		let cacheStart = CFAbsoluteTimeGetCurrent()
-		let image2Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"))//, session: loader())
+		let image2Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), sessionConfiguration: config)
 		let cacheFinish = CFAbsoluteTimeGetCurrent()
 
 

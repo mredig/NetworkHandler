@@ -24,6 +24,11 @@ public class NetworkHandler {
 	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is handled via `NetworkCache`
 	public let defaultSession: URLSession
 	private let sessionDelegate: TheDelegate
+	private let delegateQueue: OperationQueue = {
+		let q = OperationQueue()
+		q.maxConcurrentOperationCount = 1
+		return q
+	}()
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
@@ -31,16 +36,11 @@ public class NetworkHandler {
 		self.name = name
 		self.cache = NetworkCache(name: "\(name)-Cache", diskCacheCapacity: diskCacheCapacity)
 
-		let config = configuration ?? {
-			let c = URLSessionConfiguration.default
-			c.requestCachePolicy = .reloadIgnoringLocalCacheData
-			c.urlCache = nil
-			return c
-		}()
+		let config = configuration ?? .networkHandlerDefault
 
 		let sessionDelegate = TheDelegate()
 
-		self.defaultSession = URLSession(configuration: config, delegate: sessionDelegate, delegateQueue: nil)
+		self.defaultSession = URLSession(configuration: config, delegate: sessionDelegate, delegateQueue: delegateQueue)
 		self.sessionDelegate = sessionDelegate
 	}
 
@@ -62,8 +62,8 @@ public class NetworkHandler {
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
-		session: URLSession? = nil) async throws -> (decoded: DecodableType, response: URLResponse) {
-			let totalResponse = try await transferMahDatas(for: request, delegate: delegate, usingCache: cacheOption, session: session)
+		sessionConfiguration: URLSessionConfiguration? = nil) async throws -> (decoded: DecodableType, response: URLResponse) {
+			let totalResponse = try await transferMahDatas(for: request, delegate: delegate, usingCache: cacheOption, sessionConfiguration: sessionConfiguration)
 
 			let decoder = request.decoder
 			do {
@@ -87,15 +87,16 @@ public class NetworkHandler {
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
-		session: URLSession? = nil) async throws -> (data: Data, response: URLResponse) {
+		sessionConfiguration: URLSessionConfiguration? = nil) async throws -> (data: Data, response: URLResponse) {
 			if let cacheKey = cacheOption.cacheKey(url: request.url) {
 				if let cachedData = cache[cacheKey] {
 					return (cachedData.data, cachedData.response)
 				}
 			}
 
-//			let session = session ?? defaultSession
-			let session = defaultSession
+			let session = sessionConfiguration
+				.map { URLSession(configuration: $0, delegate: sessionDelegate, delegateQueue: delegateQueue) }
+				?? defaultSession
 
 			let task = session.dataTask(with: request.urlRequest)
 			delegate?.networkHandlerTaskDidStart(task)
