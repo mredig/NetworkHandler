@@ -5,6 +5,7 @@ import FoundationNetworking
 #endif
 
 /// Combine isn't available on Linux and there's not much of its functionality required for this package, so this is a small portion of Combine like functionality.
+/// Definitely an internal class, not intended to be used outside of this package
 class NHPublisher<MessageType, ErrorType: Error> {
 	enum Completion {
 		case finished
@@ -17,10 +18,6 @@ class NHPublisher<MessageType, ErrorType: Error> {
 	private var completionSinks: [CompletionSink] = []
 
 	private var isCompleted = false
-
-	deinit {
-		print("done for!")
-	}
 
 	func send(_ message: MessageType) {
 		guard isCompleted == false else { return }
