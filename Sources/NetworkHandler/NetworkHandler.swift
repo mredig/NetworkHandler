@@ -1,6 +1,5 @@
 //swiftlint:disable line_length
 
-import Combine
 import Foundation
 @_exported import NetworkHalpers
 #if os(Linux)
@@ -96,11 +95,13 @@ public class NetworkHandler {
 
 			let publisher = sessionDelegate.publisher(for: task)
 
-			var bag: Set<AnyCancellable> = []
 			let data: Data = try await withCheckedThrowingContinuation({ continuation in
 				var totalData = Data()
 				publisher
 					.sink(
+						receiveValue: {
+							totalData.append($0)
+						},
 						receiveCompletion: { completionInfo in
 							switch completionInfo {
 							case .finished:
@@ -108,11 +109,7 @@ public class NetworkHandler {
 							case .failure(let error):
 								continuation.resume(throwing: error)
 							}
-						},
-						receiveValue: {
-							totalData.append($0)
 						})
-					.store(in: &bag)
 
 				task.resume()
 			})
