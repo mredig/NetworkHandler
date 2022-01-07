@@ -25,6 +25,38 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		demoModelController = DemoModelController()
 	}
 
+	func testMassiveNumberOfConnections() async throws {
+		var urls: [URL] = []
+		for x in 1...10 {
+			for y in 1...10 {
+				urls.append(URL(string: "https://placekitten.com/\((x * 10) + 99)/\((y * 10) + 99)")!)
+			}
+		}
+
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		let config = URLSessionConfiguration.ephemeral
+		config.urlCache = nil
+		config.requestCachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+		let allData = try await withThrowingTaskGroup(of: Data.self, body: { group -> [Data] in
+			urls.forEach { url in
+				group.addTask {
+					var request = url.request
+					request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+					return try await networkHandler.transferMahDatas(for: url.request, usingCache: .dontUseCache, sessionConfiguration: config).data
+				}
+			}
+
+			var completed: [Data] = []
+			for try await kitten in group {
+				completed.append(kitten)
+			}
+			return completed
+		})
+
+		XCTAssertEqual(100, allData.count)
+	}
+
 	// MARK: - Live Network Tests
 	/// Tests downloading over a live connection, caching the download, and subsequently loading the file from cache.
 	func testImageDownloadAndCache() async throws {
@@ -40,7 +72,9 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), sessionConfiguration: config)
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 		addTeardownBlock {
-			networkHandler.resetCache()
+			Task {
+				await networkHandler.resetCache()
+			}
 		}
 
 		// now try retrieving from cache
@@ -264,6 +298,14 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 	}
 
 	func testUploadFile() async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			XCTFail("Need s3 credentials")
+			return
+		}
+
 		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!

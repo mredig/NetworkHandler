@@ -58,6 +58,14 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 	/// tests progress tracking when uploading - will fail without api/secret for wasabi in environment
 	func testUploadProgress() async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			XCTFail("Need s3 credentials")
+			return
+		}
+
 		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
