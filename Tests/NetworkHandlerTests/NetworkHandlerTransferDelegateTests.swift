@@ -155,49 +155,28 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 //		wait(for: [runCompletedAfterwards], timeout: 10)
 //	}
 //
-//	func testOnTaskStatusChange() {
-//		let networkHandler = generateNetworkHandlerInstance()
-//
-//		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
-//
-//		var delayRequest = url.request
-//		delayRequest.automaticStart = false
-//
-//		let waitForMocking = expectation(description: "Wait for mocking")
-//		let handle = networkHandler.transferMahDatas(with: url.request) { _ in
-//			waitForMocking.fulfill()
-//		}
-//
-//		let expectedStatuses: [NetworkLoadingTaskStatus] = [.running, .running, .completed]
-//
-//		let serialQueue = DispatchQueue(label: "statuses queue")
-//		var statuses: [NetworkLoadingTaskStatus] = []
-//
-//		handle.onStatusUpdated { task in
-//			serialQueue.sync {
-//				statuses.append(task.status)
-//			}
-//		}
-//
-//		let waitForCompletion = expectation(description: "wait for completion handler")
-//		handle.onCompletion { task in
-//			waitForCompletion.fulfill()
-//		}
-//
-//		handle.resume()
-//
-//		wait(for: [waitForMocking, waitForCompletion], timeout: 10)
-//
-//		let runCompletedAfterwards = expectation(description: "run again")
-//		handle.onCompletion { task in
-//			runCompletedAfterwards.fulfill()
-//		}
-//
-//		wait(for: [runCompletedAfterwards], timeout: 10)
-//
-//		XCTAssertEqual(expectedStatuses, statuses)
-//	}
-//
+	func testOnTaskStatusChange() async throws {
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+
+		let expectedStatuses: [URLSessionTask.State] = [.suspended, .running, .completed]
+
+		var statuses: [URLSessionTask.State] = []
+
+		let myDel = DownloadDelegate()
+		myDel.statePub
+			.receive(on: .main)
+			.removeDuplicates()
+			.sink {
+				statuses.append($0)
+			}
+
+		try await networkHandler.transferMahDatas(for: url.request, delegate: myDel)
+
+		XCTAssertEqual(expectedStatuses, statuses)
+	}
+
 //	func testDataAfterCompletion() {
 //		let networkHandler = generateNetworkHandlerInstance()
 //

@@ -19,6 +19,8 @@ class NHPublisher<MessageType, ErrorType: Error> {
 
 	private var isCompleted = false
 
+	required init() {}
+
 	func send(_ message: MessageType) {
 		guard isCompleted == false else { return }
 		valueSinks.forEach {
@@ -34,12 +36,54 @@ class NHPublisher<MessageType, ErrorType: Error> {
 		}
 	}
 
-	func sink(receiveValue: @escaping MessageSink, receiveCompletion: CompletionSink? = nil) {
+	@discardableResult func sink(receiveValue: @escaping MessageSink, receiveCompletion: CompletionSink? = nil) -> Self {
 		valueSinks.append(receiveValue)
 
 		if let receiveCompletion = receiveCompletion {
 			completionSinks.append(receiveCompletion)
 		}
+
+		return self
+	}
+
+	func receive(on queue: DispatchQueue) -> Self {
+		let newPub = Self()
+		valueSinks.append { message in
+			queue.async { newPub.send(message) }
+		}
+
+		completionSinks.append { completion in
+			queue.async { newPub.send(completion: completion) }
+		}
+
+		return newPub
+	}
+
+	private var previousMessage: MessageType?
+	/**
+	- predicate
+		A closure to evaluate whether two elements are equivalent, for purposes of filtering. Return true from this closure to indicate that the second element is a duplicate of the first.
+	 */
+	func removeDuplicates(by predicate: @escaping (MessageType, MessageType) -> Bool) -> Self {
+		let newPub = Self()
+
+		valueSinks.append({ [weak self] latestMessage in
+			defer { self?.previousMessage = latestMessage }
+
+			guard let previousMessage = self?.previousMessage else {
+				newPub.send(latestMessage)
+				return
+			}
+
+			if predicate(previousMessage, latestMessage) == false {
+				newPub.send(latestMessage)
+			}
+		})
+		return newPub
+	}
+
+	func removeDuplicates() -> Self where MessageType: Equatable {
+		removeDuplicates { $0 == $1 }
 	}
 }
 
