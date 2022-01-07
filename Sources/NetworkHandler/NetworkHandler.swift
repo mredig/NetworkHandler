@@ -44,7 +44,6 @@ public class NetworkHandler {
 		self.sessionDelegate = sessionDelegate
 	}
 
-	@NHActor
 	public func resetCache(memory: Bool = true, disk: Bool = true) {
 		cache.reset(memory: memory, disk: disk)
 	}
