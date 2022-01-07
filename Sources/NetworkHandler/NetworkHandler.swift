@@ -52,15 +52,12 @@ public class NetworkHandler {
 
 	- Parameters:
 		- request: NetworkRequest containing the url and other request information.
-		- delegate: URLSessionTaskDelegate for life cycle and authentication challenge callbacks as the transfer progresses. (Does not receive progress updates)
-		**Default**: `nil`
 		- cacheOption: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not at all. **Default**: `.dontUseCache`
 		- session: URLSession instance. **Default**: `self.defaultSession`
 	- Returns: The resulting, decoded data safely typed as the `DecodableType` and the `URLResponse` from the task
 	*/
 	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(
 		for request: NetworkRequest,
-//		with delegate: URLSessionTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		session: URLSession? = nil) async throws -> (decoded: DecodableType, response: URLResponse) {
 			let totalResponse = try await transferMahDatas(for: request, usingCache: cacheOption, session: session)
@@ -77,8 +74,6 @@ public class NetworkHandler {
 	/**
 	- Parameters:
 		- request: NetworkRequest containing the url and other request information.
-		- delegate: URLSessionTaskDelegate for life cycle and authentication challenge callbacks as the transfer progresses. (Does not receive progress updates)
-		**Default**: `nil`
 		- cacheOption: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not at all. **Default**: `.dontUseCache`
 		- session: URLSession instance. **Default**: `self.defaultSession`
 	 - Returns: The resulting,  raw data typed as `Data` and the `URLResponse` from the task
@@ -87,7 +82,6 @@ public class NetworkHandler {
 	*/
 	@discardableResult public func transferMahDatas(
 		for request: NetworkRequest,
-//		with delegate: URLSessionTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		session: URLSession? = nil) async throws -> (data: Data, response: URLResponse) {
 			if let cacheKey = cacheOption.cacheKey(url: request.url) {
@@ -138,19 +132,6 @@ public class NetworkHandler {
 			return (data, httpResponse)
 		}
 
-	private var taskDataAccumulator: [URLSessionTask: [Data]] = [:]
-
-	static private let taskTrackQueue = DispatchQueue(label: "Task Tracking")
-	private var _trackedTasks: [URLSessionTask: CheckedContinuation<Data, Error>] = [:]
-	private var trackedTasks: [URLSessionTask: CheckedContinuation<Data, Error>] {
-		get { Self.taskTrackQueue.sync { _trackedTasks } }
-		set { Self.taskTrackQueue.sync { _trackedTasks = newValue } }
-	}
-
-	private func finishTask(_ task: URLSessionTask, with result: Result<Data, Error>) {
-		let cont = trackedTasks.removeValue(forKey: task)
-		cont?.resume(with: result)
-	}
 
 //	@discardableResult public func downloadMahDatas(
 //		for request: NetworkRequest,

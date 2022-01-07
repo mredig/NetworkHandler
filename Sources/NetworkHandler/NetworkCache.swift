@@ -5,9 +5,7 @@ import FoundationNetworking
 
 
 /**
-Essentially just a wrapper for NSCache, but specifically purposed for use with
-NetworkHandler and does the work of converting `String` <-> `NSString` and `Data` <-> `NSData`
-for you. Directly exposes some properties like `countLimit` and `totalCostLimit`
+Essentially just a wrapper for NSCache, but adds redundancy in a disk cache. Specifically purposed for use with NetworkHandler
 */
 class NetworkCache {
 	// MARK: - Properties
