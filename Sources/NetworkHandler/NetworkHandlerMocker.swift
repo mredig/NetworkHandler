@@ -2,8 +2,8 @@ import Foundation
 import NetworkHalpers
 
 public class NetworkHandlerMocker: URLProtocol {
-	public typealias SmartResponseMockBlock = (URL, HTTPMethod) -> (data: Data, response: HTTPURLResponse)
-	public typealias SmartMockBlock = (URL, HTTPMethod) -> (data: Data, code: Int)
+	public typealias SmartResponseMockBlock = (URL, URLRequest, HTTPMethod) -> (data: Data, response: HTTPURLResponse)
+	public typealias SmartMockBlock = (URL, URLRequest, HTTPMethod) -> (data: Data, code: Int)
 	@MainActor
 	static private var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
 	private struct Key: Hashable {
@@ -17,7 +17,7 @@ public class NetworkHandlerMocker: URLProtocol {
 
 	@MainActor
 	public static func addMock(for url: URL, method: HTTPMethod, data: Data, code: Int) {
-		addMock(for: url, method: method, smartBlock: { _, _ in (data, code) })
+		addMock(for: url, method: method, smartBlock: { _, _, _ in (data, code) })
 	}
 
 	@MainActor
@@ -27,8 +27,8 @@ public class NetworkHandlerMocker: URLProtocol {
 
 	@MainActor
 	public static func addMock(for url: URL, method: HTTPMethod, smartBlock: @escaping SmartMockBlock) {
-		addMock(for: url, method: method, smartResponseBlock: { url, method in
-			let (data, code) = smartBlock(url, method)
+		addMock(for: url, method: method, smartResponseBlock: { url, request, method in
+			let (data, code) = smartBlock(url, request, method)
 			let response = HTTPURLResponse(
 				url: url,
 				statusCode: code,
@@ -60,7 +60,7 @@ public class NetworkHandlerMocker: URLProtocol {
 				client?.urlProtocol(self, didFailWithError: MockerError(message: "URL/Method combo not mocked"))
 				return
 			}
-			let result = block(url, method)
+			let result = block(url, request, method)
 			data = result.data
 
 			let response = result.response
