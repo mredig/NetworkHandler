@@ -110,7 +110,7 @@ public enum NetworkError: Error, Equatable {
 	}
 }
 
-extension NetworkError: CustomDebugStringConvertible {
+extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 	private func stringifyData(_ data: Data?) -> String {
 		guard let data = data else { return "nil value" }
 		return String(data: data, encoding: .utf8) ??
@@ -145,4 +145,12 @@ extension NetworkError: CustomDebugStringConvertible {
 			return "NetworkError: No URL Response"
 		}
 	}
+
+	public var errorDescription: String? { debugDescription }
+
+	public var failureReason: String? { debugDescription }
+
+	public var helpAnchor: String? { debugDescription }
+
+	public var recoverySuggestion: String? { debugDescription }
 }
