@@ -121,24 +121,36 @@ public class NetworkHandler {
 			
 			let publisher = sessionDelegate.publisher(for: task)
 
-			let data: Data = try await withCheckedThrowingContinuation({ continuation in
-				var totalData = Data()
-				publisher
-					.sink(
-						receiveValue: {
-							totalData.append($0)
-						},
-						receiveCompletion: { completionInfo in
-							switch completionInfo {
-							case .finished:
-								continuation.resume(returning: totalData)
-							case .failure(let error):
-								continuation.resume(throwing: error)
-							}
-						})
-
-				task.resume()
-			})
+			let data: Data
+			do {
+				data = try await withCheckedThrowingContinuation({ continuation in
+					var totalData = Data()
+					publisher
+						.sink(
+							receiveValue: {
+								totalData.append($0)
+							},
+							receiveCompletion: { completionInfo in
+								switch completionInfo {
+								case .finished:
+									continuation.resume(returning: totalData)
+								case .failure(let error):
+									continuation.resume(throwing: error)
+								}
+							})
+					
+					task.resume()
+				})
+			} catch {
+				let error = error as NSError
+				if
+					error.domain == NSURLErrorDomain,
+					error.code == NSURLErrorCancelled {
+					throw NetworkError.requestCancelled
+				} else {
+					throw error
+				}
+			}
 
 			stateObserver.invalidate()
 			progressObserver.invalidate()

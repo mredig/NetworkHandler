@@ -73,6 +73,7 @@ public enum NetworkError: Error, Equatable {
 	```
 	*/
 	case noURLResponse
+	case requestCancelled
 	/**
 	If you need to provide an error state but none of the other specified cases
 	apply, use this. Optionally provide a reason. Useful for when guard statements fail.
@@ -101,6 +102,8 @@ public enum NetworkError: Error, Equatable {
 			if case .urlInvalid(let rhsURLString) = rhs, urlString == rhsURLString { return true } else { return false }
 		case .unspecifiedError(let lhsReason):
 			if case .unspecifiedError(let rhsReason) = rhs, lhsReason == rhsReason { return true } else { return false }
+		case .requestCancelled:
+			if case .requestCancelled = rhs { return true } else { return false }
 		case .noURLResponse:
 			if case .noURLResponse = rhs { return true } else { return false }
 		}
@@ -136,6 +139,8 @@ extension NetworkError: CustomDebugStringConvertible {
 			return "NetworkError: Unspecified Error: \(reason ?? "nil value")"
 		case .urlInvalid(urlString: let urlString):
 			return "NetworkError: Invalid URL: \(urlString ?? "nil value")"
+		case .requestCancelled:
+			return "NetworkError: Request was cancelled"
 		case .noURLResponse:
 			return "NetworkError: No URL Response"
 		}
