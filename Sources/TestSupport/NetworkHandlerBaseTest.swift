@@ -1,4 +1,4 @@
-import NetworkHandler
+@testable import NetworkHandler
 import XCTest
 
 open class NetworkHandlerBaseTest: XCTestCase {
@@ -32,7 +32,31 @@ open class NetworkHandlerBaseTest: XCTestCase {
 		}
 	}
 
-	public struct TestError: Error {
+	public struct TestError: Error, LocalizedError {
 		let message: String
+
+		public var failureReason: String? { message }
+		public var errorDescription: String? { message }
+		public var helpAnchor: String? { message }
+		public var recoverySuggestion: String? { message }
+	}
+
+	public func checkNetworkHandlerTasksFinished(_ networkHandler: NetworkHandler) throws {
+		let nhMirror = Mirror(reflecting: networkHandler)
+		let theDel: TheDelegate = nhMirror.firstChild(named: "sessionDelegate")!
+
+		let theDelMirror = Mirror(reflecting: theDel)
+		let publishers: [URLSessionTask: TheDelegate.DataPublisher]! = theDelMirror.firstChild(named: "publishers")
+		guard publishers.isEmpty else { throw TestError(message: "There are some abandoned tasks in the NH Delegate!") }
+	}
+}
+
+extension Mirror {
+	func firstChild<T>(named name: String) -> T? {
+		children.first(where: {
+			guard let _ = $0.value as? T else { return false }
+
+			return $0.label == name ? true : false
+		})?.value as? T
 	}
 }
