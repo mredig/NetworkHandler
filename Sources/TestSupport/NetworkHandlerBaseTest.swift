@@ -2,6 +2,11 @@ import NetworkHandler
 import XCTest
 
 open class NetworkHandlerBaseTest: XCTestCase {
+	open override func tearDown() async throws {
+		try await super.tearDown()
+
+		await NetworkHandlerMocker.resetMocks()
+	}
 
 	public func generateNetworkHandlerInstance(mockedDefaultSession: Bool = true) -> NetworkHandler {
 
