@@ -394,4 +394,42 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			}
 		}
 	}
+
+	func testCancellingTask() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let sampleURL = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+		await NetworkHandlerMocker.addMock(for: sampleURL, method: .get, smartBlock: { _, _, _ in
+			(Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024 * 10), 200)
+		})
+
+		let delegate = DownloadDelegate()
+		var sessionTask: URLSessionTask?
+		delegate
+			.taskPub
+			.sink {
+				sessionTask = $0
+			}
+
+		delegate
+			.progressPub
+			// must not cancel a task on the same queue it receives updates from
+			.receive(on: .global(qos: .userInteractive))
+			.sink {
+				guard $0 > 0.25, sessionTask?.state != .canceling else { return }
+				sessionTask?.cancel()
+			}
+
+		let task = Task {
+			try await networkHandler.transferMahDatas(for: sampleURL.request, delegate: delegate).data
+		}
+		let result = await task.result
+
+		XCTAssertThrowsError(try result.get(), "Expected cancelled error") { error in
+			guard case NetworkError.requestCancelled = error else {
+				XCTFail("incorrect error: \(error)")
+				return
+			}
+		}
+	}
 }
