@@ -321,7 +321,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// this can be changed per run depending on internet variables - large enough to take more than an instant,
 		// small enough to not timeout.
-		let sizeOfUploadMB = 10
+		let sizeOfUploadMB = 5
 
 		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
 		let outputStream = OutputStream(url: dummyFile, append: false)
