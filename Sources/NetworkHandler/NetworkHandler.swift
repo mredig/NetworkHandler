@@ -123,24 +123,30 @@ public class NetworkHandler {
 
 			let data: Data
 			do {
-				data = try await withCheckedThrowingContinuation({ continuation in
-					var totalData = Data()
-					publisher
-						.sink(
-							receiveValue: {
-								totalData.append($0)
-							},
-							receiveCompletion: { completionInfo in
-								switch completionInfo {
-								case .finished:
-									continuation.resume(returning: totalData)
-								case .failure(let error):
-									continuation.resume(throwing: error)
-								}
-							})
-					
-					task.resume()
-				})
+				data = try await withTaskCancellationHandler(
+					operation: {
+						try await withCheckedThrowingContinuation({ continuation in
+							var totalData = Data()
+							publisher
+								.sink(
+									receiveValue: {
+										totalData.append($0)
+									},
+									receiveCompletion: { completionInfo in
+										switch completionInfo {
+										case .finished:
+											continuation.resume(returning: totalData)
+										case .failure(let error):
+											continuation.resume(throwing: error)
+										}
+									})
+
+							task.resume()
+						})
+					},
+					onCancel: {
+						task.cancel()
+					})
 			} catch {
 				let error = error as NSError
 				if
