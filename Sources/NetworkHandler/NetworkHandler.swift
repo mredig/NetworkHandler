@@ -126,6 +126,13 @@ public class NetworkHandler {
 				data = try await withTaskCancellationHandler(
 					operation: {
 						try Task.checkCancellation()
+						guard
+							task.state == .suspended ||
+								task.state == .running
+						else {
+							sessionDelegate.cancelTracking(for: task)
+							throw NetworkError.requestCancelled
+						}
 						return try await withCheckedThrowingContinuation({ continuation in
 							var totalData = Data()
 							publisher

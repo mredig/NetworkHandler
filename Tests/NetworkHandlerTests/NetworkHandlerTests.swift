@@ -445,7 +445,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		delegate
 			.taskPub
 			// must not cancel a task on the same queue it receives updates from
-			.receive(on: .global(qos: .userInteractive))
+			.receive(on: DispatchQueue(label: "consistent queue"))
 			.sink {
 				$0.cancel()
 			}
