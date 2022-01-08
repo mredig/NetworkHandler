@@ -16,6 +16,9 @@ public class NetworkHandlerMocker: URLProtocol {
 	public override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
 	@MainActor
+	private var isCancelled = false
+
+	@MainActor
 	public static func addMock(for url: URL, method: HTTPMethod, data: Data, code: Int) {
 		addMock(for: url, method: method, smartBlock: { _, _, _ in (data, code) })
 	}
@@ -68,17 +71,26 @@ public class NetworkHandlerMocker: URLProtocol {
 			client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
 
 			let chunkSize = 256
-			stride(from: 0, to: data.count, by: chunkSize)
-				.forEach {
-					let chunk = data[$0..<min($0 + chunkSize, data.count)]
-					client?.urlProtocol(self, didLoad: chunk)
-				}
+			for offset in stride(from: 0, to: data.count, by: chunkSize) {
+				guard await isCancelled == false else { return }
+				let chunk = data[offset..<min(offset + chunkSize, data.count)]
+				client?.urlProtocol(self, didLoad: chunk)
+			}
+
 			client?.urlProtocolDidFinishLoading(self)
 		}
 	}
 
 	public override func stopLoading() {
+		Task {
+			await cancelLoad()
+		}
 		client?.urlProtocol(self, didFailWithError: MockerError(message: "Apparently Cancelled"))
+	}
+
+	@MainActor
+	private func cancelLoad() {
+		isCancelled = true
 	}
 
 	struct MockerError: Error {
