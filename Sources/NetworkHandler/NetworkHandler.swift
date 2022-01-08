@@ -102,19 +102,19 @@ public class NetworkHandler {
 				?? defaultSession
 
 			let task = session.dataTask(with: request.urlRequest)
-			delegateQueue.addOperationAndWaitUntilFinished {
+			OperationQueue.main.addOperationAndWaitUntilFinished {
 				delegate?.networkHandlerTaskDidStart(task)
 				delegate?.networkHandlerTask(task, stateChanged: task.state)
 			}
 			task.priority = request.priority.rawValue
 
 			let stateObserver = task.observe(\.state, options: [.new]) { task, _ in
-				self.delegateQueue.addOperationAndWaitUntilFinished {
+				OperationQueue.main.addOperation {
 					delegate?.networkHandlerTask(task, stateChanged: task.state)
 				}
 			}
 			let progressObserver = task.progress.observe(\.fractionCompleted, options: .new) { progress, _ in
-				self.delegateQueue.addOperationAndWaitUntilFinished {
+				OperationQueue.main.addOperation {
 					delegate?.networkHandlerTask(task, didProgress: task.progress.fractionCompleted)
 				}
 			}
