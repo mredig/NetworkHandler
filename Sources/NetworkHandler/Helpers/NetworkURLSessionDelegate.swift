@@ -101,6 +101,12 @@ internal class TheDelegate: NSObject, URLSessionDelegate {
 			return pub
 		}
 	}
+
+	func cancelTracking(for task: URLSessionTask) {
+		Self.queue.addOperationAndWaitUntilFinished {
+			self.publishers.removeValue(forKey: task)
+		}
+	}
 }
 
 extension TheDelegate: URLSessionTaskDelegate {
