@@ -2,8 +2,10 @@ import Foundation
 import NetworkHalpers
 
 public class NetworkHandlerMocker: URLProtocol {
+	public typealias SmartResponseMockBlock = (URL, HTTPMethod) -> (data: Data, response: HTTPURLResponse)
+	public typealias SmartMockBlock = (URL, HTTPMethod) -> (data: Data, code: Int)
 	@MainActor
-	static private var acceptedIntercepts: [Key: (data: Data, statusCode: Int)] = [:]
+	static private var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
 	private struct Key: Hashable {
 		let url: URL
 		let method: HTTPMethod
@@ -14,8 +16,28 @@ public class NetworkHandlerMocker: URLProtocol {
 	public override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
 	@MainActor
-	public static func addMock(for url: URL, method: HTTPMethod, data: Data, code: Int) async {
-		acceptedIntercepts[Key(url: url, method: method)] = (data, code)
+	public static func addMock(for url: URL, method: HTTPMethod, data: Data, code: Int) {
+		addMock(for: url, method: method, smartBlock: { _, _ in (data, code) })
+	}
+
+	@MainActor
+	public static func addMock(for url: URL, method: HTTPMethod, smartResponseBlock: @escaping SmartResponseMockBlock) {
+		acceptedIntercepts[Key(url: url, method: method)] = smartResponseBlock
+	}
+
+	@MainActor
+	public static func addMock(for url: URL, method: HTTPMethod, smartBlock: @escaping SmartMockBlock) {
+		addMock(for: url, method: method, smartResponseBlock: { url, method in
+			let (data, code) = smartBlock(url, method)
+			let response = HTTPURLResponse(
+				url: url,
+				statusCode: code,
+				httpVersion: nil,
+				headerFields: [
+					"Content-Length": "\(data.count)",
+				])!
+			return (data, response)
+		})
 	}
 
 	@MainActor
@@ -31,24 +53,17 @@ public class NetworkHandlerMocker: URLProtocol {
 
 		Task {
 			let data: Data
-			let code: Int
 
 			guard
-				let result = await Self.acceptedIntercepts[Key(url: url, method: method)]
+				let block = await Self.acceptedIntercepts[Key(url: url, method: method)]
 			else {
 				client?.urlProtocol(self, didFailWithError: MockerError(message: "URL/Method combo not mocked"))
 				return
 			}
+			let result = block(url, method)
 			data = result.data
-			code = result.statusCode
 
-			let response = HTTPURLResponse(
-				url: url,
-				statusCode: code,
-				httpVersion: nil,
-				headerFields: [
-					"Content-Length": "\(data.count)",
-				])!
+			let response = result.response
 
 			client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
 
