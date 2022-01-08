@@ -433,6 +433,36 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		}
 	}
 
+	func testImmediateCancellingSessionTask() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let sampleURL = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+		await NetworkHandlerMocker.addMock(for: sampleURL, method: .get, smartBlock: { _, _, _ in
+			(Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024 * 10), 200)
+		})
+
+		let delegate = DownloadDelegate()
+		delegate
+			.taskPub
+			// must not cancel a task on the same queue it receives updates from
+			.receive(on: .global(qos: .userInteractive))
+			.sink {
+				$0.cancel()
+			}
+
+		let task = Task {
+			try await networkHandler.transferMahDatas(for: sampleURL.request, delegate: delegate).data
+		}
+		let result = await task.result
+
+		XCTAssertThrowsError(try result.get(), "Expected cancelled error") { error in
+			guard case NetworkError.requestCancelled = error else {
+				XCTFail("incorrect error: \(error)")
+				return
+			}
+		}
+	}
+
 	func testCancellingAsyncTask() async throws {
 		let networkHandler = generateNetworkHandlerInstance()
 
@@ -462,5 +492,25 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				return
 			}
 		}
+	}
+
+	func testImmediateCancellingAsyncTask() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let sampleURL = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+		await NetworkHandlerMocker.addMock(for: sampleURL, method: .get, smartBlock: { _, _, _ in
+			(Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024 * 10), 200)
+		})
+
+		let delegate = DownloadDelegate()
+
+		let task = Task {
+			try await networkHandler.transferMahDatas(for: sampleURL.request, delegate: delegate).data
+		}
+		task.cancel()
+
+		let result = await task.result
+
+		XCTAssertThrowsError(try result.get(), "Expected cancelled error")
 	}
 }

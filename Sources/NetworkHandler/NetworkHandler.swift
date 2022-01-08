@@ -125,7 +125,8 @@ public class NetworkHandler {
 			do {
 				data = try await withTaskCancellationHandler(
 					operation: {
-						try await withCheckedThrowingContinuation({ continuation in
+						try Task.checkCancellation()
+						return try await withCheckedThrowingContinuation({ continuation in
 							var totalData = Data()
 							publisher
 								.sink(
