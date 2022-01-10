@@ -1,11 +1,16 @@
 import Foundation
-import CoreServices
+#if canImport(UniformTypeIdentifiers)
 import UniformTypeIdentifiers
+#endif
+#if canImport(CoreServices)
+import CoreServices
+#endif
 
 extension MultipartFormInputStream {
 	class Part: ConcatenatedInputStream {
 		static let genericBinaryMimeType = "application/octet-stream"
 		static func getMimeType(forFileExtension pathExt: String) -> String {
+			#if canImport(CoreServices)
 			if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
 				let type = UTType(filenameExtension: pathExt)
 				return type?.preferredMIMEType ?? genericBinaryMimeType
@@ -17,6 +22,9 @@ extension MultipartFormInputStream {
 
 				return mimeType as String
 			}
+			#else
+			MimeTypeLookup.mimeType(for: pathExt)
+			#endif
 		}
 
 		let copyGenerator: () -> Part
