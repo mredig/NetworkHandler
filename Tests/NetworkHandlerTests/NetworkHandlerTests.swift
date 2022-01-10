@@ -2,7 +2,7 @@
 
 import XCTest
 @testable import NetworkHandler
-import CryptoSwift
+import Crypto
 import TestSupport
 
 #if os(macOS)
@@ -344,14 +344,14 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let gibberish = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
 		let raw = UnsafeMutableRawPointer(gibberish)
 		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
-		var hasher = MD5()
+		var hasher = Insecure.MD5()
 
-		try (0..<sizeOfUploadMB).forEach { _ in
+		(0..<sizeOfUploadMB).forEach { _ in
 			for i in 0..<(length / 8) {
 				quicker[i] = UInt64.random(in: 0...UInt64.max)
 			}
 
-			_ = try hasher.update(withBytes: Array(Data(bytes: gibberish, count: length)))
+			hasher.update(data: Data(bytes: gibberish, count: length))
 			outputStream?.write(gibberish, maxLength: length)
 		}
 		outputStream?.close()
@@ -359,7 +359,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let inputStream = InputStream(url: dummyFile)
 
-		let dataHash = try hasher.finish()
+		let dataHash = hasher.finalize()
 
 		let string = "\(method.rawValue)\n\n\n\(formatter.string(from: now))\n\(url.path)"
 		let signature = string.hmac(algorithm: .sha1, key: TestEnvironment.s3AccessSecret)
@@ -376,7 +376,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let dlRequest = url.request
 
 		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
-		XCTAssertEqual(downloadedResult.data.md5().toHexString(), dataHash.toHexString())
+		XCTAssertEqual(Insecure.MD5.hash(data: downloadedResult.data), dataHash)
 
 		try checkNetworkHandlerTasksFinished(networkHandler)
 	}

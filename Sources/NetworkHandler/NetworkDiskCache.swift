@@ -1,5 +1,5 @@
 import Foundation
-import CryptoSwift
+import Crypto
 
 class NetworkDiskCache: CustomDebugStringConvertible {
 	let fileManager = FileManager.default
@@ -128,7 +128,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 	}
 
 	private func path(for key: String) -> URL {
-		let sha1 = key.sha1()
+		let sha1 = Insecure.SHA1.hash(data: Data(key.utf8)).toHexString()
 		return cacheLocation.appendingPathComponent(sha1)
 	}
 
