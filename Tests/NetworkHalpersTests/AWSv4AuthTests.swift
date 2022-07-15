@@ -17,8 +17,8 @@ class AWSv4AuthTests: XCTestCase {
 			date: date,
 			awsKey: "ASZUJQ6PHU62NDOW8Y2L",
 			awsSecret: "t2wWpJDvLmeDTwnzCdzyeAHNeCG0LbE80FR50XbV",
-			awsRegion: "us-west-1",
-			awsService: "s3",
+			awsRegion: .usWest1,
+			awsService: .s3,
 			hexedContentHash: SHA256.hash(data: Data("".utf8)).hex(),
 			additionalSignedHeaders: [:])
 

@@ -31,8 +31,8 @@ extension AWSV4Signature {
 		date: Date = Date(),
 		awsKey: String,
 		awsSecret: String,
-		awsRegion: String,
-		awsService: String,
+		awsRegion: AWSRegion,
+		awsService: AWSService,
 		hexedContentHash: String,
 		additionalSignedHeaders: [HTTPHeaderKey: HTTPHeaderValue]) {
 
@@ -90,7 +90,7 @@ extension AWSV4Signature {
 				\(hexedContentHash)
 				"""
 
-			let scope = "\(Self.otherDateFormatterForSomeReason.string(from: date))/\(awsRegion)/\(awsService)/aws4_request"
+			let scope = "\(Self.otherDateFormatterForSomeReason.string(from: date))/\(awsRegion.rawValue)/\(awsService.rawValue)/aws4_request"
 			let stringToSign = """
 				AWS4-HMAC-SHA256
 				\(Self.isoFormatter.string(from: date))
@@ -104,15 +104,72 @@ extension AWSV4Signature {
 			let dateKey = HMAC<SHA256>.authenticationCode(for: Data(dateKeyInput.utf8), using: dateKeySecret2)
 
 			let dateRegionKeySecret = SymmetricKey(data: dateKey)
-			let dateRegionKey = HMAC<SHA256>.authenticationCode(for: Data(awsRegion.utf8), using: dateRegionKeySecret)
+			let dateRegionKey = HMAC<SHA256>.authenticationCode(for: Data(awsRegion.rawValue.utf8), using: dateRegionKeySecret)
 
 			let dateRegionServiceKeySecret = SymmetricKey(data: dateRegionKey)
-			let dateRegionServiceKey = HMAC<SHA256>.authenticationCode(for: Data(awsService.utf8), using: dateRegionServiceKeySecret)
+			let dateRegionServiceKey = HMAC<SHA256>.authenticationCode(for: Data(awsService.rawValue.utf8), using: dateRegionServiceKeySecret)
 
 			let signingKeySecret = SymmetricKey(data: dateRegionServiceKey)
 			let signingKey = HMAC<SHA256>.authenticationCode(for: Data("aws4_request".utf8), using: signingKeySecret)
 
 			let signatureSecret = SymmetricKey(data: signingKey)
 			let signature = HMAC<SHA256>.authenticationCode(for: Data(stringToSign.utf8), using: signatureSecret).hex()
+
+			let authorizationString = "AWS4-HMAC-SHA256 Credential=\(awsKey)/\(scope),SignedHeaders=\(signedHeaders),Signature=\(signature)"
+
 		}
+}
+
+
+extension AWSV4Signature {
+	public struct AWSRegion: RawRepresentable, ExpressibleByStringInterpolation {
+		public let rawValue: String
+
+		public init(rawValue: String) {
+			self.rawValue = rawValue
+		}
+
+		public init(stringLiteral value: String) {
+			self.init(rawValue: value)
+		}
+
+		public static let usEast2: AWSRegion = "us-east-2"
+		public static let usEast1: AWSRegion = "us-east-1"
+		public static let usWest1: AWSRegion = "us-west-1"
+		public static let usWest2: AWSRegion = "us-west-2"
+		public static let afSouth1: AWSRegion = "af-south-1"
+		public static let apEast1: AWSRegion = "ap-east-1"
+		public static let apSoutheast3: AWSRegion = "ap-southeast-3"
+		public static let apSouth1: AWSRegion = "ap-south-1"
+		public static let apNortheast3: AWSRegion = "ap-northeast-3"
+		public static let apNortheast2: AWSRegion = "ap-northeast-2"
+		public static let apSoutheast1: AWSRegion = "ap-southeast-1"
+		public static let apSoutheast2: AWSRegion = "ap-southeast-2"
+		public static let apNortheast1: AWSRegion = "ap-northeast-1"
+		public static let caCentral1: AWSRegion = "ca-central-1"
+		public static let cnNorth1: AWSRegion = "cn-north-1"
+		public static let cnNorthwest1: AWSRegion = "cn-northwest-1"
+		public static let euCentral1: AWSRegion = "eu-central-1"
+		public static let euWest1: AWSRegion = "eu-west-1"
+		public static let euWest2: AWSRegion = "eu-west-2"
+		public static let euSouth1: AWSRegion = "eu-south-1"
+		public static let euWest3: AWSRegion = "eu-west-3"
+		public static let euNorth1: AWSRegion = "eu-north-1"
+		public static let meSouth1: AWSRegion = "me-south-1"
+		public static let saEast1: AWSRegion = "sa-east-1"
+	}
+
+	public struct AWSService: RawRepresentable, ExpressibleByStringInterpolation {
+		public let rawValue: String
+
+		public init(rawValue: String) {
+			self.rawValue = rawValue
+		}
+
+		public init(stringLiteral value: String) {
+			self.init(rawValue: value)
+		}
+
+		public static let s3: AWSService = "s3"
+	}
 }
