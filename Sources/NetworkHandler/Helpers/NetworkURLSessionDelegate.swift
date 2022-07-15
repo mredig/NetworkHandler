@@ -94,6 +94,10 @@ internal class TheDelegate: NSObject, URLSessionDelegate {
 	typealias DataPublisher = NHPublisher<Data, Error>
 	private var publishers: [URLSessionTask: DataPublisher] = [:]
 
+	nonisolated override init() {
+		super.init()
+	}
+
 	func publisher(for task: URLSessionTask) -> DataPublisher {
 		Self.queue.addOperationAndWaitUntilFinished {
 			let pub = self.publishers[task, default: DataPublisher()]
