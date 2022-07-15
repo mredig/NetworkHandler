@@ -2,13 +2,14 @@ import Foundation
 import Crypto
 
 public struct AWSV4Signature {
-//	let authorization: String
+	public let authorization: String
 //	let amzContentSha256: String
 //	let host: String
 //	let contentType: String
 //	let amzDate: String
 
 //	var allHeaders: []
+	public let amzHeaders: [HTTPHeaderKey: HTTPHeaderValue]
 }
 
 extension AWSV4Signature {
@@ -117,6 +118,12 @@ extension AWSV4Signature {
 
 			let authorizationString = "AWS4-HMAC-SHA256 Credential=\(awsKey)/\(scope),SignedHeaders=\(signedHeaders),Signature=\(signature)"
 
+			self.authorization = authorizationString
+			self.amzHeaders = [
+				"x-amz-content-sha256": "\(hexedContentHash)",
+				"x-amz-date": "\(Self.isoFormatter.string(from: date))",
+				"Authorization": "\(authorizationString)"
+			]
 		}
 }
 

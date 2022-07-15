@@ -325,12 +325,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let method = HTTPMethod.put
 		request.httpMethod = method
 
-		let formatter = DateFormatter()
-		formatter.locale = Locale(identifier: "en_US_POSIX")
-		formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
-
-		let now = Date()
-
 		// this can be changed per run depending on internet variables - large enough to take more than an instant,
 		// small enough to not timeout.
 		let sizeOfUploadMB = 5
@@ -342,7 +336,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let gibberish = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
 		let raw = UnsafeMutableRawPointer(gibberish)
 		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
-		var hasher = Insecure.MD5()
+		var hasher = SHA256()
 
 		(0..<sizeOfUploadMB).forEach { _ in
 			for i in 0..<(length / 8) {
@@ -355,16 +349,23 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		outputStream?.close()
 		gibberish.deallocate()
 
-		let inputStream = InputStream(url: dummyFile)
-
 		let dataHash = hasher.finalize()
 
-		let string = "\(method.rawValue)\n\n\n\(formatter.string(from: now))\n\(url.path)"
-		let signature = string.hmac(algorithm: .sha1, key: TestEnvironment.s3AccessSecret)
+		let awsHeaderInfo = AWSV4Signature(
+			requestMethod: request.httpMethod ?? .put,
+			url: url,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexedContentHash: dataHash.toHexString(),
+			additionalSignedHeaders: [:])
 
-		request.addValue("\(formatter.string(from: now))", forHTTPHeaderField: .date)
-		request.addValue("AWS \(TestEnvironment.s3AccessKey):\(signature)", forHTTPHeaderField: .authorization)
-		request.payload = .inputStream(inputStream!)
+		awsHeaderInfo.amzHeaders.forEach {
+			request.setValue($0.value, forHTTPHeaderField: $0.key)
+		}
+		request.payload = .upload(.localFile(dummyFile))
+
 		addTeardownBlock {
 			try? FileManager.default.removeItem(at: dummyFile)
 		}
@@ -374,7 +375,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let dlRequest = url.request
 
 		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
-		XCTAssertEqual(Insecure.MD5.hash(data: downloadedResult.data), dataHash)
+		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), dataHash)
 
 		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
