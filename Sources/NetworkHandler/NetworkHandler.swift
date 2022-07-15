@@ -101,7 +101,18 @@ public class NetworkHandler {
 				.map { URLSession(configuration: $0, delegate: sessionDelegate, delegateQueue: delegateQueue) }
 				?? defaultSession
 
-			let task = session.dataTask(with: request.urlRequest)
+			let task: URLSessionTask
+			switch request.payload {
+			case .upload(let uploadFile):
+				switch uploadFile {
+				case .data(let data):
+					task = session.uploadTask(with: request.urlRequest, from: data)
+				case .localFile(let localFileURL):
+					task = session.uploadTask(with: request.urlRequest, fromFile: localFileURL)
+				}
+			default:
+				task = session.dataTask(with: request.urlRequest)
+			}
 			OperationQueue.main.addOperationAndWaitUntilFinished {
 				delegate?.networkHandlerTaskDidStart(task)
 				delegate?.networkHandlerTask(task, stateChanged: task.state)
@@ -118,7 +129,7 @@ public class NetworkHandler {
 					delegate?.networkHandlerTask(task, didProgress: task.progress.fractionCompleted)
 				}
 			}
-			
+
 			let publisher = sessionDelegate.publisher(for: task)
 
 			let data: Data

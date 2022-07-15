@@ -74,9 +74,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), sessionConfiguration: config)
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 		addTeardownBlock {
-			Task {
-				await networkHandler.resetCache()
-			}
+			networkHandler.resetCache()
 		}
 
 		// now try retrieving from cache
@@ -366,7 +364,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		request.addValue("\(formatter.string(from: now))", forHTTPHeaderField: .date)
 		request.addValue("AWS \(TestEnvironment.s3AccessKey):\(signature)", forHTTPHeaderField: .authorization)
-		request.httpBodyStream = inputStream
+		request.payload = .inputStream(inputStream!)
 		addTeardownBlock {
 			try? FileManager.default.removeItem(at: dummyFile)
 		}

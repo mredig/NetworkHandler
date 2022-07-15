@@ -30,17 +30,56 @@ public struct NetworkRequest {
 		get { urlRequest.url }
 		set { urlRequest.url = newValue }
 	}
+	@available(*, deprecated, message: "Use `payload` instead.", renamed: "payload")
 	public var httpBody: Data? {
 		get { urlRequest.httpBody }
 		set { urlRequest.httpBody = newValue }
 	}
+	@available(*, deprecated, message: "Use `payload` instead.", renamed: "payload")
 	public var httpBodyStream: InputStream? {
 		get { urlRequest.httpBodyStream }
 		set { urlRequest.httpBodyStream = newValue }
 	}
+	private var _uploadFile: UploadFile?
 	public var mainDocumentURL: URL? {
 		get { urlRequest.mainDocumentURL }
 		set { urlRequest.mainDocumentURL = newValue }
+	}
+
+	public enum UploadFile: Hashable {
+		case localFile(URL)
+		case data(Data)
+	}
+	public enum Payload: Hashable {
+		case upload(UploadFile)
+		case data(Data?)
+		case inputStream(InputStream)
+	}
+	public var payload: Payload {
+		get {
+			if let _uploadFile {
+				return .upload(_uploadFile)
+			} else if let stream = urlRequest.httpBodyStream {
+				return .inputStream(stream)
+			} else {
+				return .data(urlRequest.httpBody)
+			}
+		}
+
+		set {
+			urlRequest.httpBody = nil
+			urlRequest.httpBodyStream = nil
+			_uploadFile = nil
+
+			switch newValue {
+			case .data(let data):
+				urlRequest.httpBody = data
+			case .inputStream(let inputStream):
+				urlRequest.httpBodyStream = inputStream
+			case .upload(let uploadFile):
+				_uploadFile = uploadFile
+			}
+		}
 	}
 
 	public var allHeaderFields: [String: String]? {

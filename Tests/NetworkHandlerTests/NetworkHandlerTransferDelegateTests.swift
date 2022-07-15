@@ -110,7 +110,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		request.addValue("\(formatter.string(from: now))", forHTTPHeaderField: .date)
 		request.addValue("AWS \(TestEnvironment.s3AccessKey):\(signature)", forHTTPHeaderField: .authorization)
-		request.httpBodyStream = inputStream
+		request.payload = .inputStream(inputStream!)
 
 		var progressTracker: [Double] = []
 

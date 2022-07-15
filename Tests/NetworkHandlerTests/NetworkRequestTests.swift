@@ -2,6 +2,7 @@
 
 import XCTest
 import NetworkHalpers
+import NetworkHandler
 import TestSupport
 
 /// Obviously dependent on network conditions
@@ -16,9 +17,15 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 
 		try request.encodeData(testDummy)
 
-		XCTAssertNotNil(request.httpBody)
+		guard
+			case .data(let data) = request.payload,
+			data != nil
+		else {
+			XCTFail("Data was nil")
+			return
+		}
 
-		let bodyData = try XCTUnwrap(request.httpBody)
+		let bodyData = try XCTUnwrap(data)
 
 		XCTAssertNoThrow(try request.decoder.decode(DummyType.self, from: bodyData))
 		XCTAssertEqual(testDummy, try request.decoder.decode(DummyType.self, from: bodyData))
@@ -94,9 +101,9 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 
 		let dummyStream = InputStream(data: Data([1, 2, 3, 4, 5]))
 
-		XCTAssertNil(request.httpBodyStream)
-		request.httpBodyStream = dummyStream
-		XCTAssertEqual(dummyStream, request.httpBodyStream)
+		XCTAssertEqual(.data(nil), request.payload)
+		request.payload = .inputStream(dummyStream)
+		XCTAssertEqual(.inputStream(dummyStream), request.payload)
 
 		XCTAssertNil(request.mainDocumentURL)
 		request.mainDocumentURL = dummyURL
