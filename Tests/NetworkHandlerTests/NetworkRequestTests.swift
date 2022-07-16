@@ -105,6 +105,22 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 		request.payload = .inputStream(dummyStream)
 		XCTAssertEqual(.inputStream(dummyStream), request.payload)
 
+		let testData = Data(##"{"json": 42}"##.utf8)
+		request.payload = .data(testData)
+		XCTAssertEqual(.data(testData), request.payload)
+		XCTAssertNotEqual(.inputStream(dummyStream), request.payload)
+		XCTAssertNotEqual(.upload(.data(testData)), request.payload)
+
+		request.payload = .upload(.data(testData))
+		XCTAssertEqual(.upload(.data(testData)), request.payload)
+		XCTAssertNotEqual(.data(testData), request.payload)
+
+		let fakeURL = URL(fileURLWithPath: "/Users/mememe/myfile.txt")
+		request.payload = .upload(.localFile(fakeURL))
+		XCTAssertNotEqual(.upload(.data(testData)), request.payload)
+		XCTAssertNotEqual(.data(testData), request.payload)
+		XCTAssertEqual(.upload(.localFile(fakeURL)), request.payload)
+
 		XCTAssertNil(request.mainDocumentURL)
 		request.mainDocumentURL = dummyURL
 		XCTAssertEqual(dummyURL, request.mainDocumentURL)
