@@ -10,6 +10,19 @@ public extension URLRequest {
 		set { httpMethod = newValue?.rawValue }
 	}
 
+	var allHTTPHeaders: [HTTPHeaderKey: HTTPHeaderValue] {
+		let unwrapped = allHTTPHeaderFields ?? [:]
+		let typedKeys = unwrapped
+			.keys
+			.map { HTTPHeaderKey(stringLiteral: $0) }
+		let typedHeaders: [HTTPHeaderKey: HTTPHeaderValue] = typedKeys
+			.reduce(into: [HTTPHeaderKey: HTTPHeaderValue]()) {
+				guard let value = unwrapped[$1.rawValue] else { return }
+				$0[$1] = HTTPHeaderValue(rawValue: value)
+			}
+		return typedHeaders
+	}
+
 	mutating func addValue(_ headerValue: HTTPHeaderValue, forHTTPHeaderField key: HTTPHeaderKey) {
 		let strKey = key.key
 
