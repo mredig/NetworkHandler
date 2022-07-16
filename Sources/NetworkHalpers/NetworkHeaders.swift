@@ -14,7 +14,7 @@ public struct HTTPHeaderKey: RawRepresentable, Hashable, ExpressibleByStringLite
 		self.rawValue = value
 	}
 
-	public init?(rawValue: String) {
+	public init(rawValue: String) {
 		self.rawValue = rawValue
 	}
 
@@ -64,7 +64,7 @@ public struct HTTPHeaderValue: RawRepresentable, Hashable, ExpressibleByStringLi
 		self.rawValue = value
 	}
 
-	public init?(rawValue: String) {
+	public init(rawValue: String) {
 		self.rawValue = rawValue
 	}
 
