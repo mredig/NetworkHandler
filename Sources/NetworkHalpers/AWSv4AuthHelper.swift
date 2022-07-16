@@ -1,5 +1,5 @@
 import Foundation
-import Crypto
+import CryptoKit
 
 public struct AWSV4Signature {
 	public let authorization: String
