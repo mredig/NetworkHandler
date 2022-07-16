@@ -8,7 +8,7 @@ extension AWSV4Signature {
 		awsSecret: String,
 		awsRegion: AWSV4Signature.AWSRegion,
 		awsService: AWSV4Signature.AWSService,
-		hexContentHash: String) throws {
+		hexContentHash: AWSContentHash) throws {
 			try self.init(
 				for: request.urlRequest,
 				awsKey: awsKey,

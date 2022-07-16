@@ -19,7 +19,7 @@ class AWSv4AuthTests: XCTestCase {
 			awsSecret: "F2XxYE7h6zim2nCgNaUqZp9hGWqYzy7kbNMazR8g",
 			awsRegion: .usWest1,
 			awsService: .s3,
-			hexContentHash: SHA256.hash(data: Data("".utf8)).hex(),
+			hexContentHash: "\(SHA256.hash(data: Data("".utf8)).hex())",
 			additionalSignedHeaders: [:])
 
 		XCTAssertEqual("AWS4-HMAC-SHA256\n2022-07-15T06:43:24Z\n20220715/us-west-1/s3/aws4_request\ncc388e661c394a9b73dd2a71d1a20dd890afb1433cb704549016be6a2af18cc5", info.stringToSign)

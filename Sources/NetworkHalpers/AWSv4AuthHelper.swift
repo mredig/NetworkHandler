@@ -10,7 +10,7 @@ public struct AWSV4Signature {
 	public var awsSecret: String
 	public var awsRegion: AWSRegion
 	public var awsService: AWSService
-	public var hexContentHash: String
+	public var hexContentHash: AWSContentHash
 	public var additionalSignedHeaders: [HTTPHeaderKey: HTTPHeaderValue]
 
 	public init(
@@ -21,7 +21,7 @@ public struct AWSV4Signature {
 		awsSecret: String,
 		awsRegion: AWSV4Signature.AWSRegion,
 		awsService: AWSV4Signature.AWSService,
-		hexContentHash: String,
+		hexContentHash: AWSContentHash,
 		additionalSignedHeaders: [HTTPHeaderKey : HTTPHeaderValue]) {
 			self.requestMethod = requestMethod
 			self.url = url
@@ -41,7 +41,7 @@ public struct AWSV4Signature {
 		awsSecret: String,
 		awsRegion: AWSV4Signature.AWSRegion,
 		awsService: AWSV4Signature.AWSService,
-		hexContentHash: String) throws {
+		hexContentHash: AWSContentHash) throws {
 
 			guard
 				let method = request.method
@@ -80,13 +80,13 @@ public struct AWSV4Signature {
 				awsSecret: awsSecret,
 				awsRegion: awsRegion,
 				awsService: awsService,
-				hexContentHash: SHA256.hash(data: payloadData).hex(),
+				hexContentHash: "\(SHA256.hash(data: payloadData).hex())",
 				additionalSignedHeaders: additionalSignedHeaders)
 		}
 
 	public var amzHeaders: [HTTPHeaderKey: HTTPHeaderValue] {
 		[
-			"x-amz-content-sha256": "\(hexContentHash)",
+			"x-amz-content-sha256": "\(hexContentHash.rawValue)",
 			"x-amz-date": "\(Self.isoDateString(from: date))",
 			"Authorization": "\(authorizationString)"
 		]
@@ -163,7 +163,7 @@ extension AWSV4Signature {
 			$0[$1.key.rawValue.lowercased()] = $1.value.rawValue
 		}
 		allHeaders["host"] = components.host
-		allHeaders["x-amz-content-sha256"] = hexContentHash
+		allHeaders["x-amz-content-sha256"] = hexContentHash.rawValue
 
 		let sortedHeaders = allHeaders.sorted(by: { $0.key < $1.key })
 		let signedHeaders = sortedHeaders
@@ -186,7 +186,7 @@ extension AWSV4Signature {
 		\(queryItemString)
 		\(headerStuff.canonicalHeaders)
 		\(headerStuff.signedHeaders)
-		\(hexContentHash)
+		\(hexContentHash.rawValue)
 		"""
 	}
 
@@ -281,5 +281,20 @@ extension AWSV4Signature {
 		}
 
 		public static let s3: AWSService = "s3"
+	}
+
+	public struct AWSContentHash: RawRepresentable, ExpressibleByStringInterpolation {
+		public let rawValue: String
+
+		public init(rawValue: String) {
+			self.rawValue = rawValue
+		}
+
+		public init(stringLiteral value: String) {
+			self.init(rawValue: value)
+		}
+
+		public static let emptyPayload: AWSContentHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+		public static let unsignedPayload: AWSContentHash = "UNSIGNED-PAYLOAD"
 	}
 }

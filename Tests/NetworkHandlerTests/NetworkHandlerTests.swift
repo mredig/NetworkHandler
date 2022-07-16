@@ -357,7 +357,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			awsSecret: TestEnvironment.s3AccessSecret,
 			awsRegion: .usEast1,
 			awsService: .s3,
-			hexContentHash: dataHash.toHexString())
+			hexContentHash: "\(dataHash.toHexString())")
 		request = try awsHeaderInfo.processRequest(request)
 
 		request.payload = .upload(.localFile(dummyFile))
