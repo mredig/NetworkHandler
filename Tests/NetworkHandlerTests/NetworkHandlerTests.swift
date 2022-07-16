@@ -351,19 +351,15 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let dataHash = hasher.finalize()
 
-		let awsHeaderInfo = AWSV4Signature(
-			requestMethod: request.httpMethod ?? .put,
-			url: url,
+		let awsHeaderInfo = try AWSV4Signature(
+			for: request,
 			awsKey: TestEnvironment.s3AccessKey,
 			awsSecret: TestEnvironment.s3AccessSecret,
 			awsRegion: .usEast1,
 			awsService: .s3,
-			hexedContentHash: dataHash.toHexString(),
-			additionalSignedHeaders: [:])
+			hexContentHash: dataHash.toHexString())
+		request = try awsHeaderInfo.processRequest(request)
 
-		awsHeaderInfo.amzHeaders.forEach {
-			request.setValue($0.value, forHTTPHeaderField: $0.key)
-		}
 		request.payload = .upload(.localFile(dummyFile))
 
 		addTeardownBlock {
