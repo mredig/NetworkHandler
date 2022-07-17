@@ -66,7 +66,11 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 			return
 		}
 
-		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+		let sessionID = UUID()
+		let sessionConfig = URLSessionConfiguration.background(withIdentifier: sessionID.uuidString)
+		sessionConfig.shouldUseExtendedBackgroundIdleMode = true
+		sessionConfig.isDiscretionary = false
+		let networkHandler = NetworkHandler(name: "Test Network Handler", configuration: sessionConfig)
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
 		var request = url.request
@@ -99,18 +103,20 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 		outputStream?.close()
 		gibberish.deallocate()
 
-		let inputStream = InputStream(url: tempFile)
 		addTeardownBlock {
 			try? FileManager.default.removeItem(at: tempFile)
 		}
 
-		let string = "\(method.rawValue)\n\n\n\(formatter.string(from: now))\n\(url.path)"
-		let signature = string.hmac(algorithm: .sha1, key: TestEnvironment.s3AccessSecret)
-
-
-		request.addValue("\(formatter.string(from: now))", forHTTPHeaderField: .date)
-		request.addValue("AWS \(TestEnvironment.s3AccessKey):\(signature)", forHTTPHeaderField: .authorization)
-		request.payload = .inputStream(inputStream!)
+		let awsAuth = try AWSV4Signature(
+			for: request,
+			date: now,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .unsignedPayload)
+		request = try awsAuth.processRequest(request)
+		request.payload = .upload(.localFile(tempFile))
 
 		var progressTracker: [Double] = []
 

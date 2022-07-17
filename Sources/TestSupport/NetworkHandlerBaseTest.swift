@@ -46,8 +46,11 @@ open class NetworkHandlerBaseTest: XCTestCase {
 		let theDel: TheDelegate = nhMirror.firstChild(named: "sessionDelegate")!
 
 		let theDelMirror = Mirror(reflecting: theDel)
-		let publishers: [URLSessionTask: TheDelegate.DataPublisher]! = theDelMirror.firstChild(named: "publishers")
-		guard publishers.isEmpty else { throw TestError(message: "There are some abandoned tasks in the NH Delegate!") }
+		let dataPublishers: [URLSessionTask: TheDelegate.DataPublisher]! = theDelMirror.firstChild(named: "dataPublishers")
+		guard dataPublishers.isEmpty else { throw TestError(message: "There are some abandoned tasks in the NH Delegate!") }
+
+		let progressPublishers: [URLSessionTask: TheDelegate.ProgressPublisher]! = theDelMirror.firstChild(named: "progressPublishers")
+		guard progressPublishers.isEmpty else { throw TestError(message: "There are some abandoned tasks in the NH Delegate!") }
 	}
 }
 

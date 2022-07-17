@@ -92,23 +92,34 @@ internal class TheDelegate: NSObject, URLSessionDelegate {
 	static private let queue = OperationQueue()
 
 	typealias DataPublisher = NHPublisher<Data, Error>
-	private var publishers: [URLSessionTask: DataPublisher] = [:]
+	private var dataPublishers: [URLSessionTask: DataPublisher] = [:]
+	typealias ProgressPublisher = NHPublisher<(Int64, Int64), Never>
+	private var progressPublishers: [URLSessionTask: ProgressPublisher] = [:]
 
 	nonisolated override init() {
 		super.init()
 	}
 
-	func publisher(for task: URLSessionTask) -> DataPublisher {
+	func dataPublisher(for task: URLSessionTask) -> DataPublisher {
 		Self.queue.addOperationAndWaitUntilFinished {
-			let pub = self.publishers[task, default: DataPublisher()]
-			self.publishers[task] = pub
+			let pub = self.dataPublishers[task, default: DataPublisher()]
+			self.dataPublishers[task] = pub
+			return pub
+		}
+	}
+
+	func progressPublisher(for task: URLSessionTask) -> ProgressPublisher {
+		Self.queue.addOperationAndWaitUntilFinished {
+			let pub = self.progressPublishers[task, default: ProgressPublisher()]
+			self.progressPublishers[task] = pub
 			return pub
 		}
 	}
 
 	func cancelTracking(for task: URLSessionTask) {
 		Self.queue.addOperationAndWaitUntilFinished {
-			self.publishers.removeValue(forKey: task)
+			self.dataPublishers.removeValue(forKey: task)
+			self.progressPublishers.removeValue(forKey: task)
 		}
 	}
 }
@@ -118,9 +129,11 @@ extension TheDelegate: URLSessionTaskDelegate {
 //		<#code#>
 //	}
 
-//	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
-//		<#code#>
-//	}
+	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+		Self.queue.addOperationAndWaitUntilFinished {
+			self.progressPublishers[task]?.send((totalBytesSent, totalBytesExpectedToSend))
+		}
+	}
 
 	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
 		let completion: DataPublisher.Completion
@@ -130,8 +143,11 @@ extension TheDelegate: URLSessionTaskDelegate {
 			completion = .finished
 		}
 		Self.queue.addOperationAndWaitUntilFinished {
-			let pub = self.publishers.removeValue(forKey: task)
+			let pub = self.dataPublishers.removeValue(forKey: task)
 			pub?.send(completion: completion)
+
+			let pub2 = self.progressPublishers.removeValue(forKey: task)
+			pub2?.send(completion: .finished)
 		}
 	}
 }
@@ -139,7 +155,7 @@ extension TheDelegate: URLSessionTaskDelegate {
 extension TheDelegate: URLSessionDataDelegate {
 	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
 		Self.queue.addOperationAndWaitUntilFinished {
-			self.publishers[dataTask]?.send(data)
+			self.dataPublishers[dataTask]?.send(data)
 		}
 	}
 }

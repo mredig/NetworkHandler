@@ -130,7 +130,13 @@ public class NetworkHandler {
 				}
 			}
 
-			let publisher = sessionDelegate.publisher(for: task)
+			let dataPublisher = sessionDelegate.dataPublisher(for: task)
+			sessionDelegate
+				.progressPublisher(for: task)
+				.sink { (received, total) in
+					let progress = Double(received) / Double(total)
+					delegate?.networkHandlerTask(task, didProgress: progress)
+				}
 
 			let data: Data
 			do {
@@ -146,7 +152,7 @@ public class NetworkHandler {
 						}
 						return try await withCheckedThrowingContinuation({ continuation in
 							var totalData = Data()
-							publisher
+							dataPublisher
 								.sink(
 									receiveValue: {
 										totalData.append($0)
