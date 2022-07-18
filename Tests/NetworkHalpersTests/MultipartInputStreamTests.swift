@@ -111,6 +111,34 @@ class MultipartInputStreamTests: XCTestCase {
 		XCTAssertEqual(expected, finalString)
 	}
 
+	func testMultipartFileCreation() async throws {
+		let boundary = "alskdglkasdjfglkajsdf"
+		let multipart = MultipartFormInputTempFile(boundary: boundary)
+
+		let arbText = "Odd input stream"
+		let arbitraryData = arbText.data(using: .utf8)!
+
+		let testedText = "tested"
+		multipart.addPart(named: "Text", string: testedText)
+		multipart.addPart(named: "File1", data: arbitraryData, filename: "text.txt")
+		let (fileURL, _) = try createTestFile()
+		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
+
+		let renderedFile = try await multipart.renderToFile()
+		let finalData = try Data(contentsOf: renderedFile)
+
+		let expected = """
+		--Boundary-alskdglkasdjfglkajsdf\r\nContent-Disposition: form-data; name=\"Text\"\r\n\r\ntested\r\n--Boundary-\
+		alskdglkasdjfglkajsdf\r\nContent-Disposition: form-data; name=\"File1\"; filename=\"text.txt\"\r\nContent-Type: \
+		application/octet-stream\r\n\r\nOdd input stream\r\n--Boundary-alskdglkasdjfglkajsdf\r\nContent-Disposition: \
+		form-data; name=\"File2\"; filename=\"tempfile\"\r\nContent-Type: text/html\r\n\r\n<html><body>this is a \
+		body</body></html>\r\n--Boundary-alskdglkasdjfglkajsdf--\r\n
+		"""
+
+		let finalString = String(data: finalData, encoding: .utf8)
+		XCTAssertEqual(expected, finalString)
+	}
+
 	/// Dependent on the service at `https://httpbin.org/`
 //	func testMultipartUpload() throws {
 //		let networkHandler = generateNetworkHandlerInstance()
