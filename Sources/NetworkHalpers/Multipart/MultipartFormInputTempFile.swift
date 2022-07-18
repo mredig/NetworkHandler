@@ -33,7 +33,7 @@ public class MultipartFormInputTempFile {
 		addPart(part)
 	}
 
-	public func addPart(named name: String, fileURL: URL, filename: String? = nil, contentType: String) throws {
+	public func addPart(named name: String, fileURL: URL, filename: String? = nil, contentType: String) {
 		let part = Part(name: name, boundary: boundary, filename: filename, contentType: contentType, content: .localURL(fileURL))
 		addPart(part)
 	}
