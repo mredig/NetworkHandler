@@ -70,8 +70,6 @@ public class MultipartFormInputTempFile {
 			let pointer = buffer.baseAddress
 		else { throw MultipartError.cannotInitializeBufferPointer }
 
-		var parts = self.parts
-		parts.append(.footerPart(withBoundary: boundary))
 		for part in parts {
 			for (index, byte) in part.headers.enumerated() {
 				buffer[index] = byte
@@ -79,23 +77,22 @@ public class MultipartFormInputTempFile {
 			let headerBytesWritten = fileHandle?.write(pointer, maxLength: part.headers.count)
 			guard headerBytesWritten == part.headers.count else { throw MultipartError.headerWritingNotCompleted }
 
+			let inputStream: InputStream?
 			switch part.content {
 			case .localURL(let url):
-				guard let inputStream = InputStream(url: url) else { throw MultipartError.cannotOpenInputFile }
-				inputStream.open()
-				let inputBytes = inputStream.read(pointer, maxLength: bufferSize)
-				guard inputBytes >= 0 else { throw MultipartError.cannotReadInputFile }
-				guard inputBytes > 0 else { break }
-				fileHandle?.write(pointer, maxLength: inputBytes)
+				guard let inStream = InputStream(url: url) else { throw MultipartError.cannotOpenInputFile }
+				inputStream = inStream
 			case .data(let data):
-//				break
-				let inputStream = InputStream(data: data)
+				inputStream = InputStream(data: data)
+			default: inputStream = nil
+			}
+
+			if let inputStream {
 				inputStream.open()
 				let inputBytes = inputStream.read(pointer, maxLength: bufferSize)
 				guard inputBytes >= 0 else { throw MultipartError.cannotReadInputFile }
 				guard inputBytes > 0 else { break }
 				fileHandle?.write(pointer, maxLength: inputBytes)
-			default: break
 			}
 
 			for (index, byte) in part.footer.enumerated() {
@@ -105,7 +102,12 @@ public class MultipartFormInputTempFile {
 			guard footerBytesWritten == part.footer.count else { throw MultipartError.footerWritingNotCompleted }
 		}
 
-		//		filehandle.wri
+		let formFooter = Data("--\(boundary)--\r\n".utf8)
+		for (index, byte) in formFooter.enumerated() {
+			buffer[index] = byte
+		}
+		let footerBytesWritten = fileHandle?.write(pointer, maxLength: formFooter.count)
+		guard footerBytesWritten == formFooter.count else { throw MultipartError.footerWritingNotCompleted }
 
 		return multipartTempFile
 	}

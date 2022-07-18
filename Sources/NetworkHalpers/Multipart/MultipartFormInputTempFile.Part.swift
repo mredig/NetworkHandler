@@ -56,11 +56,6 @@ extension MultipartFormInputTempFile {
 				self.content = content
 			}
 
-		static func footerPart(withBoundary boundary: String) -> Part {
-			Part(name: nil, boundary: boundary, content: .data(Data("--".utf8)))
-		}
-
-
 		static let genericBinaryMimeType = "application/octet-stream"
 		static func getMimeType(forFileExtension pathExt: String) -> String {
 			if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
