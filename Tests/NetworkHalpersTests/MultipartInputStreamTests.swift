@@ -124,7 +124,7 @@ class MultipartInputStreamTests: XCTestCase {
 		let (fileURL, _) = try createTestFile()
 		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
 
-		let renderedFile = try multipart.renderToFile()
+		let renderedFile = try await multipart.renderToFile()
 		let finalData = try Data(contentsOf: renderedFile)
 
 		let expected = """

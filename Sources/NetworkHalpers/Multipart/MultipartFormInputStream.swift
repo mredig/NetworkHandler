@@ -1,5 +1,10 @@
 import Foundation
 
+/**
+Use this to generate a stream to upload multipart form data. This can be very efficient as it generates meta data on the fly and streams data from existing sources (both
+Data in memory and bytes from disk) instead of copying any data elsewhere. However, it does NOT allow for accurate progress when uploading and ultimately may result
+in highly inaccurate progress reports. Because of this, I'm not sure if it's worth holding onto this class and am considering deprecating it.
+ */
 public class MultipartFormInputStream: ConcatenatedInputStream {
 	public let boundary: String
 	private let originalBoundary: String

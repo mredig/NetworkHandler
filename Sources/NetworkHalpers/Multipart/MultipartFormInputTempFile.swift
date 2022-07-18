@@ -1,5 +1,10 @@
 import Foundation
 
+/**
+Use this to generate a binary file to upload multipart form data. This copies source data and files into a single blob prior to uploading a file, so be aware of this behavior.
+Be sure to use a `URLSessionConfig.background` instance to get proper progress reporting (for some reason? This is just from some minimal personal testing,
+but has been semi consistent in my experience).
+ */
 public class MultipartFormInputTempFile {
 
 	public let boundary: String
@@ -8,12 +13,6 @@ public class MultipartFormInputTempFile {
 	private var addedFooter = false
 
 	private var parts: [Part] = []
-
-	/// intended to be an approximation, not exact. Will not include footer if has not been added yet.
-	public var totalSize: Int {
-		//		streams.reduce(0) { $0 + (($1 as? Part)?.length ?? 0) }
-		0
-	}
 
 	public var multipartContentTypeHeaderValue: HTTPHeaderValue {
 		"multipart/form-data; boundary=\(boundary)"
@@ -112,6 +111,12 @@ public class MultipartFormInputTempFile {
 		return multipartTempFile
 	}
 
+	public func renderToFile() async throws -> URL {
+		let task = Task.detached(priority: .utility) {
+			try self.renderToFile()
+		}
+		return try await task.value
+	}
 
 	enum MultipartError: CustomDebugStringConvertible, LocalizedError {
 		case streamNotPart
