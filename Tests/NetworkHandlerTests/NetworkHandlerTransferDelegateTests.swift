@@ -85,23 +85,11 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		// this can be changed per run depending on internet variables - large enough to take more than an instant,
 		// small enough to not timeout.
-		let sizeOfUploadMB = 5
+		let sizeOfUploadMB: UInt8 = 5
 
 		let tempFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
-		let outputStream = OutputStream(url: tempFile, append: false)
-		outputStream?.open()
-		let length = 1024 * sizeOfUploadMB
-		let gibberish = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
 
-		(0..<1024).forEach { _ in
-			(0..<length).forEach {
-				gibberish[$0] = UInt8.random(in: 0...UInt8.max)
-			}
-
-			outputStream?.write(gibberish, maxLength: length)
-		}
-		outputStream?.close()
-		gibberish.deallocate()
+		try generateRandomBytes(in: tempFile, megabytes: sizeOfUploadMB)
 
 		addTeardownBlock {
 			try? FileManager.default.removeItem(at: tempFile)

@@ -327,29 +327,12 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// this can be changed per run depending on internet variables - large enough to take more than an instant,
 		// small enough to not timeout.
-		let sizeOfUploadMB = 5
+		let sizeOfUploadMB: UInt8 = 5
 
 		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
-		let outputStream = OutputStream(url: dummyFile, append: false)
-		outputStream?.open()
-		let length = 1024 * 1024
-		let gibberish = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
-		let raw = UnsafeMutableRawPointer(gibberish)
-		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
-		var hasher = SHA256()
+		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
 
-		(0..<sizeOfUploadMB).forEach { _ in
-			for i in 0..<(length / 8) {
-				quicker[i] = UInt64.random(in: 0...UInt64.max)
-			}
-
-			hasher.update(data: Data(bytes: gibberish, count: length))
-			outputStream?.write(gibberish, maxLength: length)
-		}
-		outputStream?.close()
-		gibberish.deallocate()
-
-		let dataHash = hasher.finalize()
+		let dataHash = try fileHash(dummyFile)
 
 		let awsHeaderInfo = try AWSV4Signature(
 			for: request,
@@ -374,46 +357,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), dataHash)
 
 		try checkNetworkHandlerTasksFinished(networkHandler)
-	}
-
-	func generateRandomBytes(in file: URL, megabytes: UInt8) throws {
-		let outputStream = OutputStream(url: file, append: false)
-		outputStream?.open()
-		let length = 1024 * 1024
-		let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
-		let raw = UnsafeMutableRawPointer(buffer)
-		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
-
-		(0..<megabytes).forEach { _ in
-			for i in 0..<(length / 8) {
-				quicker[i] = UInt64.random(in: 0...UInt64.max)
-			}
-
-			outputStream?.write(buffer, maxLength: length)
-		}
-		outputStream?.close()
-		buffer.deallocate()
-	}
-
-	func fileHash(_ url: URL) throws -> SHA256Digest {
-		var hasher = SHA256()
-
-		guard let input = InputStream(url: url) else { throw NSError(domain: "Error loading file for hashing", code: -1) }
-
-		let bufferSize = 1024 //KB
-		* 1024 // MB
-		* 10 // MB count
-		let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: bufferSize)
-		guard let pointer = buffer.baseAddress else { throw NSError(domain: "Error allocating buffer", code: -2) }
-		input.open()
-		while input.hasBytesAvailable {
-			let bytesRead = input.read(pointer, maxLength: bufferSize)
-			let bufferrr = UnsafeRawBufferPointer(start: pointer, count: bytesRead)
-			hasher.update(bufferPointer: bufferrr)
-		}
-		input.close()
-
-		return hasher.finalize()
 	}
 
 	func testUploadMultipartFile() async throws {

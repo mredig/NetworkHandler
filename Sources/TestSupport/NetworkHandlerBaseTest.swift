@@ -1,5 +1,6 @@
 @testable import NetworkHandler
 import XCTest
+import CryptoKit
 
 open class NetworkHandlerBaseTest: XCTestCase {
 	open override func tearDown() async throws {
@@ -40,6 +41,47 @@ open class NetworkHandlerBaseTest: XCTestCase {
 		public var helpAnchor: String? { message }
 		public var recoverySuggestion: String? { message }
 	}
+
+	public func generateRandomBytes(in file: URL, megabytes: UInt8) throws {
+		let outputStream = OutputStream(url: file, append: false)
+		outputStream?.open()
+		let length = 1024 * 1024
+		let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
+		let raw = UnsafeMutableRawPointer(buffer)
+		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
+
+		(0..<megabytes).forEach { _ in
+			for i in 0..<(length / 8) {
+				quicker[i] = UInt64.random(in: 0...UInt64.max)
+			}
+
+			outputStream?.write(buffer, maxLength: length)
+		}
+		outputStream?.close()
+		buffer.deallocate()
+	}
+
+	public func fileHash(_ url: URL) throws -> SHA256Digest {
+		var hasher = SHA256()
+
+		guard let input = InputStream(url: url) else { throw NSError(domain: "Error loading file for hashing", code: -1) }
+
+		let bufferSize = 1024 //KB
+		* 1024 // MB
+		* 10 // MB count
+		let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: bufferSize)
+		guard let pointer = buffer.baseAddress else { throw NSError(domain: "Error allocating buffer", code: -2) }
+		input.open()
+		while input.hasBytesAvailable {
+			let bytesRead = input.read(pointer, maxLength: bufferSize)
+			let bufferrr = UnsafeRawBufferPointer(start: pointer, count: bytesRead)
+			hasher.update(bufferPointer: bufferrr)
+		}
+		input.close()
+
+		return hasher.finalize()
+	}
+
 
 	public func checkNetworkHandlerTasksFinished(_ networkHandler: NetworkHandler) throws {
 		let nhMirror = Mirror(reflecting: networkHandler)
