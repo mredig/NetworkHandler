@@ -109,9 +109,6 @@ public class NetworkHandler {
 					task = session.uploadTask(with: request.urlRequest, from: data)
 				case .localFile(let localFileURL):
 					task = session.uploadTask(with: request.urlRequest, fromFile: localFileURL)
-				case .inputStream(let inStream):
-					task = session.uploadTask(withStreamedRequest: request.urlRequest)
-					sessionDelegate.setStream(inStream, for: task)
 				}
 			default:
 				task = session.dataTask(with: request.urlRequest)

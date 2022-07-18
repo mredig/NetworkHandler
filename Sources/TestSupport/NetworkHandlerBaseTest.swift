@@ -51,9 +51,6 @@ open class NetworkHandlerBaseTest: XCTestCase {
 
 		let progressPublishers: [URLSessionTask: TheDelegate.ProgressPublisher]! = theDelMirror.firstChild(named: "progressPublishers")
 		guard progressPublishers.isEmpty else { throw TestError(message: "There are some abandoned tasks in the NH Delegate!") }
-
-		let streams: [URLSessionTask: InputStream]! = theDelMirror.firstChild(named: "streams")
-		guard streams.isEmpty else { throw TestError(message: "There are some abandoned streams in the NH Delegate!") }
 	}
 }
 

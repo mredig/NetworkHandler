@@ -95,14 +95,9 @@ internal class TheDelegate: NSObject, URLSessionDelegate {
 	private var dataPublishers: [URLSessionTask: DataPublisher] = [:]
 	typealias ProgressPublisher = NHPublisher<(Int64, Int64), Never>
 	private var progressPublishers: [URLSessionTask: ProgressPublisher] = [:]
-	private var streams: [URLSessionTask: InputStream] = [:]
 
 	nonisolated override init() {
 		super.init()
-	}
-
-	func setStream(_ inputStream: InputStream?, for task: URLSessionTask) {
-		streams[task] = inputStream
 	}
 
 	func dataPublisher(for task: URLSessionTask) -> DataPublisher {
@@ -130,9 +125,9 @@ internal class TheDelegate: NSObject, URLSessionDelegate {
 }
 
 extension TheDelegate: URLSessionTaskDelegate {
-	func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
-		completionHandler(streams[task])
-	}
+//	func urlSession(_ session: URLSession, needNewBodyStreamForTask task: URLSessionTask) async -> InputStream? {
+//		<#code#>
+//	}
 
 	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
 		Self.queue.addOperationAndWaitUntilFinished {
@@ -153,8 +148,6 @@ extension TheDelegate: URLSessionTaskDelegate {
 
 			let pub2 = self.progressPublishers.removeValue(forKey: task)
 			pub2?.send(completion: .finished)
-
-			self.streams.removeValue(forKey: task)
 		}
 	}
 }

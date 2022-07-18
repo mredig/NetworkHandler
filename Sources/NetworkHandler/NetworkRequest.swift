@@ -49,7 +49,6 @@ public struct NetworkRequest {
 	public enum UploadFile: Hashable {
 		case localFile(URL)
 		case data(Data)
-		case inputStream(InputStream)
 	}
 	public enum Payload: Hashable {
 		case upload(UploadFile)
