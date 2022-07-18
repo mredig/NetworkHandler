@@ -88,10 +88,12 @@ public class MultipartFormInputTempFile {
 
 			if let inputStream {
 				inputStream.open()
-				let inputBytes = inputStream.read(pointer, maxLength: bufferSize)
-				guard inputBytes >= 0 else { throw MultipartError.cannotReadInputFile }
-				guard inputBytes > 0 else { break }
-				fileHandle?.write(pointer, maxLength: inputBytes)
+				while inputStream.hasBytesAvailable {
+					let inputBytes = inputStream.read(pointer, maxLength: bufferSize)
+					guard inputBytes >= 0 else { throw MultipartError.cannotReadInputFile }
+					guard inputBytes > 0 else { break }
+					fileHandle?.write(pointer, maxLength: inputBytes)
+				}
 			}
 
 			for (index, byte) in part.footer.enumerated() {

@@ -376,6 +376,104 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
+	func generateRandomBytes(in file: URL, megabytes: UInt8) throws {
+		let outputStream = OutputStream(url: file, append: false)
+		outputStream?.open()
+		let length = 1024 * 1024
+		let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
+		let raw = UnsafeMutableRawPointer(buffer)
+		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
+
+		(0..<megabytes).forEach { _ in
+			for i in 0..<(length / 8) {
+				quicker[i] = UInt64.random(in: 0...UInt64.max)
+			}
+
+			outputStream?.write(buffer, maxLength: length)
+		}
+		outputStream?.close()
+		buffer.deallocate()
+	}
+
+	func fileHash(_ url: URL) throws -> SHA256Digest {
+		var hasher = SHA256()
+
+		guard let input = InputStream(url: url) else { throw NSError(domain: "Error loading file for hashing", code: -1) }
+
+		let bufferSize = 1024 //KB
+		* 1024 // MB
+		* 10 // MB count
+		let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: bufferSize)
+		guard let pointer = buffer.baseAddress else { throw NSError(domain: "Error allocating buffer", code: -2) }
+		input.open()
+		while input.hasBytesAvailable {
+			let bytesRead = input.read(pointer, maxLength: bufferSize)
+			let bufferrr = UnsafeRawBufferPointer(start: pointer, count: bytesRead)
+			hasher.update(bufferPointer: bufferrr)
+		}
+		input.close()
+
+		return hasher.finalize()
+	}
+
+	func testUploadMultipartFile() async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			XCTFail("Need s3 credentials")
+			return
+		}
+
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
+		var request = url.request
+		let method = HTTPMethod.put
+		request.httpMethod = method
+
+		// this can be changed per run depending on internet variables - large enough to take more than an instant,
+		// small enough to not timeout.
+		let sizeOfUploadMB: UInt8 = 30
+
+		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
+		defer { try? FileManager.default.removeItem(at: dummyFile) }
+		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
+
+		let boundary = "asdlfkjasdf"
+		let multipart = MultipartFormInputTempFile(boundary: boundary)
+		multipart.addPart(named: "file", fileURL: dummyFile, contentType: "application/octet-stream")
+
+		let multipartFile = try await multipart.renderToFile()
+		defer { try? FileManager.default.removeItem(at: multipartFile) }
+
+		let multipartHash = try fileHash(multipartFile)
+
+		let awsHeaderInfo = try AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: "\(multipartHash.toHexString())")
+		request = try awsHeaderInfo.processRequest(request)
+
+		request.payload = .upload(.localFile(multipartFile))
+
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: dummyFile)
+		}
+
+		_ = try await networkHandler.transferMahDatas(for: request)
+
+		let dlRequest = url.request
+
+		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
+		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), multipartHash)
+
+		try checkNetworkHandlerTasksFinished(networkHandler)
+	}
+
 	/// Tests using a mock session that corrupt data is properly reported as NetworkError.dataCodingError
 	func testBadData() async throws {
 
