@@ -66,11 +66,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 			return
 		}
 
-		let sessionID = UUID()
-		let sessionConfig = URLSessionConfiguration.background(withIdentifier: sessionID.uuidString)
-		sessionConfig.shouldUseExtendedBackgroundIdleMode = true
-		sessionConfig.isDiscretionary = false
-		let networkHandler = NetworkHandler(name: "Test Network Handler", configuration: sessionConfig)
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
 		var request = url.request
@@ -113,7 +109,16 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 			progressTracker.append($0)
 		}
 
-		try await networkHandler.transferMahDatas(for: request, delegate: myDel)
+		#if swift(>=5.7)
+		let sessionID = UUID()
+		let sessionConfig = URLSessionConfiguration.background(withIdentifier: sessionID.uuidString)
+		sessionConfig.shouldUseExtendedBackgroundIdleMode = true
+		sessionConfig.isDiscretionary = false
+		#else
+		let sessionConfig: URLSessionConfiguration? = nil
+		#endif
+
+		try await networkHandler.transferMahDatas(for: request, delegate: myDel, sessionConfiguration: sessionConfig)
 
 		XCTAssertGreaterThan(progressTracker.count, 2)
 

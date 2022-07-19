@@ -57,7 +57,7 @@ public struct NetworkRequest {
 	}
 	public var payload: Payload {
 		get {
-			if let _uploadFile {
+			if let _uploadFile = _uploadFile {
 				return .upload(_uploadFile)
 			} else if let stream = urlRequest.httpBodyStream {
 				return .inputStream(stream)

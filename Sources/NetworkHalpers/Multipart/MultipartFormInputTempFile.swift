@@ -86,7 +86,7 @@ public class MultipartFormInputTempFile {
 			default: inputStream = nil
 			}
 
-			if let inputStream {
+			if let inputStream = inputStream {
 				inputStream.open()
 				while inputStream.hasBytesAvailable {
 					let inputBytes = inputStream.read(pointer, maxLength: bufferSize)

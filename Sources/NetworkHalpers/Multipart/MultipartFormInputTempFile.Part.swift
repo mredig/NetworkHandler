@@ -14,15 +14,15 @@ extension MultipartFormInputTempFile {
 			if content != nil {
 				contentDispositionInfo.append("Content-Disposition: form-data")
 			}
-			if let name {
+			if let name = name {
 				contentDispositionInfo.append("name=\"\(name)\"")
 			}
-			if let filename {
+			if let filename = filename {
 				contentDispositionInfo.append("filename=\"\(filename)\"")
 			}
 			out += contentDispositionInfo.joined(separator: "; ")
 
-			if let contentType {
+			if let contentType = contentType {
 				out += "\r\nContent-Type: \(contentType)\r\n\r\n"
 			} else {
 				out += "\r\n\r\n"
