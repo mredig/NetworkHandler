@@ -1,3 +1,5 @@
+/Carthage
+
 
 # Created by https://www.toptal.com/developers/gitignore/api/linux,swift,xcode,macos,carthage,cocoapods,objective-c
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,swift,xcode,macos,carthage,cocoapods,objective-c
@@ -191,11 +193,11 @@ Dependencies/
 /*.gcno
 
 ### Xcode Patch ###
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcworkspace/contents.xcworkspacedata
-**/xcshareddata/WorkspaceSettings.xcsettings
+#*.xcodeproj/*
+#!*.xcodeproj/project.pbxproj
+#!*.xcodeproj/xcshareddata/
+#!*.xcworkspace/contents.xcworkspacedata
+#**/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,swift,xcode,macos,carthage,cocoapods,objective-c
 NetworkHandler-Documentation.docset/

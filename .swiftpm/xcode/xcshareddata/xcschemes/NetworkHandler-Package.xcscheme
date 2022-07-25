@@ -104,6 +104,11 @@
                BlueprintName = "NetworkHandlerTests"
                ReferencedContainer = "container:">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "NetworkHandlerTests/testMassiveNumberOfConnections()">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>
