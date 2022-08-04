@@ -142,7 +142,7 @@ public class NetworkHandler {
 			do {
 				data = try await withTaskCancellationHandler(
 					operation: {
-						try Task.checkCancellation()
+						try Task.checkCancellationForNetworkRequest()
 						guard
 							task.state == .suspended ||
 								task.state == .running

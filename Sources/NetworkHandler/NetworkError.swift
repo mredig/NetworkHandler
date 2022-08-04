@@ -154,3 +154,13 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 
 	public var recoverySuggestion: String? { debugDescription }
 }
+
+public extension Task {
+	static func checkCancellationForNetworkRequest() throws where Success == Never, Failure == Never {
+		guard
+			Task.isCancelled == false
+		else { throw NetworkError.requestCancelled }
+		return
+	}
+}
+
