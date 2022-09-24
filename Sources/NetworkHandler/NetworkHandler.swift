@@ -5,6 +5,7 @@ import Foundation
 #if os(Linux)
 import FoundationNetworking
 #endif
+import SaferContinuation
 
 public class NetworkHandler {
 	// MARK: - Properties
@@ -151,6 +152,7 @@ public class NetworkHandler {
 							throw NetworkError.requestCancelled
 						}
 						return try await withCheckedThrowingContinuation({ continuation in
+							let safer = SaferContinuation(continuation, isFatal: true, timeout: 60 * 5, delayCheckInterval: 10, context: "method: \(request.httpMethod?.rawValue ?? "")\nurl: \(request.url?.absoluteString ?? "")")
 							var totalData = Data()
 							dataPublisher
 								.sink(
@@ -160,9 +162,9 @@ public class NetworkHandler {
 									receiveCompletion: { completionInfo in
 										switch completionInfo {
 										case .finished:
-											continuation.resume(returning: totalData)
+											safer.resume(returning: totalData)
 										case .failure(let error):
-											continuation.resume(throwing: error)
+											safer.resume(throwing: error)
 										}
 									})
 
