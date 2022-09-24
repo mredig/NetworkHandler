@@ -109,14 +109,15 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 			progressTracker.append($0)
 		}
 
-		#if swift(>=5.7)
-		let sessionID = UUID()
-		let sessionConfig = URLSessionConfiguration.background(withIdentifier: sessionID.uuidString)
-		sessionConfig.shouldUseExtendedBackgroundIdleMode = true
-		sessionConfig.isDiscretionary = false
-		#else
+		// this straight up doesnt work. i dont remember what i was thinking, perhaps hoping that it would work in 5.7? dno
+//		#if swift(>=5.7)
+//		let sessionID = UUID()
+//		let sessionConfig = URLSessionConfiguration.background(withIdentifier: sessionID.uuidString)
+//		sessionConfig.shouldUseExtendedBackgroundIdleMode = true
+//		sessionConfig.isDiscretionary = false
+//		#else
 		let sessionConfig: URLSessionConfiguration? = nil
-		#endif
+//		#endif
 
 		try await networkHandler.transferMahDatas(for: request, delegate: myDel, sessionConfiguration: sessionConfig)
 
