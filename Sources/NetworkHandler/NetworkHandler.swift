@@ -152,12 +152,18 @@ public class NetworkHandler {
 							throw NetworkError.requestCancelled
 						}
 						return try await withCheckedThrowingContinuation({ continuation in
-							let safer = SaferContinuation(continuation, isFatal: true, timeout: 60 * 5, delayCheckInterval: 10, context: "method: \(request.httpMethod?.rawValue ?? "")\nurl: \(request.url?.absoluteString ?? "")")
+							let safer = SaferContinuation(
+								continuation,
+								isFatal: [.onMultipleCompletions, .onPostRunDelayCheck, .onDeinitWithoutCompletion],
+								timeout: request.timeoutInterval * 1.5,
+								delayCheckInterval: 10,
+								context: "method: \(request.httpMethod?.rawValue ?? "")\nurl: \(request.url?.absoluteString ?? "")")
 							var totalData = Data()
 							dataPublisher
 								.sink(
 									receiveValue: {
 										totalData.append($0)
+										safer.keepAlive()
 									},
 									receiveCompletion: { completionInfo in
 										switch completionInfo {
