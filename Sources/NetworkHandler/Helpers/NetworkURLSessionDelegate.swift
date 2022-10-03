@@ -19,9 +19,13 @@ class NHPublisher<MessageType, ErrorType: Error> {
 
 	private var isCompleted = false
 
+	private let sendLock = NSLock()
+
 	required init() {}
 
 	func send(_ message: MessageType) {
+		sendLock.lock()
+		defer { sendLock.unlock() }
 		guard isCompleted == false else { return }
 		valueSinks.forEach {
 			$0(message)
@@ -29,6 +33,8 @@ class NHPublisher<MessageType, ErrorType: Error> {
 	}
 
 	func send(completion: Completion) {
+		sendLock.lock()
+		defer { sendLock.unlock() }
 		guard isCompleted == false else { return }
 		isCompleted = true
 		completionSinks.forEach {
