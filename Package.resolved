@@ -18,6 +18,15 @@
           "revision": "9c53b7a758bb849a7df1bd2314395f5f0c14306f",
           "version": "2.0.3"
         }
+      },
+      {
+        "package": "Swiftwood",
+        "repositoryURL": "https://github.com/KnowMeGit/Swiftwood.git",
+        "state": {
+          "branch": null,
+          "revision": "bc19c3059ceeef770e6fe330fea3864cb3fc3e5e",
+          "version": "0.1.2"
+        }
       }
     ]
   },
