@@ -4,6 +4,7 @@ import XCTest
 @testable import NetworkHandler
 import Crypto
 import TestSupport
+import Swiftwood
 
 #if os(macOS)
 typealias TestImage = NSImage
@@ -11,6 +12,8 @@ typealias TestImage = NSImage
 typealias TestImage = UIImage
 #else
 #endif
+
+typealias log = Swiftwood
 
 /// Obviously dependent on network conditions
 class NetworkHandlerTests: NetworkHandlerBaseTest {
@@ -23,6 +26,16 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 	override func setUp() {
 		super.setUp()
 		demoModelController = DemoModelController()
+
+		let consoleDest = ConsoleLogDestination(maxBytesDisplayed: -1)
+		consoleDest.minimumLogLevel = .veryVerbose
+		log.appendDestination(consoleDest)
+	}
+
+	override func tearDown() {
+		super.tearDown()
+
+		log.clearDestinations()
 	}
 
 	func testMassiveNumberOfConnections() async throws {

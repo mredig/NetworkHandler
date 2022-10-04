@@ -177,10 +177,13 @@ public class NetworkHandler {
 										safer.keepAlive()
 									},
 									receiveCompletion: { completionInfo in
+										let saferAddress = Unmanaged.passUnretained(safer).toOpaque()
 										switch completionInfo {
 										case .finished:
+											log.veryVerbose("completing SaferCompletion \(saferAddress)")
 											safer.resume(returning: totalData)
 										case .failure(let error):
+											log.veryVerbose("completing SaferCompletion (failed) \(saferAddress)")
 											safer.resume(throwing: error)
 										}
 									})

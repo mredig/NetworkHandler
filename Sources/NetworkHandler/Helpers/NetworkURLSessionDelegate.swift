@@ -150,9 +150,11 @@ extension TheDelegate: URLSessionTaskDelegate {
 		}
 		Self.queue.addOperationAndWaitUntilFinished {
 			let pub = self.dataPublishers.removeValue(forKey: task)
+			log.veryVerbose("Completing task \(task.taskIdentifier) and publishing data publisher")
 			pub?.send(completion: completion)
 
 			let pub2 = self.progressPublishers.removeValue(forKey: task)
+			log.veryVerbose("Completing task \(task.taskIdentifier) and publishing progress publisher")
 			pub2?.send(completion: .finished)
 		}
 	}
