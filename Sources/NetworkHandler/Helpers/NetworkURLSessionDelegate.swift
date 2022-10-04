@@ -168,6 +168,6 @@ extension TheDelegate: URLSessionDataDelegate {
 
 extension TheDelegate: URLSessionDownloadDelegate {
 	func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-		print("Got a download task to location: \(location)")
+		log.verbose("Got a download task to location: \(location)")
 	}
 }

@@ -6,10 +6,21 @@ import Foundation
 import FoundationNetworking
 #endif
 import SaferContinuation
+import Swiftwood
 
 public class NetworkHandler {
 	// MARK: - Properties
-	public var printErrorsToConsole = false
+	@available(*, deprecated, message: "Use `enableLogging`")
+	public var printErrorsToConsole: Bool {
+		get { enableLogging }
+		set { enableLogging = newValue }
+	}
+	public var enableLogging = false {
+		didSet {
+			guard enableLogging else { return }
+			setupLogging()
+		}
+	}
 
 	/**
 	An instance of Network Cache to speed up subsequent requests. Usage is
@@ -72,7 +83,7 @@ public class NetworkHandler {
 				let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
 				return (decodedValue, totalResponse.response)
 			} catch {
-				printToConsole("Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)")
+				logIfEnabled("Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)", logLevel: .error)
 				throw NetworkError.dataCodingError(specifically: error, sourceData: totalResponse.data)
 			}
 		}
@@ -195,11 +206,11 @@ public class NetworkHandler {
 			progressObserver.invalidate()
 
 			guard let httpResponse = task.response as? HTTPURLResponse else {
-				printToConsole("Error: Server replied with no status code")
+				logIfEnabled("Error: Server replied with no status code", logLevel: .error)
 				throw NetworkError.noStatusCodeResponse
 			}
 			guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
-				printToConsole("Error: Server replied with expected status code: Got \(httpResponse.statusCode) expected \(request.expectedResponseCodes)")
+				logIfEnabled("Error: Server replied with expected status code: Got \(httpResponse.statusCode) expected \(request.expectedResponseCodes)", logLevel: .error)
 				throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: data)
 			}
 
@@ -210,9 +221,9 @@ public class NetworkHandler {
 			return (data, httpResponse)
 		}
 
-	private func printToConsole(_ string: String) {
-		if printErrorsToConsole {
-			print(string)
+	private func logIfEnabled(_ string: String, logLevel: Swiftwood.Level) {
+		if enableLogging {
+			log.custom(level: logLevel, string)
 		}
 	}
 

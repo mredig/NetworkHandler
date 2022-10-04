@@ -43,7 +43,7 @@ public class ConcatenatedInputStream: InputStream {
 		guard _streamStatus == .notOpen else { throw StreamConcatError.cannotAddStreamsOnceOpen }
 		switch stream.streamStatus {
 		case .open:
-			print("Warning: stream already open after adding to concatenation. When reading, it will continue where it left off, if already read.")
+			log.warning("Warning: stream already open after adding to concatenation. When reading, it will continue where it left off, if already read.")
 		case .notOpen:
 			break
 		default:
@@ -66,7 +66,7 @@ public class ConcatenatedInputStream: InputStream {
 				statusOnExit = .atEnd
 				return count
 			} catch {
-				print("Error getting current stream: \(error)")
+				log.error("Error getting current stream: \(error)")
 			}
 		}
 		return count
@@ -105,7 +105,7 @@ public class ConcatenatedInputStream: InputStream {
 				return try getCurrentStream()
 			}
 		default:
-			print("Unexpected status: \(stream.streamStatus)")
+			log.error("Unexpected status: \(stream.streamStatus)")
 			throw StreamConcatError.unexpectedStatus(stream.streamStatus)
 		}
 	}
