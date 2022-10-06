@@ -93,7 +93,12 @@ public class NetworkHandlerMocker: URLProtocol {
 		isCancelled = true
 	}
 
-	struct MockerError: Error {
+	struct MockerError: Error, LocalizedError {
 		let message: String
+
+		var errorDescription: String? { message }
+		var failureReason: String? { message }
+		var helpAnchor: String? { message }
+		var recoverySuggestion: String? { message }
 	}
 }
