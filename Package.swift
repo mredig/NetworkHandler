@@ -6,10 +6,10 @@ import PackageDescription
 let package = Package(
     name: "NetworkHandler",
 	platforms: [
-		.macOS(.v10_15),
-		.iOS(.v13),
-		.tvOS(.v13),
-		.watchOS(.v6),
+		.macOS(.v12),
+		.iOS(.v15),
+		.tvOS(.v15),
+		.watchOS(.v8),
 	],
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
