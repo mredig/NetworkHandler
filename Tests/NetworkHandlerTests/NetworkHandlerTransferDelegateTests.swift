@@ -65,7 +65,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		XCTAssertGreaterThan(averageDelta, 0)
 
-		log.info("\(progressTracker), \(averageDelta)")
+		log.veryVerbose("\(progressTracker), \(averageDelta)")
 	}
 
 	/// tests progress tracking when uploading - will fail without api/secret for wasabi in environment
@@ -146,6 +146,8 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 			.reduce(0, +) / Double(progressTracker.count)
 
 		XCTAssertGreaterThan(averageDelta, 0)
+
+		log.veryVerbose("\(progressTracker), \(averageDelta)")
 	}
 
 	func testOnTaskStatusChange() async throws {

@@ -115,100 +115,12 @@ public class NetworkHandler {
 
 			let (data, httpResponse): (Data, HTTPURLResponse)
 			switch request.payload {
-			case .upload(_):
-				throw NSError(domain: "com.redeggproductions.networkhandler", code: -5)
+			case .upload(let uploadFile):
+				(data, httpResponse) = try await uploadTask(session: session, request: request, uploadFile: uploadFile, delegate: delegate)
 			default:
 				(data, httpResponse) = try await downloadTask(session: session, request: request, delegate: delegate)
 			}
 
-			}
-			OperationQueue.main.addOperationAndWaitUntilFinished {
-				delegate?.networkHandlerTaskDidStart(task)
-				delegate?.networkHandlerTask(task, stateChanged: task.state)
-			}
-			task.priority = request.priority.rawValue
-
-			let stateObserver = task.observe(\.state, options: [.new]) { task, _ in
-				OperationQueue.main.addOperation {
-					delegate?.networkHandlerTask(task, stateChanged: task.state)
-				}
-			}
-			let progressObserver = task.progress.observe(\.fractionCompleted, options: .new) { progress, _ in
-				OperationQueue.main.addOperation {
-					delegate?.networkHandlerTask(task, didProgress: task.progress.fractionCompleted)
-				}
-			}
-
-			let dataPublisher = sessionDelegate.dataPublisher(for: task)
-			sessionDelegate
-				.progressPublisher(for: task)
-				.sink { (received, total) in
-					let progress = Double(received) / Double(total)
-					delegate?.networkHandlerTask(task, didProgress: progress)
-				}
-
-			let data: Data
-			do {
-				data = try await withTaskCancellationHandler(
-					operation: {
-						try Task.checkCancellationForNetworkRequest()
-						guard
-							task.state == .suspended ||
-								task.state == .running
-						else {
-							sessionDelegate.cancelTracking(for: task)
-							throw NetworkError.requestCancelled
-						}
-						return try await withCheckedThrowingContinuation({ continuation in
-							let safer = SaferContinuation(
-								continuation,
-								isFatal: [.onMultipleCompletions, .onPostRunDelayCheck, .onDeinitWithoutCompletion],
-								timeout: request.timeoutInterval * 1.5,
-								delayCheckInterval: 10,
-								context: "method: \(request.httpMethod?.rawValue ?? "")\nurl: \(request.url?.absoluteString ?? "")")
-							var totalData = Data()
-							dataPublisher
-								.sink(
-									receiveValue: {
-										totalData.append($0)
-										safer.keepAlive()
-									},
-									receiveCompletion: { completionInfo in
-										let saferAddress = Unmanaged.passUnretained(safer).toOpaque()
-										switch completionInfo {
-										case .finished:
-											log.veryVerbose("completing SaferCompletion \(saferAddress)")
-											safer.resume(returning: totalData)
-										case .failure(let error):
-											log.veryVerbose("completing SaferCompletion (failed) \(saferAddress)")
-											safer.resume(throwing: error)
-										}
-									})
-
-							task.resume()
-						})
-					},
-					onCancel: {
-						task.cancel()
-					})
-			} catch {
-				let error = error as NSError
-				if
-					error.domain == NSURLErrorDomain,
-					error.code == NSURLErrorCancelled {
-					throw NetworkError.requestCancelled
-				} else {
-					throw error
-				}
-			}
-
-			stateObserver.invalidate()
-			progressObserver.invalidate()
-
-			guard let httpResponse = task.response as? HTTPURLResponse else {
-				logIfEnabled("Error: Server replied with no status code", logLevel: .error)
-				throw NetworkError.noStatusCodeResponse
-			}
 			guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
 				logIfEnabled("Error: Server replied with expected status code: Got \(httpResponse.statusCode) expected \(request.expectedResponseCodes)", logLevel: .error)
 				throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: data)
@@ -267,6 +179,31 @@ public class NetworkHandler {
 			task?.cancel()
 			stateObserver?.invalidate()
 		})
+	}
+
+	private func uploadTask(session: URLSession, request: NetworkRequest, uploadFile: NetworkRequest.UploadFile, delegate: NetworkHandlerTransferDelegate?) async throws -> (Data, HTTPURLResponse) {
+		let uploadDelegate = UploadDelegate(delegate: delegate, request: request)
+
+		return try await withTaskCancellationHandler(
+			operation: {
+				let (data, response): (Data, URLResponse)
+				switch uploadFile {
+				case .localFile(let url):
+					(data, response) = try await session.upload(for: request.urlRequest, fromFile: url, delegate: uploadDelegate)
+				case .data(let uploadData):
+					(data, response) = try await session.upload(for: request.urlRequest, from: uploadData, delegate: uploadDelegate)
+				}
+
+				guard let httpResponse = response as? HTTPURLResponse else {
+					logIfEnabled("Error: Server replied with no status code", logLevel: .error)
+					throw NetworkError.noStatusCodeResponse
+				}
+
+				return (data, httpResponse)
+			},
+			onCancel: { [weak uploadDelegate] in
+				uploadDelegate?.task?.cancel()
+			})
 	}
 
 	private func logIfEnabled(_ string: String, logLevel: Swiftwood.Level) {
