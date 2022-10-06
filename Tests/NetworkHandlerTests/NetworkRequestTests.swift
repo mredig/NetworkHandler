@@ -165,39 +165,47 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 	func testPriority() async throws {
 		let dummyURL = URL(string: "https://redeggproductions.com")!
 		//setup
-		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: true)
+		let networkHandler = generateNetworkHandlerInstance()
 		let demoModel = ["model": "is gud"]
 		let mockData = try JSONEncoder().encode(demoModel)
 		await NetworkHandlerMocker.addMock(for: dummyURL, method: .get, data: mockData, code: 200)
 
+		let dlDelegate = DownloadDelegate()
+
 		let defaultRequest = dummyURL.request
 		Task {
-			try await networkHandler.transferMahDatas(for: defaultRequest)
+			try await networkHandler.transferMahDatas(for: defaultRequest, delegate: dlDelegate)
 		}
-		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty == false)
+		try await wait(forArbitraryCondition: dlDelegate.task != nil)
 		let defTask = (await networkHandler.defaultSession.allTasks).first { $0.originalRequest == defaultRequest.urlRequest }
 		XCTAssertEqual(defTask?.priority, defaultRequest.priority.rawValue)
+		dlDelegate.task?.cancel()
+		dlDelegate.task = nil
 		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty)
 
 		var highRequest = dummyURL.request
 		highRequest.priority = .highPriority
 		Task { [highRequest] in
-			try await networkHandler.transferMahDatas(for: highRequest)
+			try await networkHandler.transferMahDatas(for: highRequest, delegate: dlDelegate)
 		}
-		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty == false)
+		try await wait(forArbitraryCondition: dlDelegate.task != nil)
 		let highTask = (await networkHandler.defaultSession.allTasks).first { $0.originalRequest == highRequest.urlRequest }
 		XCTAssertEqual(highTask?.priority, highRequest.priority.rawValue)
+		dlDelegate.task?.cancel()
+		dlDelegate.task = nil
 		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty)
 
 		var lowRequest = dummyURL.request
 		lowRequest.priority = .lowPriority
 
 		Task { [lowRequest] in
-			try await networkHandler.transferMahDatas(for: lowRequest)
+			try await networkHandler.transferMahDatas(for: lowRequest, delegate: dlDelegate)
 		}
-		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty == false)
+		try await wait(forArbitraryCondition: dlDelegate.task != nil)
 		let lowTask = (await networkHandler.defaultSession.allTasks).first { $0.originalRequest == lowRequest.urlRequest }
 		XCTAssertEqual(lowTask?.priority, lowRequest.priority.rawValue)
+		dlDelegate.task?.cancel()
+		dlDelegate.task = nil
 		try await wait(forArbitraryCondition: (await networkHandler.defaultSession.allTasks).isEmpty)
 
 		var arbitraryRequest = dummyURL.request

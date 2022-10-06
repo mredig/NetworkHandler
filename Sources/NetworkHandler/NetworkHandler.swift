@@ -148,19 +148,19 @@ public class NetworkHandler {
 
 	private func downloadTask(session: URLSession, request: NetworkRequest, delegate: NetworkHandlerTransferDelegate?) async throws -> (Data, HTTPURLResponse) {
 		let (asyncBytes, response) = try await session.bytes(for: request.urlRequest)
+		let task = asyncBytes.task
+		task.priority = request.priority.rawValue
+		delegate?.task = task
 
 		guard let httpResponse = response as? HTTPURLResponse else {
 			logIfEnabled("Error: Server replied with no status code", logLevel: .error)
 			throw NetworkError.noStatusCodeResponse
 		}
 
-		let task = asyncBytes.task
 		OperationQueue.main.addOperationAndWaitUntilFinished {
 			delegate?.networkHandlerTaskDidStart(task)
 			delegate?.networkHandlerTask(task, stateChanged: task.state)
 		}
-
-		task.priority = request.priority.rawValue
 
 		let stateObserver = task.observe(\.state, options: [.new]) { task, _ in
 			OperationQueue.main.addOperation {
