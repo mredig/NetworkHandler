@@ -113,17 +113,14 @@ public class NetworkHandler {
 				.map { URLSession(configuration: $0, delegate: sessionDelegate, delegateQueue: delegateQueue) }
 				?? defaultSession
 
-			let task: URLSessionTask
+			let (data, httpResponse): (Data, HTTPURLResponse)
 			switch request.payload {
-			case .upload(let uploadFile):
-				switch uploadFile {
-				case .data(let data):
-					task = session.uploadTask(with: request.urlRequest, from: data)
-				case .localFile(let localFileURL):
-					task = session.uploadTask(with: request.urlRequest, fromFile: localFileURL)
-				}
+			case .upload(_):
+				throw NSError(domain: "com.redeggproductions.networkhandler", code: -5)
 			default:
-				task = session.dataTask(with: request.urlRequest)
+				(data, httpResponse) = try await downloadTask(session: session, request: request, delegate: delegate)
+			}
+
 			}
 			OperationQueue.main.addOperationAndWaitUntilFinished {
 				delegate?.networkHandlerTaskDidStart(task)
