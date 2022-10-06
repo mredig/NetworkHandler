@@ -102,7 +102,7 @@ public class NetworkHandler {
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
-		sessionConfiguration: URLSessionConfiguration? = nil) async throws -> (data: Data, response: URLResponse) {
+		sessionConfiguration: URLSessionConfiguration? = nil) async throws -> (data: Data, response: HTTPURLResponse) {
 			if let cacheKey = cacheOption.cacheKey(url: request.url) {
 				if let cachedData = cache[cacheKey] {
 					return (cachedData.data, cachedData.response)
@@ -223,6 +223,54 @@ public class NetworkHandler {
 
 			return (data, httpResponse)
 		}
+
+	private func downloadTask(session: URLSession, request: NetworkRequest, delegate: NetworkHandlerTransferDelegate?) async throws -> (Data, HTTPURLResponse) {
+		let (asyncBytes, response) = try await session.bytes(for: request.urlRequest)
+
+		guard let httpResponse = response as? HTTPURLResponse else {
+			logIfEnabled("Error: Server replied with no status code", logLevel: .error)
+			throw NetworkError.noStatusCodeResponse
+		}
+
+		let task = asyncBytes.task
+		OperationQueue.main.addOperationAndWaitUntilFinished {
+			delegate?.networkHandlerTaskDidStart(task)
+			delegate?.networkHandlerTask(task, stateChanged: task.state)
+		}
+
+		task.priority = request.priority.rawValue
+
+		let stateObserver = task.observe(\.state, options: [.new]) { task, _ in
+			OperationQueue.main.addOperation {
+				delegate?.networkHandlerTask(task, stateChanged: task.state)
+			}
+		}
+
+		defer { stateObserver.invalidate() }
+
+		return try await withTaskCancellationHandler(operation: {
+			var data = Data()
+			data.reserveCapacity(Int(httpResponse.expectedContentLength))
+			var lastUpdate = Date.distantPast
+			var count = 0
+			for try await byte in asyncBytes {
+				data.append(byte)
+				count += 1
+
+				let now = Date()
+				if now > lastUpdate.addingTimeInterval(1 / 30) {
+					lastUpdate = now
+
+					delegate?.networkHandlerTask(task, didProgress: Double(count) / Double(httpResponse.expectedContentLength))
+				}
+			}
+
+			return (data, httpResponse)
+		}, onCancel: { [weak stateObserver, weak task] in
+			task?.cancel()
+			stateObserver?.invalidate()
+		})
+	}
 
 	private func logIfEnabled(_ string: String, logLevel: Swiftwood.Level) {
 		if enableLogging {

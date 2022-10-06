@@ -32,12 +32,12 @@ class NetworkCacheTests: NetworkCacheTest {
 		let data1 = Data([1, 2, 3, 4, 5])
 		let data2 = Data(data1.reversed())
 
-		let response1 = URLResponse(
+		let response1 = HTTPURLResponse(
 			url: URL(string: "https://redeggproductions.com")!,
 			mimeType: nil,
 			expectedContentLength: 1024,
 			textEncodingName: nil)
-		let response2 = URLResponse(
+		let response2 = HTTPURLResponse(
 			url: URL(string: "https://github.com")!,
 			mimeType: nil,
 			expectedContentLength: 2048,

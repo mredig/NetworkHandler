@@ -93,24 +93,24 @@ class NetworkCache {
 enum URLResponseCoder {
 	private static let key = "life.knowme.urlresponse"
 
-	static func encode(response: URLResponse) -> Data {
+	static func encode(response: HTTPURLResponse) -> Data {
 		let keyedCoder = NSKeyedArchiver(requiringSecureCoding: true)
 		keyedCoder.encode(response, forKey: Self.key)
 		keyedCoder.finishEncoding()
 		return keyedCoder.encodedData
 	}
 
-	static func decodeResponse(from data: Data) -> URLResponse? {
+	static func decodeResponse(from data: Data) -> HTTPURLResponse? {
 		let uncoder = try? NSKeyedUnarchiver(forReadingFrom: data)
-		return uncoder?.decodeObject(of: URLResponse.self, forKey: Self.key)
+		return uncoder?.decodeObject(of: HTTPURLResponse.self, forKey: Self.key)
 	}
 }
 
 class NetworkCacheItem: Codable {
-	let response: URLResponse
+	let response: HTTPURLResponse
 	let data: Data
 
-	var cacheTuple: (Data, URLResponse) {
+	var cacheTuple: (Data, HTTPURLResponse) {
 		(data, response)
 	}
 
@@ -119,7 +119,7 @@ class NetworkCacheItem: Codable {
 		case data
 	}
 
-	init(response: URLResponse, data: Data) {
+	init(response: HTTPURLResponse, data: Data) {
 		self.response = response
 		self.data = data
 	}
