@@ -164,7 +164,11 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 
 	func testPriority() async throws {
 		let dummyURL = URL(string: "https://redeggproductions.com")!
-		let networkHandler = generateNetworkHandlerInstance()
+		//setup
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: true)
+		let demoModel = ["model": "is gud"]
+		let mockData = try JSONEncoder().encode(demoModel)
+		await NetworkHandlerMocker.addMock(for: dummyURL, method: .get, data: mockData, code: 200)
 
 		let defaultRequest = dummyURL.request
 		Task {
