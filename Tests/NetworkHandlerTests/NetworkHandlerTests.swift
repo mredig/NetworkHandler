@@ -68,8 +68,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		})
 
 		XCTAssertEqual(100, allData.count)
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	// MARK: - Live Network Tests
@@ -116,8 +114,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(imageOneData, imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
 
 		XCTAssertNotNil(TestImage(data: imageOneData))
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	// MARK: - Mock Network Tests
@@ -139,8 +135,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let result: DemoModel = try await networkHandler.transferMahCodableDatas(for: dummyModelURL.request).decoded
 		XCTAssertEqual(demoModel, result)
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 //	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
@@ -211,8 +205,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			let expectedError = NetworkError.httpNon200StatusCode(code: 404, data: Data())
 			XCTAssertEqual(expectedError, error as? NetworkError)
 		}
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	/// Tests using a mock session that when expecting ONLY a 200 response code, a 200 code will be an expected success
@@ -267,8 +259,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertThrowsError(try result.get(), "Got unexpected error") { error in
 			XCTAssertEqual(NetworkError.httpNon200StatusCode(code: 202, data: mockData), error as? NetworkError)
 		}
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	/// Tests using a mock session that expected response ranges are respsected
@@ -292,8 +282,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let result: DemoModel = try await networkHandler.transferMahCodableDatas(for: request).decoded
 
 		XCTAssertEqual(demoModel, result)
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	/// Tests using a mock session that values outside the expected response ranges are thrown
@@ -324,8 +312,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			let expectedError = NetworkError.httpNon200StatusCode(code: 202, data: mockData)
 			XCTAssertEqual(expectedError, error as? NetworkError)
 		}
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	func testUploadFile() async throws {
@@ -374,8 +360,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
 		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), dataHash)
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	func testUploadMultipartFile() async throws {
@@ -432,8 +416,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
 		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), multipartHash)
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	/// Tests using a mock session that corrupt data is properly reported as NetworkError.dataCodingError
@@ -464,7 +446,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				return
 			}
 		}
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	func testCancellingSessionTask() async throws {
@@ -503,8 +484,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				return
 			}
 		}
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	func testImmediateCancellingSessionTask() async throws {
@@ -535,8 +514,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				return
 			}
 		}
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	func testCancellingAsyncTask() async throws {
@@ -568,8 +545,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				return
 			}
 		}
-
-		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	func testImmediateCancellingAsyncTask() async throws {
@@ -590,18 +565,5 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let result = await task.result
 
 		XCTAssertThrowsError(try result.get(), "Expected cancelled error")
-
-		// Because this cancels the async task before the session task finishes, the delegate does not release the
-		// session task until AFTER this test method finishes, so we need to wait until it's released before doing the final check
-		let check = { () -> Bool in
-			do {
-				try self.checkNetworkHandlerTasksFinished(networkHandler)
-				return true
-			} catch {
-				return false
-			}
-		}
-		try await wait(forArbitraryCondition: check())
-		try self.checkNetworkHandlerTasksFinished(networkHandler)
 	}
 }

@@ -35,7 +35,6 @@ public class NetworkHandler {
 
 	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is handled via `NetworkCache`
 	public let defaultSession: URLSession
-	private let sessionDelegate: TheDelegate
 	private let delegateQueue: OperationQueue = {
 		let q = OperationQueue()
 		q.maxConcurrentOperationCount = 1
@@ -50,10 +49,7 @@ public class NetworkHandler {
 
 		let config = configuration ?? .networkHandlerDefault
 
-		let sessionDelegate = TheDelegate()
-
-		self.defaultSession = URLSession(configuration: config, delegate: sessionDelegate, delegateQueue: delegateQueue)
-		self.sessionDelegate = sessionDelegate
+		self.defaultSession = URLSession(configuration: config, delegate: nil, delegateQueue: delegateQueue)
 	}
 
 	public func resetCache(memory: Bool = true, disk: Bool = true) {
@@ -110,7 +106,7 @@ public class NetworkHandler {
 			}
 
 			let session = sessionConfiguration
-				.map { URLSession(configuration: $0, delegate: sessionDelegate, delegateQueue: delegateQueue) }
+				.map { URLSession(configuration: $0, delegate: nil, delegateQueue: delegateQueue) }
 				?? defaultSession
 
 			let (data, httpResponse): (Data, HTTPURLResponse)

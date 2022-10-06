@@ -81,19 +81,6 @@ open class NetworkHandlerBaseTest: XCTestCase {
 
 		return hasher.finalize()
 	}
-
-
-	public func checkNetworkHandlerTasksFinished(_ networkHandler: NetworkHandler) throws {
-		let nhMirror = Mirror(reflecting: networkHandler)
-		let theDel: TheDelegate = nhMirror.firstChild(named: "sessionDelegate")!
-
-		let theDelMirror = Mirror(reflecting: theDel)
-		let dataPublishers: [URLSessionTask: TheDelegate.DataPublisher]! = theDelMirror.firstChild(named: "dataPublishers")
-		guard dataPublishers.isEmpty else { throw TestError(message: "There are some abandoned tasks in the NH Delegate!") }
-
-		let progressPublishers: [URLSessionTask: TheDelegate.ProgressPublisher]! = theDelMirror.firstChild(named: "progressPublishers")
-		guard progressPublishers.isEmpty else { throw TestError(message: "There are some abandoned tasks in the NH Delegate!") }
-	}
 }
 
 extension Mirror {
