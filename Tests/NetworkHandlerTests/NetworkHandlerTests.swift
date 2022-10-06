@@ -100,7 +100,13 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let networkDuration = networkFinish - networkStart
 		let cacheDuration = cacheFinish - cacheStart
 		let cacheRatio = cacheDuration / networkDuration
-		print("netDuration: \(networkDuration)\ncacheDuration: \(cacheDuration)\ncache took \(cacheRatio)x as long")
+
+		let formatter = NumberFormatter()
+		formatter.maximumFractionDigits = 6
+		let netDurationStr = formatter.string(from: networkDuration as NSNumber) ?? "nan"
+		let cacheDurationStr = formatter.string(from: cacheDuration as NSNumber) ?? "nan"
+		let cacheRatioStr = formatter.string(from: cacheRatio as NSNumber) ?? "nan"
+		print("netDuration: \(netDurationStr)\ncacheDuration: \(cacheDurationStr)\ncache took \(cacheRatioStr)x as long")
 		XCTAssertLessThan(cacheDuration,
 						  networkDuration * 0.5,
 						  "The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
