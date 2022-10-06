@@ -114,11 +114,24 @@ public class NetworkHandler {
 				?? defaultSession
 
 			let (data, httpResponse): (Data, HTTPURLResponse)
-			switch request.payload {
-			case .upload(let uploadFile):
-				(data, httpResponse) = try await uploadTask(session: session, request: request, uploadFile: uploadFile, delegate: delegate)
-			default:
-				(data, httpResponse) = try await downloadTask(session: session, request: request, delegate: delegate)
+			do {
+				switch request.payload {
+				case .upload(let uploadFile):
+					(data, httpResponse) = try await uploadTask(session: session, request: request, uploadFile: uploadFile, delegate: delegate)
+				default:
+					(data, httpResponse) = try await downloadTask(session: session, request: request, delegate: delegate)
+				}
+			} catch {
+				let error = error as NSError
+				if
+					error.domain == NSURLErrorDomain,
+					error.code == NSURLErrorCancelled {
+					throw NetworkError.requestCancelled
+				} else if (error as? CancellationError) != nil {
+					throw NetworkError.requestCancelled
+				} else {
+					throw error
+				}
 			}
 
 			guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
