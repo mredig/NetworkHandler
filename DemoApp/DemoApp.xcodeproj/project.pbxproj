@@ -10,7 +10,7 @@
 		337B32852548ED2100967741 /* NetworkHandler in Frameworks */ = {isa = PBXBuildFile; productRef = 337B32842548ED2100967741 /* NetworkHandler */; };
 		337B328A2548ED6C00967741 /* DemoText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337B32872548ED6C00967741 /* DemoText.swift */; };
 		337B328B2548ED6C00967741 /* DemoModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337B32882548ED6C00967741 /* DemoModelController.swift */; };
-		337B328C2548ED6C00967741 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337B32892548ED6C00967741 /* DemoModel.swift */; };
+		33B7D74A28F1698500ADC694 /* DemoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33B7D74928F1698500ADC694 /* DemoModel.swift */; };
 		33C92E572357E9400061B0F8 /* CreateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E4D2357E9400061B0F8 /* CreateViewController.swift */; };
 		33C92E592357E9400061B0F8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C92E4F2357E9400061B0F8 /* AppDelegate.swift */; };
 		33C92E5A2357E9400061B0F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33C92E502357E9400061B0F8 /* Assets.xcassets */; };
@@ -21,9 +21,9 @@
 
 /* Begin PBXFileReference section */
 		337B327B2548ED0E00967741 /* NetworkHandler */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetworkHandler; path = ..; sourceTree = "<group>"; };
-		337B32872548ED6C00967741 /* DemoText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoText.swift; path = ../Tests/NetworkHandlerTests/TestSupport/DemoText.swift; sourceTree = "<group>"; };
-		337B32882548ED6C00967741 /* DemoModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModelController.swift; path = ../Tests/NetworkHandlerTests/TestSupport/DemoModelController.swift; sourceTree = "<group>"; };
-		337B32892548ED6C00967741 /* DemoModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DemoModel.swift; path = ../Tests/NetworkHandlerTests/TestSupport/DemoModel.swift; sourceTree = "<group>"; };
+		337B32872548ED6C00967741 /* DemoText.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoText.swift; sourceTree = "<group>"; };
+		337B32882548ED6C00967741 /* DemoModelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoModelController.swift; sourceTree = "<group>"; };
+		33B7D74928F1698500ADC694 /* DemoModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoModel.swift; sourceTree = "<group>"; };
 		33C92E282357E8D40061B0F8 /* DemoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		33C92E4D2357E9400061B0F8 /* CreateViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateViewController.swift; sourceTree = "<group>"; };
 		33C92E4E2357E9400061B0F8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -49,11 +49,12 @@
 		330BD6D3240A4C0600FCD96C /* Shared With Tests */ = {
 			isa = PBXGroup;
 			children = (
-				337B32892548ED6C00967741 /* DemoModel.swift */,
+				33B7D74928F1698500ADC694 /* DemoModel.swift */,
 				337B32882548ED6C00967741 /* DemoModelController.swift */,
 				337B32872548ED6C00967741 /* DemoText.swift */,
 			);
 			name = "Shared With Tests";
+			path = ../Sources/TestSupport;
 			sourceTree = "<group>";
 		};
 		33C92E1F2357E8D40061B0F8 = {
@@ -172,10 +173,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				33C92E5D2357E9400061B0F8 /* DemoViewController.swift in Sources */,
-				337B328C2548ED6C00967741 /* DemoModel.swift in Sources */,
 				33C92E592357E9400061B0F8 /* AppDelegate.swift in Sources */,
 				337B328A2548ED6C00967741 /* DemoText.swift in Sources */,
 				33C92E572357E9400061B0F8 /* CreateViewController.swift in Sources */,
+				33B7D74A28F1698500ADC694 /* DemoModel.swift in Sources */,
 				337B328B2548ED6C00967741 /* DemoModelController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -328,7 +329,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L5UZAT7KA9;
 				INFOPLIST_FILE = DemoApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -350,7 +351,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L5UZAT7KA9;
 				INFOPLIST_FILE = DemoApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -2,12 +2,30 @@
   "object": {
     "pins": [
       {
-        "package": "CryptoSwift",
-        "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift.git",
+        "package": "SaferContinuation",
+        "repositoryURL": "https://github.com/mredig/SaferContinuation.git",
         "state": {
           "branch": null,
-          "revision": "4b0565384d3c4c588af09e660535b2c7c9bf5b39",
-          "version": "1.4.2"
+          "revision": "6bdca6dd8017dac3b7eb3e1d6b90be9235eaf381",
+          "version": "1.1.4"
+        }
+      },
+      {
+        "package": "swift-crypto",
+        "repositoryURL": "https://github.com/apple/swift-crypto.git",
+        "state": {
+          "branch": null,
+          "revision": "067254c79435de759aeef4a6a03e43d087d61312",
+          "version": "2.0.5"
+        }
+      },
+      {
+        "package": "Swiftwood",
+        "repositoryURL": "https://github.com/KnowMeGit/Swiftwood.git",
+        "state": {
+          "branch": null,
+          "revision": "bc19c3059ceeef770e6fe330fea3864cb3fc3e5e",
+          "version": "0.1.2"
         }
       }
     ]
