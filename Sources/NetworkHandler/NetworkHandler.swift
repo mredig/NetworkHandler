@@ -113,7 +113,7 @@ public class NetworkHandler {
 			}
 
 			let session = sessionConfiguration
-				.map { URLSession(configuration: $0, delegate: nil, delegateQueue: delegateQueue) }
+				.map { URLSession(configuration: $0, delegate: uploadDelegate, delegateQueue: delegateQueue) }
 				?? defaultSession
 
 			defer {

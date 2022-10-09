@@ -314,6 +314,58 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		}
 	}
 
+	func testUploadViaBGSession() async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			XCTFail("Need s3 credentials")
+			return
+		}
+
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
+		var request = url.request
+		let method = HTTPMethod.put
+		request.httpMethod = method
+
+		// this can be changed per run depending on internet variables - large enough to take more than an instant,
+		// small enough to not timeout.
+		let sizeOfUploadMB: UInt8 = 5
+
+		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
+		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
+
+		let dataHash = try fileHash(dummyFile)
+
+		let awsHeaderInfo = try AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: "\(dataHash.toHexString())")
+		request = try awsHeaderInfo.processRequest(request)
+
+		request.payload = .upload(.localFile(dummyFile))
+
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: dummyFile)
+		}
+
+		let id = UUID().uuidString
+		let config = URLSessionConfiguration.background(withIdentifier: id)
+
+		_ = try await networkHandler.transferMahDatas(for: request, sessionConfiguration: config)
+
+		let dlRequest = url.request
+		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
+		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), dataHash)
+		try checkNetworkHandlerTasksFinished(networkHandler)
+
+	}
+
 	func testUploadFile() async throws {
 		guard
 			TestEnvironment.s3AccessSecret.isEmpty == false,
