@@ -201,18 +201,56 @@ public class NetworkHandler {
 	}
 
 	private func uploadTask(session: URLSession, request: NetworkRequest, uploadFile: NetworkRequest.UploadFile, delegate: NetworkHandlerTransferDelegate?) async throws -> (Data, HTTPURLResponse) {
-		let uploadDelegate = UploadDelegate(delegate: delegate, request: request)
+		var taskHolder: URLSessionTask?
 
 		return try await withTaskCancellationHandler(
 			operation: {
-				let (data, response): (Data, URLResponse)
+				let data: Data
+				let task: URLSessionUploadTask
 				switch uploadFile {
 				case .localFile(let url):
-					(data, response) = try await session.upload(for: request.urlRequest, fromFile: url, delegate: uploadDelegate)
+					task = session.uploadTask(with: request.urlRequest, fromFile: url)
 				case .data(let uploadData):
-					(data, response) = try await session.upload(for: request.urlRequest, from: uploadData, delegate: uploadDelegate)
+					task = session.uploadTask(with: request.urlRequest, from: uploadData)
 				}
 
+				let uploadDelegate = UploadDelegate(delegate: delegate, request: request)
+				uploadDelegate.setTask(task)
+				taskHolder = task
+				task.delegate = uploadDelegate
+
+				data = try await withCheckedThrowingContinuation({ continuation in
+					let safer = SaferContinuation(
+						continuation,
+						isFatal: true,
+						timeout: request.timeoutInterval * 1.5,
+						delayCheckInterval: 3,
+						context: "(\(request.httpMethod as Any)): \(request.url as Any)")
+
+					var dataAccumulator = Data()
+					uploadDelegate
+						.dataPublisher
+						.sink(
+							receiveValue: { data in
+								dataAccumulator.append(contentsOf: data)
+							},
+							receiveCompletion: { completion in
+								do {
+									try completion.check()
+								} catch {
+									safer.resume(throwing: error)
+								}
+								safer.resume(returning: dataAccumulator)
+							})
+
+					task.resume()
+					delegate?.networkHandlerTaskDidStart(task)
+				})
+
+				guard let response = task.response else {
+					logIfEnabled("Error no response provided", logLevel: .error)
+					throw NetworkError.noURLResponse
+				}
 				guard let httpResponse = response as? HTTPURLResponse else {
 					logIfEnabled("Error: Server replied with no status code", logLevel: .error)
 					throw NetworkError.noStatusCodeResponse
@@ -220,8 +258,8 @@ public class NetworkHandler {
 
 				return (data, httpResponse)
 			},
-			onCancel: { [weak uploadDelegate] in
-				uploadDelegate?.task?.cancel()
+			onCancel: { [weak taskHolder] in
+				taskHolder?.cancel()
 			})
 	}
 

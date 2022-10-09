@@ -12,8 +12,14 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 
 	private(set) weak var task: URLSessionTask?
 
-	private weak var stateObserver: NSKeyValueObservation?
+	private var stateObserver: NSKeyValueObservation?
+	static private let queue: OperationQueue = {
+		let q = OperationQueue()
+		q.maxConcurrentOperationCount = 1
+		return q
+	}()
 
+	let dataPublisher = NHPublisher<Data, Error>()
 	let request: NetworkRequest
 
 	init(delegate: NetworkHandlerTransferDelegate?, request: NetworkRequest) {
@@ -31,7 +37,16 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 		delegate?.networkHandlerTask(task, didProgress: Double(totalBytesSent) / Double(totalBytesExpectedToSend))
 	}
 
-	private func setTask(_ task: URLSessionTask) {
+	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+
+		if let error {
+			dataPublisher.send(completion: .failure(error))
+		} else {
+			dataPublisher.send(completion: .finished)
+		}
+	}
+
+	func setTask(_ task: URLSessionTask) {
 		guard self.task == nil else { return }
 
 		self.task = task
@@ -42,5 +57,13 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 			delegate?.networkHandlerTask(task, stateChanged: task.state)
 		}
 		self.stateObserver = stateObs
+	}
+}
+
+extension UploadDelegate: URLSessionDataDelegate {
+	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+		Self.queue.addOperationAndWaitUntilFinished {
+			self.dataPublisher.send(data)
+		}
 	}
 }
