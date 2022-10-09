@@ -35,6 +35,7 @@ public class NetworkHandler {
 
 	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is handled via `NetworkCache`
 	public let defaultSession: URLSession
+	private let uploadDelegate: UploadDelegate
 	private let delegateQueue: OperationQueue = {
 		let q = OperationQueue()
 		q.maxConcurrentOperationCount = 1
@@ -49,7 +50,9 @@ public class NetworkHandler {
 
 		let config = configuration ?? .networkHandlerDefault
 
-		self.defaultSession = URLSession(configuration: config, delegate: nil, delegateQueue: delegateQueue)
+		let uploadDelegate = UploadDelegate()
+		self.uploadDelegate = uploadDelegate
+		self.defaultSession = URLSession(configuration: config, delegate: uploadDelegate, delegateQueue: delegateQueue)
 	}
 
 	deinit {
@@ -214,10 +217,10 @@ public class NetworkHandler {
 					task = session.uploadTask(with: request.urlRequest, from: uploadData)
 				}
 
-				let uploadDelegate = UploadDelegate(delegate: delegate, request: request)
-				uploadDelegate.setTask(task)
+				if let delegate {
+					uploadDelegate.addDelegate(delegate, for: task)
+				}
 				taskHolder = task
-				task.delegate = uploadDelegate
 
 				data = try await withCheckedThrowingContinuation({ continuation in
 					let safer = SaferContinuation(
@@ -229,7 +232,7 @@ public class NetworkHandler {
 
 					var dataAccumulator = Data()
 					uploadDelegate
-						.dataPublisher
+						.dataPublisher(for: task)
 						.sink(
 							receiveValue: { data in
 								dataAccumulator.append(contentsOf: data)

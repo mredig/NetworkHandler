@@ -81,6 +81,13 @@ open class NetworkHandlerBaseTest: XCTestCase {
 
 		return hasher.finalize()
 	}
+
+	public func checkNetworkHandlerTasksFinished(_ networkHandler: NetworkHandler) throws {
+		let nhMirror = Mirror(reflecting: networkHandler)
+		let theDel: UploadDelegate = nhMirror.firstChild(named: "uploadDelegate")!
+
+		try theDel.assertClean()
+	}
 }
 
 extension Mirror {

@@ -130,9 +130,72 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 		XCTAssertGreaterThan(averageDelta, 0)
 
 		log.veryVerbose("\(progressTracker), \(averageDelta)")
+		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
-	func testOnTaskStatusChange() async throws {
+	func testUploadStatusUpdates() async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			XCTFail("Need s3 credentials")
+			return
+		}
+
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
+		var request = url.request
+		let method = HTTPMethod.put
+		request.httpMethod = method
+
+		let sizeOfUploadMB: UInt8 = 1
+
+		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
+		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
+
+		let dataHash = try fileHash(dummyFile)
+
+		let awsHeaderInfo = try AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: "\(dataHash.toHexString())")
+		request = try awsHeaderInfo.processRequest(request)
+
+		request.payload = .upload(.localFile(dummyFile))
+
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: dummyFile)
+		}
+
+		var stateAccumulator: Set<URLSessionTask.State> = []
+
+		let dlDelegate = DownloadDelegate()
+		dlDelegate
+			.statePub
+			.sink { state in
+				stateAccumulator.insert(state)
+			}
+
+		let taskStartedExpectation = expectation(description: "task started")
+		dlDelegate
+			.taskPub
+			.sink { task in
+				taskStartedExpectation.fulfill()
+			}
+
+		_ = try await networkHandler.transferMahDatas(for: request, delegate: dlDelegate)
+
+		wait(for: [taskStartedExpectation], timeout: 1)
+		XCTAssertEqual(stateAccumulator, [.running, .completed, .suspended])
+
+		try checkNetworkHandlerTasksFinished(networkHandler)
+	}
+
+	func testDownloadStatusUpdates() async throws {
 		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
@@ -149,9 +212,18 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 				statuses.append($0)
 			}
 
+		let taskStartedExpectation = expectation(description: "task started")
+		myDel
+			.taskPub
+			.sink { task in
+				taskStartedExpectation.fulfill()
+			}
+
 		try await networkHandler.transferMahDatas(for: url.request, delegate: myDel)
 
 		try await wait(forArbitraryCondition: statuses.count == 3)
+
+		wait(for: [taskStartedExpectation], timeout: 1)
 
 		XCTAssertEqual(expectedStatuses, statuses)
 	}

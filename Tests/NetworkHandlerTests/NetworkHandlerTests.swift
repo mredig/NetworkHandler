@@ -360,6 +360,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
 		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), dataHash)
+		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	func testUploadMultipartFile() async throws {
@@ -416,6 +417,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
 		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), multipartHash)
+		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
 	/// Tests using a mock session that corrupt data is properly reported as NetworkError.dataCodingError
