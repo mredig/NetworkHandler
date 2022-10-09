@@ -52,6 +52,10 @@ public class NetworkHandler {
 		self.defaultSession = URLSession(configuration: config, delegate: nil, delegateQueue: delegateQueue)
 	}
 
+	deinit {
+		defaultSession.finishTasksAndInvalidate()
+	}
+
 	public func resetCache(memory: Bool = true, disk: Bool = true) {
 		cache.reset(memory: memory, disk: disk)
 	}
@@ -108,6 +112,12 @@ public class NetworkHandler {
 			let session = sessionConfiguration
 				.map { URLSession(configuration: $0, delegate: nil, delegateQueue: delegateQueue) }
 				?? defaultSession
+
+			defer {
+				if session !== defaultSession {
+					session.finishTasksAndInvalidate()
+				}
+			}
 
 			let (data, httpResponse): (Data, HTTPURLResponse)
 			do {
