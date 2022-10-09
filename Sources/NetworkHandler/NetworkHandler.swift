@@ -235,12 +235,12 @@ public class NetworkHandler {
 								dataAccumulator.append(contentsOf: data)
 							},
 							receiveCompletion: { completion in
-								do {
-									try completion.check()
-								} catch {
+								switch completion {
+								case .finished:
+									safer.resume(returning: dataAccumulator)
+								case .failure(let error):
 									safer.resume(throwing: error)
 								}
-								safer.resume(returning: dataAccumulator)
 							})
 
 					task.resume()
