@@ -8,11 +8,7 @@ import FoundationNetworking
  assists in version 2 uploads
  */
 internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
-	static private let queue: OperationQueue = {
-		let q = OperationQueue()
-		q.maxConcurrentOperationCount = 1
-		return q
-	}()
+	static private let uploadDelegateLock = NSLock()
 
 	private var delegates: [URLSessionTask: NetworkHandlerTransferDelegate] = [:]
 	private var stateObservers: [URLSessionTask: NSKeyValueObservation] = [:]
@@ -21,11 +17,11 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 	private var dataPublishers: [URLSessionTask: DataPublisher] = [:]
 
 	func dataPublisher(for task: URLSessionTask) -> DataPublisher {
-		Self.queue.addOperationAndWaitUntilFinished {
-			let pub = self.dataPublishers[task, default: DataPublisher()]
-			self.dataPublishers[task] = pub
-			return pub
-		}
+		Self.uploadDelegateLock.lock()
+		defer { Self.uploadDelegateLock.unlock() }
+		let pub = self.dataPublishers[task, default: DataPublisher()]
+		self.dataPublishers[task] = pub
+		return pub
 	}
 
 	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
@@ -66,9 +62,9 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 
 extension UploadDelegate: URLSessionDataDelegate {
 	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-		Self.queue.addOperationAndWaitUntilFinished {
-			self.dataPublishers[dataTask]?.send(data)
-		}
+		Self.uploadDelegateLock.lock()
+		defer { Self.uploadDelegateLock.unlock() }
+		self.dataPublishers[dataTask]?.send(data)
 	}
 }
 
