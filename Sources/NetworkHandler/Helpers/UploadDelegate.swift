@@ -25,7 +25,10 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 	}
 
 	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
-		delegates[task]?.networkHandlerTask(task, didProgress: Double(totalBytesSent) / Double(totalBytesExpectedToSend))
+		let delegate = delegates[task]
+		DispatchQueue.main.async {
+			delegate?.networkHandlerTask(task, didProgress: Double(totalBytesSent) / Double(totalBytesExpectedToSend))
+		}
 	}
 
 	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -46,10 +49,14 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 
 		let stateObserver = task
 			.observe(\.state, options: .new) { [weak delegate] task, change in
-				delegate?.networkHandlerTask(task, stateChanged: task.state)
+				DispatchQueue.main.async {
+					delegate?.networkHandlerTask(task, stateChanged: task.state)
+				}
 			}
 		stateObservers[task] = stateObserver
-		delegate.networkHandlerTask(task, stateChanged: task.state)
+		DispatchQueue.main.async {
+			delegate.networkHandlerTask(task, stateChanged: task.state)
+		}
 	}
 
 	func cleanUpTask(_ task: URLSessionTask) {

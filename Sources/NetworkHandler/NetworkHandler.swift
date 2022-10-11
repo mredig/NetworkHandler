@@ -247,7 +247,10 @@ public class NetworkHandler {
 							})
 
 					task.resume()
-					delegate?.networkHandlerTaskDidStart(task)
+
+					DispatchQueue.main.async {
+						delegate?.networkHandlerTaskDidStart(task)
+					}
 				})
 
 				guard let response = task.response else {
