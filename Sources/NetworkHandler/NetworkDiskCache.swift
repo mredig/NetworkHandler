@@ -20,20 +20,14 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 
 	static private let cacheLock = NSLock()
 	static private func lockCache() {
-		print("locking")
 		cacheLock.lock()
 		_isActive = true
 	}
 	static private func unlockCache() {
-		print("unlocking")
 		_isActive = false
 		cacheLock.unlock()
 	}
-	static private var _isActive = false {
-		didSet {
-			print("updated to \(_isActive) \(Thread.isMainThread)")
-		}
-	}
+	static private var _isActive = false
 
 	var isActive: Bool {
 		Self._isActive
