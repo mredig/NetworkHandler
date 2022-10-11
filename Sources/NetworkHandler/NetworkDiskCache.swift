@@ -8,10 +8,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 
 	var capacity: UInt64 {
 		didSet {
-			cacheQueue.addOperation { [weak self] in
-				guard let self = self else { return }
-				self.enforceCapacity()
-			}
+			enforceCapacity()
 		}
 	}
 
@@ -21,62 +18,84 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 
 	lazy private var cacheLocation = getCacheURL()
 
-	private let cacheQueue: OperationQueue = {
-		let queue = OperationQueue()
-		queue.maxConcurrentOperationCount = 1
-		return queue
-	}()
+	static private let cacheLock = NSLock()
+	static private func lockCache() {
+		print("locking")
+		cacheLock.lock()
+		_isActive = true
+	}
+	static private func unlockCache() {
+		print("unlocking")
+		_isActive = false
+		cacheLock.unlock()
+	}
+	static private var _isActive = false {
+		didSet {
+			print("updated to \(_isActive) \(Thread.isMainThread)")
+		}
+	}
 
 	var isActive: Bool {
-		cacheQueue.operationCount != 0
+		Self._isActive
 	}
 
 	init(capacity: UInt64 = .max, cacheName: String? = nil) {
 		self.capacity = capacity
 		self.cacheName = cacheName ?? "NetworkDiskCache"
 
-		cacheQueue.addOperation { [weak self] in
-			self?.refreshSize()
-			self?.enforceCapacity()
-		}
+		refreshSize()
+		enforceCapacity()
 	}
 
 	// MARK: - CRUD
 	func setData(_ getData: @autoclosure @escaping () -> Data?, key: String, sync: Bool = false) {
-		let operation = BlockOperation { [self] in
-			guard let data = getData() else {
-				NSLog("Error getting data to save for key: \(key)")
-				return
-			}
-
-			let fileLocation = path(for: key)
-			let oldFileSize = fileSize(at: fileLocation)
-
-			do {
-				try data.write(to: fileLocation)
-				subtractSize(oldFileSize ?? 0, removingFile: false)
-				addSize(for: data)
-				updateAccessDate(fileLocation)
-			} catch {
-				NSLog("Error saving cache data: \(error)")
+		if sync {
+			Self.lockCache()
+			defer { Self.unlockCache() }
+			_setData(getData(), key: key)
+		} else {
+			Task {
+				Self.lockCache()
+				defer { Self.unlockCache() }
+				_setData(getData(), key: key)
 			}
 		}
+	}
 
-		cacheQueue.addOperations([operation], waitUntilFinished: sync)
+	private func _setData(_ getData: @autoclosure @escaping () -> Data?, key: String) {
+		guard let data = getData() else {
+			NSLog("Error getting data to save for key: \(key)")
+			return
+		}
+
+		let fileLocation = path(for: key)
+		let oldFileSize = _fileSize(at: fileLocation)
+
+		do {
+			try data.write(to: fileLocation)
+			_subtractSize(oldFileSize ?? 0, removingFile: false)
+			_addSize(for: data)
+			_updateAccessDate(fileLocation)
+		} catch {
+			NSLog("Error saving cache data: \(error)")
+		}
 	}
 
 
 	func getData(for key: String) -> Data? {
-		let filePath = path(for: key)
-		var data: Data?
-		let operation = BlockOperation { [self] in
-			guard let loadedData = try? Data(contentsOf: filePath) else { return }
-			data = loadedData
-			updateAccessDate(filePath)
-		}
+		Self.lockCache()
+		defer { Self.unlockCache() }
 
-		cacheQueue.addOperations([operation], waitUntilFinished: true)
-		return data
+		return _getData(for: key)
+	}
+
+	private func _getData(for key: String) -> Data? {
+		let filePath = path(for: key)
+
+		guard let loadedData = try? Data(contentsOf: filePath) else { return nil }
+		_updateAccessDate(filePath)
+
+		return loadedData
 	}
 
 	func deleteData(for key: String) {
@@ -87,29 +106,28 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 	func deleteFile(at path: URL) {
 		guard fileManager.fileExists(atPath: path.path) else { return }
 
-		let oldSize = fileSize(at: path) ?? 0
+		let oldSize = _fileSize(at: path) ?? 0
 		do {
 			try fileManager.removeItem(at: path)
-			subtractSize(oldSize, removingFile: true)
+			_subtractSize(oldSize, removingFile: true)
 		} catch {
 			NSLog("Error removing \(path): \(error)")
 		}
 	}
 
 	func resetCache() {
-		let resetOp = BlockOperation { [self] in
-			do {
-				let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [], options: [])
+		Self.lockCache()
+		defer { Self.unlockCache() }
 
-				for file in contents {
-					deleteFile(at: file)
-				}
-			} catch {
-				NSLog("Error resetting cache: \(error)")
+		do {
+			let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [], options: [])
+
+			for file in contents {
+				deleteFile(at: file)
 			}
+		} catch {
+			NSLog("Error resetting cache: \(error)")
 		}
-
-		cacheQueue.addOperations([resetOp], waitUntilFinished: true)
 	}
 
 	// MARK: - Utility
@@ -132,7 +150,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		return cacheLocation.appendingPathComponent(sha1)
 	}
 
-	private func updateAccessDate(_ url: URL) {
+	private func _updateAccessDate(_ url: URL) {
 		let now = Date()
 		do {
 			try fileManager.setAttributes([.modificationDate: now], ofItemAtPath: url.path)
@@ -141,7 +159,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		}
 	}
 
-	private func fileSize(at url: URL) -> UInt64? {
+	private func _fileSize(at url: URL) -> UInt64? {
 		guard
 			let sizeValue = try? url.resourceValues(forKeys: [.fileSizeKey]),
 			let size = sizeValue.fileSize
@@ -150,35 +168,29 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		return .init(size)
 	}
 
-	private func addSize(for data: Data) {
+	private func _addSize(for data: Data) {
 		let size = UInt64(data.count)
-		addSize(size)
+		_addSize(size)
 	}
 
-	private func addSize(for url: URL) {
-		guard let size = fileSize(at: url) else { return }
-		addSize(size)
-	}
-
-	private func addSize(_ value: UInt64) {
+	private func _addSize(_ value: UInt64) {
 		size += value
 		count += 1
-		cacheQueue.addOperation { [self] in
-			enforceCapacity()
-		}
+		_enforceCapacity()
 	}
 
-	private func subtractSize(for url: URL) {
-		guard let size = fileSize(at: url) else { return }
-		subtractSize(size, removingFile: true)
-	}
-
-	private func subtractSize(_ value: UInt64, removingFile: Bool) {
+	private func _subtractSize(_ value: UInt64, removingFile: Bool) {
 		if removingFile { count -= 1 }
 		size -= value
 	}
 
 	private func enforceCapacity() {
+		Self.lockCache()
+		defer { Self.unlockCache() }
+		_enforceCapacity()
+	}
+
+	private func _enforceCapacity() {
 		guard size > capacity else { return }
 
 		do {
