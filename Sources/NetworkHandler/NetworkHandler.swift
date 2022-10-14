@@ -53,6 +53,8 @@ public class NetworkHandler {
 		let uploadDelegate = UploadDelegate()
 		self.uploadDelegate = uploadDelegate
 		self.defaultSession = URLSession(configuration: config, delegate: uploadDelegate, delegateQueue: delegateQueue)
+
+		_ = URLSessionTask.swizzleSetState
 	}
 
 	deinit {
@@ -156,7 +158,7 @@ public class NetworkHandler {
 		}
 
 	private func downloadTask(session: URLSession, request: NetworkRequest, delegate: NetworkHandlerTransferDelegate?) async throws -> (Data, HTTPURLResponse) {
-		let (asyncBytes, response) = try await session.bytes(for: request.urlRequest)
+		let (asyncBytes, response) = try await session.bytes(for: request.urlRequest, delegate: delegate)
 		let task = asyncBytes.task
 		task.priority = request.priority.rawValue
 		delegate?.task = task
@@ -166,18 +168,11 @@ public class NetworkHandler {
 			throw NetworkError.noStatusCodeResponse
 		}
 
-		OperationQueue.main.addOperationAndWaitUntilFinished {
-			delegate?.networkHandlerTaskDidStart(task)
-			delegate?.networkHandlerTask(task, stateChanged: task.state)
-		}
-
-		let stateObserver = task.observe(\.state, options: [.new]) { task, _ in
-			OperationQueue.main.addOperation {
-				delegate?.networkHandlerTask(task, stateChanged: task.state)
+		if let delegate {
+			await MainActor.run {
+				delegate.networkHandlerTaskDidStart(task)
 			}
 		}
-
-		defer { stateObserver.invalidate() }
 
 		return try await withTaskCancellationHandler(operation: {
 			var data = Data()
@@ -197,9 +192,8 @@ public class NetworkHandler {
 			}
 
 			return (data, httpResponse)
-		}, onCancel: { [weak stateObserver, weak task] in
+		}, onCancel: { [weak task] in
 			task?.cancel()
-			stateObserver?.invalidate()
 		})
 	}
 

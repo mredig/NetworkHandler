@@ -1,7 +1,7 @@
 import Foundation
 @testable import NetworkHandler
 
-class DownloadDelegate: NetworkHandlerTransferDelegate {
+class DownloadDelegate: NSObject, NetworkHandlerTransferDelegate {
 	var task: URLSessionTask?
 
 	let taskPub = NHPublisher<URLSessionTask, Never>()

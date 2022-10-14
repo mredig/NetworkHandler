@@ -47,6 +47,7 @@ let package = Package(
 				"NetworkHalpers",
 				"SaferContinuation",
 				"Swiftwood",
+				"Swizzles",
 			]),
 		.target(
 			name: "NetworkHalpers",

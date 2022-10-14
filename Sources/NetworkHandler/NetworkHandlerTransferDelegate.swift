@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-public protocol NetworkHandlerTransferDelegate: AnyObject {
+public protocol NetworkHandlerTransferDelegate: URLSessionTaskDelegate {
 	var task: URLSessionTask? { get set }
 	func networkHandlerTaskDidStart(_ task: URLSessionTask)
 	func networkHandlerTask(_ task: URLSessionTask, didProgress progress: Double)
