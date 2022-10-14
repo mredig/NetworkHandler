@@ -19,6 +19,9 @@ let package = Package(
 		.library(
 			name: "NetworkHalpers",
 			targets: ["NetworkHalpers"]),
+		.library(
+			name: "Swizzles",
+			targets: ["Swizzles"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -30,6 +33,13 @@ let package = Package(
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
+		.target(
+			name: "Swizzles",
+			publicHeadersPath: "include",
+			cSettings: [
+				.headerSearchPath("."),
+			]
+		),
         .target(
             name: "NetworkHandler",
             dependencies: [
@@ -51,7 +61,7 @@ let package = Package(
 			]),
         .testTarget(
             name: "NetworkHandlerTests",
-            dependencies: ["NetworkHandler", "TestSupport"]),
+            dependencies: ["NetworkHandler", "TestSupport", "Swizzles"]),
 		.testTarget(
 			name: "NetworkHalpersTests",
 			dependencies: ["NetworkHalpers", "TestSupport"]),
