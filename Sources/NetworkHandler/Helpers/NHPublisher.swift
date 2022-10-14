@@ -99,3 +99,7 @@ class NHPublisher<MessageType, ErrorType: Error> {
 		removeDuplicates { $0 == $1 }
 	}
 }
+
+extension NHPublisher where MessageType == Void {
+	func send() { send(()) }
+}

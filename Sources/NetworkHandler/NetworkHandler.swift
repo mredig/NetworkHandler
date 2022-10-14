@@ -219,17 +219,25 @@ public class NetworkHandler {
 				data = try await withCheckedThrowingContinuation({ continuation in
 					let safer = SaferContinuation(
 						continuation,
-						isFatal: true,
+						isFatal: [.onMultipleCompletions, .onPostRunDelayCheck],
 						timeout: request.timeoutInterval * 1.5,
 						delayCheckInterval: 3,
 						context: "(\(request.httpMethod as Any)): \(request.url as Any)")
 
 					var dataAccumulator = Data()
+
+					uploadDelegate
+						.taskKeepalivePublisher(for: task)
+						.sink(receiveValue: {
+							safer.keepAlive()
+						})
+
 					uploadDelegate
 						.dataPublisher(for: task)
 						.sink(
 							receiveValue: { data in
 								dataAccumulator.append(contentsOf: data)
+								safer.keepAlive()
 							},
 							receiveCompletion: { completion in
 								switch completion {
