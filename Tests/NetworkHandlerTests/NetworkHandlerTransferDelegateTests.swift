@@ -200,7 +200,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
 
-		let expectedStatuses: [URLSessionTask.State] = [.suspended, .running, .completed]
+		let expectedStatuses: [URLSessionTask.State] = [.running, .suspended, .running, .completed]
 
 		var statuses: [URLSessionTask.State] = []
 
@@ -220,8 +220,6 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 			}
 
 		try await networkHandler.transferMahDatas(for: url.request, delegate: myDel)
-
-		try await wait(forArbitraryCondition: statuses.count == 3)
 
 		wait(for: [taskStartedExpectation], timeout: 1)
 
