@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/mredig/SaferContinuation.git",
         "state": {
           "branch": null,
-          "revision": "9aba56e59f6d4ce78dffc7a28f20fe30bc97878b",
-          "version": "1.2.0"
+          "revision": "81cf6fb6f982ac38b6b4be335858638c03aae35c",
+          "version": "1.3.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/KnowMeGit/Swiftwood.git",
         "state": {
           "branch": null,
-          "revision": "009ca7cb77c79393556377c1c9927d229e49a114",
-          "version": "0.2.0"
+          "revision": "a0cc473ad05d707ce2b504c5802db22f7f83ed8c",
+          "version": "0.3.0"
         }
       }
     ]
