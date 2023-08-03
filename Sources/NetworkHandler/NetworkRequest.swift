@@ -191,6 +191,12 @@ public struct NetworkRequest {
 		urlRequest.value(forHTTPHeaderField: key)
 	}
 
+	func updatingURLRequest(_ block: (inout URLRequest) -> Void) -> NetworkRequest {
+		var new = self
+		block(&new.urlRequest)
+		return new
+	}
+
 	/// Sets `.httpBody` data to the result of encoding an encodable object passed in. If successful, returns the data.
 	@discardableResult public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType) throws -> Data {
 		try urlRequest.encodeData(encodableType, encoder: encoder)

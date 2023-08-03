@@ -19,18 +19,9 @@ extension AWSV4Signature {
 		}
 
 	public func processRequest(_ request: NetworkRequest) throws -> NetworkRequest {
-		guard
-			url == request.url
-		else { throw AWSAuthError.requestURLNoMatch }
-		guard
-			requestMethod == request.httpMethod
-		else { throw AWSAuthError.requestMethodNoMatch }
-		var request = request
-
-		amzHeaders.forEach {
-			request.setValue($0.value, forHTTPHeaderField: $0.key)
+		let new = try processRequest(request.urlRequest)
+		return request.updatingURLRequest { urlRequest in
+			urlRequest = new
 		}
-
-		return request
 	}
 }

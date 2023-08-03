@@ -103,6 +103,9 @@ public struct AWSV4Signature {
 		amzHeaders.forEach {
 			request.setValue($0.value, forHTTPHeaderField: $0.key)
 		}
+		additionalSignedHeaders.forEach {
+			request.setValue($0.value, forHTTPHeaderField: $0.key)
+		}
 
 		return request
 	}
