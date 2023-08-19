@@ -23,7 +23,7 @@ final class NHStressTests: XCTestCase {
 	func testStressingNetworkCallsAndDecoding() async throws {
 		let networkHandler = NetworkHandler(name: "testing")
 
-		let url = URL(string: "https://mredig-fileshare.s3.us-west-1.wasabisys.com/sample.json?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=T133H6EBRDX7CL0Z2P3M/20221012/us-east-1/s3/aws4_request&X-Amz-Date=20221012T230010Z&X-Amz-Expires=604800&X-Amz-SignedHeaders=host&X-Amz-Signature=2efcddbeb13e92eb49afaf929ef2ee0ddb513c3a7772d6a62240c7be77c2bda4")!
+		let url = URL(string: "https://s3.us-west-1.wasabisys.com/mredig-fileshare/sample.json")!
 		var request = url.request
 		request.cachePolicy = .returnCacheDataDontLoad
 		let delegate = OnTheDL()

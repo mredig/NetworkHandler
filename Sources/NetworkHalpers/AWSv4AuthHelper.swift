@@ -42,7 +42,6 @@ public struct AWSV4Signature {
 		awsRegion: AWSV4Signature.AWSRegion,
 		awsService: AWSV4Signature.AWSService,
 		hexContentHash: AWSContentHash) throws {
-
 			guard
 				let method = request.method
 			else { throw AWSAuthError.noRequestMethod }
@@ -62,6 +61,7 @@ public struct AWSV4Signature {
 				additionalSignedHeaders: request.allHTTPHeaders)
 		}
 
+	@available(*, deprecated, message: "Use AWSContentHash.fromData(_:) with another initializer")
 	public init(
 		requestMethod: HTTPMethod,
 		url: URL,
@@ -80,7 +80,7 @@ public struct AWSV4Signature {
 				awsSecret: awsSecret,
 				awsRegion: awsRegion,
 				awsService: awsService,
-				hexContentHash: "\(SHA256.hash(data: payloadData).hex())",
+				hexContentHash: .fromData(payloadData),
 				additionalSignedHeaders: additionalSignedHeaders)
 		}
 
@@ -295,6 +295,15 @@ extension AWSV4Signature {
 
 		public init(stringLiteral value: String) {
 			self.init(rawValue: value)
+		}
+
+		public static func fromData(_ payloadData: Data) -> AWSContentHash {
+			let hash = SHA256.hash(data: payloadData)
+			return .fromShaHashDigest(hash)
+		}
+
+		public static func fromShaHashDigest(_ hash: SHA256Digest) -> AWSContentHash {
+			AWSContentHash(rawValue: "\(hash.hex())")
 		}
 
 		public static let emptyPayload: AWSContentHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"

@@ -336,7 +336,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// this can be changed per run depending on internet variables - large enough to take more than an instant,
 		// small enough to not timeout.
-		let sizeOfUploadMB: UInt8 = 20
+		let sizeOfUploadMB: UInt8 = 25
 
 		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
 		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
@@ -454,7 +454,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			awsSecret: TestEnvironment.s3AccessSecret,
 			awsRegion: .usEast1,
 			awsService: .s3,
-			hexContentHash: "\(dataHash.toHexString())")
+			hexContentHash: .fromShaHashDigest(dataHash))
 		request = try awsHeaderInfo.processRequest(request)
 
 		request.payload = .upload(.localFile(dummyFile))
