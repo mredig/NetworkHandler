@@ -137,6 +137,23 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(demoModel, result)
 	}
 
+	func testDataAsCodable() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		// expected result
+		let demoData = Data([1, 2, 3, 4, 5, 6])
+
+		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
+		let dummyModelURL = dummyBaseURL
+			.appendingPathComponent(UUID().uuidString)
+			.appendingPathExtension("jpg")
+
+		await NetworkHandlerMocker.addMock(for: dummyModelURL, method: .get, data: demoData, code: 200)
+
+		let result: Data = try await networkHandler.transferMahCodableDatas(for: dummyModelURL.request).decoded
+		XCTAssertEqual(demoData, result)
+	}
+
 //	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
 //	func testMockDataErrors() {
 //		let networkHandler = generateNetworkHandlerInstance()

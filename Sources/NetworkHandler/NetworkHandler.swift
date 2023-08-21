@@ -80,8 +80,12 @@ public class NetworkHandler {
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
-		sessionConfiguration: URLSessionConfiguration? = nil) async throws -> (decoded: DecodableType, response: URLResponse) {
+		sessionConfiguration: URLSessionConfiguration? = nil) async throws -> (decoded: DecodableType, response: HTTPURLResponse) {
 			let totalResponse = try await transferMahDatas(for: request, delegate: delegate, usingCache: cacheOption, sessionConfiguration: sessionConfiguration)
+
+			guard DecodableType.self != Data.self else {
+				return (totalResponse.data as! DecodableType, totalResponse.response)
+			}
 
 			let decoder = request.decoder
 			do {
