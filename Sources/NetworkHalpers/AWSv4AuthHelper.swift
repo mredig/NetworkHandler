@@ -146,7 +146,11 @@ extension AWSV4Signature {
 	}
 
 	private var urlPath: String {
-		components.path
+		if #available(macOS 13.0, *) {
+			components.url?.path(percentEncoded: true) ?? components.path
+		} else {
+			components.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? components.path
+		}
 	}
 
 	private var queryItemString: String {
