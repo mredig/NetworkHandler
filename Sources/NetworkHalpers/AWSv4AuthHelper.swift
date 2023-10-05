@@ -145,12 +145,22 @@ extension AWSV4Signature {
 			URLComponents() // don't crash and instead just make invalid data... maybe?
 	}
 
+	static private let allowedCharacters: CharacterSet = {
+		// UriEncode() rules at https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html
+		// 'A'-'Z', 'a'-'z', '0'-'9', '-', '.', '_', and '~' (plus '/' can be used for a separator)
+		var set = CharacterSet()
+		set.insert(charactersIn: "A".unicodeScalars.first!..."Z".unicodeScalars.first!)
+		set.insert(charactersIn: "a".unicodeScalars.first!..."z".unicodeScalars.first!)
+		set.insert(charactersIn: "0".unicodeScalars.first!..."9".unicodeScalars.first!)
+		set.insert("-")
+		set.insert(".")
+		set.insert("_")
+		set.insert("~")
+		set.insert("/")
+		return set
+	}()
 	private var urlPath: String {
-		if #available(macOS 13.0, *) {
-			components.url?.path(percentEncoded: true) ?? components.path
-		} else {
-			components.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? components.path
-		}
+		components.path.addingPercentEncoding(withAllowedCharacters: Self.allowedCharacters) ?? components.path
 	}
 
 	private var queryItemString: String {
