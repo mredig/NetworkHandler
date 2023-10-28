@@ -7,10 +7,10 @@ import FoundationNetworking
 /**
  assists in version 2 uploads
  */
-internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
+internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 	static private let uploadDelegateLock = NSLock()
 
-	private var delegates: [URLSessionTask: NetworkHandlerTransferDelegate] = [:]
+	private var taskDelegates: [URLSessionTask: NetworkHandlerTransferDelegate] = [:]
 	private var stateObservers: [URLSessionTask: NSKeyValueObservation] = [:]
 
 	typealias DataPublisher = NHPublisher<Data, Error>
@@ -39,7 +39,7 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 		Self.uploadDelegateLock.lock()
 		defer { Self.uploadDelegateLock.unlock() }
 
-		let delegate = delegates[task]
+		let delegate = taskDelegates[task]
 		delegate?.networkHandlerTask(task, didProgress: Double(totalBytesSent) / Double(totalBytesExpectedToSend))
 
 		taskKeepalives[task]?.send()
@@ -61,11 +61,11 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 		}
 	}
 
-	func addDelegate(_ delegate: NetworkHandlerTransferDelegate, for task: URLSessionTask) {
+	func addTaskDelegate(_ delegate: NetworkHandlerTransferDelegate, for task: URLSessionTask) {
 		Self.uploadDelegateLock.lock()
 		defer { Self.uploadDelegateLock.unlock() }
 
-		delegates[task] = delegate
+		taskDelegates[task] = delegate
 
 		let stateObserver = task
 			.observe(\.state, options: .new) { [weak delegate] task, change in
@@ -80,7 +80,7 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 	}
 
 	func cleanUpTask(_ task: URLSessionTask) {
-		delegates[task] = nil
+		taskDelegates[task] = nil
 		dataPublishers[task] = nil
 		taskKeepalives[task] = nil
 		stateObservers[task]?.invalidate()
@@ -88,7 +88,7 @@ internal class UploadDelegate: NSObject, URLSessionTaskDelegate {
 	}
 }
 
-extension UploadDelegate: URLSessionDataDelegate {
+extension NHUploadDelegate: URLSessionDataDelegate {
 	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
 		Self.uploadDelegateLock.lock()
 		defer { Self.uploadDelegateLock.unlock() }
@@ -97,7 +97,7 @@ extension UploadDelegate: URLSessionDataDelegate {
 	}
 }
 
-extension UploadDelegate {
+extension NHUploadDelegate {
 	enum DelegateTestError: Error {
 		case stateObserversNotEmpty
 		case dataPublishersNotEmpty
@@ -115,7 +115,7 @@ extension UploadDelegate {
 		else { throw DelegateTestError.dataPublishersNotEmpty }
 
 		guard
-			delegates.isEmpty
+			taskDelegates.isEmpty
 		else { throw DelegateTestError.delegatesNotEmpty }
 
 		guard

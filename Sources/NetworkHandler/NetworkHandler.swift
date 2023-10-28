@@ -35,7 +35,7 @@ public class NetworkHandler {
 
 	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is handled via `NetworkCache`
 	public let defaultSession: URLSession
-	private let uploadDelegate: UploadDelegate
+	private let nhMainUploadDelegate: NHUploadDelegate
 	private let delegateQueue: OperationQueue = {
 		let q = OperationQueue()
 		q.maxConcurrentOperationCount = 1
@@ -50,8 +50,8 @@ public class NetworkHandler {
 
 		let config = configuration ?? .networkHandlerDefault
 
-		let uploadDelegate = UploadDelegate()
-		self.uploadDelegate = uploadDelegate
+		let uploadDelegate = NHUploadDelegate()
+		self.nhMainUploadDelegate = uploadDelegate
 		self.defaultSession = URLSession(configuration: config, delegate: uploadDelegate, delegateQueue: delegateQueue)
 
 		_ = URLSessionTask.swizzleSetState
@@ -119,7 +119,7 @@ public class NetworkHandler {
 			}
 
 			let session = sessionConfiguration
-				.map { URLSession(configuration: $0, delegate: uploadDelegate, delegateQueue: delegateQueue) }
+				.map { URLSession(configuration: $0, delegate: nhMainUploadDelegate, delegateQueue: delegateQueue) }
 				?? defaultSession
 
 			defer {
@@ -216,7 +216,7 @@ public class NetworkHandler {
 				}
 
 				if let delegate {
-					uploadDelegate.addDelegate(delegate, for: task)
+					nhMainUploadDelegate.addTaskDelegate(delegate, for: task)
 				}
 				taskHolder = task
 
@@ -230,13 +230,13 @@ public class NetworkHandler {
 
 					var dataAccumulator = Data()
 
-					uploadDelegate
+					nhMainUploadDelegate
 						.taskKeepalivePublisher(for: task)
 						.sink(receiveValue: {
 							safer.keepAlive()
 						})
 
-					uploadDelegate
+					nhMainUploadDelegate
 						.dataPublisher(for: task)
 						.sink(
 							receiveValue: { data in

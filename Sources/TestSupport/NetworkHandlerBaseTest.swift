@@ -84,7 +84,7 @@ open class NetworkHandlerBaseTest: XCTestCase {
 
 	public func checkNetworkHandlerTasksFinished(_ networkHandler: NetworkHandler) throws {
 		let nhMirror = Mirror(reflecting: networkHandler)
-		let theDel: UploadDelegate = nhMirror.firstChild(named: "uploadDelegate")!
+		let theDel: NHUploadDelegate = nhMirror.firstChild(named: "nhMainUploadDelegate")!
 
 		try theDel.assertClean()
 	}
