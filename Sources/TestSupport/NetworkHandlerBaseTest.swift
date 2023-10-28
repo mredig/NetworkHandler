@@ -88,6 +88,14 @@ open class NetworkHandlerBaseTest: XCTestCase {
 
 		try theDel.assertClean()
 	}
+
+	public struct SimpleTestError: Error {
+		public let message: String
+
+		public init(message: String) {
+			self.message = message
+		}
+	}
 }
 
 extension Mirror {

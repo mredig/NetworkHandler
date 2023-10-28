@@ -8,7 +8,20 @@ public class NetworkHandlerMocker: URLProtocol {
 	static private var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
 	private struct Key: Hashable {
 		let url: URL
+		let requireQueryMatch: Bool
 		let method: HTTPMethod
+
+		init(url: URL, requireQueryMatch: Bool, method: HTTPMethod) {
+			self.requireQueryMatch = requireQueryMatch
+			if requireQueryMatch {
+				self.url = url
+			} else {
+				var comp = URLComponents(url: url, resolvingAgainstBaseURL: false)
+				comp?.queryItems = []
+				self.url = comp?.url ?? url
+			}
+			self.method = method
+		}
 	}
 
 	public override class func canInit(with request: URLRequest) -> Bool { true }
@@ -19,18 +32,18 @@ public class NetworkHandlerMocker: URLProtocol {
 	private var isCancelled = false
 
 	@MainActor
-	public static func addMock(for url: URL, method: HTTPMethod, data: Data, code: Int) {
-		addMock(for: url, method: method, smartBlock: { _, _, _ in (data, code) })
+	public static func addMock(for url: URL, requireQueryMatch: Bool = true, method: HTTPMethod, data: Data, code: Int) {
+		addMock(for: url, requireQueryMatch: requireQueryMatch, method: method, smartBlock: { _, _, _ in (data, code) })
 	}
 
 	@MainActor
-	public static func addMock(for url: URL, method: HTTPMethod, smartResponseBlock: @escaping SmartResponseMockBlock) {
-		acceptedIntercepts[Key(url: url, method: method)] = smartResponseBlock
+	public static func addMock(for url: URL, requireQueryMatch: Bool = true, method: HTTPMethod, smartResponseBlock: @escaping SmartResponseMockBlock) {
+		acceptedIntercepts[Key(url: url, requireQueryMatch: requireQueryMatch, method: method)] = smartResponseBlock
 	}
 
 	@MainActor
-	public static func addMock(for url: URL, method: HTTPMethod, smartBlock: @escaping SmartMockBlock) {
-		addMock(for: url, method: method, smartResponseBlock: { url, request, method in
+	public static func addMock(for url: URL, requireQueryMatch: Bool = true, method: HTTPMethod, smartBlock: @escaping SmartMockBlock) {
+		addMock(for: url, requireQueryMatch: requireQueryMatch, method: method, smartResponseBlock: { url, request, method in
 			let (data, code) = smartBlock(url, request, method)
 			let response = HTTPURLResponse(
 				url: url,
@@ -57,8 +70,14 @@ public class NetworkHandlerMocker: URLProtocol {
 		Task {
 			let data: Data
 
+			let noQueryKey = Key(url: url, requireQueryMatch: false, method: method)
+			let queryMatchKey = Key(url: url, requireQueryMatch: true, method: method)
+
+			async let noQueryBlock = Self.acceptedIntercepts[noQueryKey]
+			async let queryMatchBlock = Self.acceptedIntercepts[queryMatchKey]
+
 			guard
-				let block = await Self.acceptedIntercepts[Key(url: url, method: method)]
+				let block = await [noQueryBlock, queryMatchBlock].compactMap({ $0 }).first
 			else {
 				client?.urlProtocol(self, didFailWithError: MockerError(message: "URL/Method combo not mocked"))
 				return

@@ -66,6 +66,59 @@ public class NetworkHandler {
 	}
 
 	// MARK: - Network Handling
+	public enum PollContinuation<T> {
+		case finish(PollResult<T>)
+		case `continue`(NetworkRequest, TimeInterval)
+	}
+
+	public typealias PollResult<T> = Result<(T, HTTPURLResponse), Error>
+	@NHActor
+	@discardableResult
+	public func poll<T>(
+		request: NetworkRequest,
+		delegate: NetworkHandlerTransferDelegate? = nil,
+		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
+		sessionConfiguration: URLSessionConfiguration? = nil,
+		until: @escaping @NHActor (NetworkRequest, PollResult<Data>) throws -> PollContinuation<T>
+	) async throws -> (result: T, response: HTTPURLResponse) {
+		func doPoll(request: NetworkRequest) async -> PollResult<Data> {
+			let polledResult: PollResult<Data>
+			do {
+				let result = try await transferMahDatas(
+					for: request,
+					delegate: delegate,
+					usingCache: cacheOption,
+					sessionConfiguration: sessionConfiguration)
+				polledResult = .success(result)
+			} catch {
+				polledResult = .failure(error)
+			}
+			return polledResult
+		}
+
+		let firstResult = await doPoll(request: request)
+		
+		var instruction = try until(request, firstResult)
+
+		while case .continue(let networkRequest, let timeInterval) = instruction {
+			if #available(macOS 13.0, *) {
+				try await Task.sleep(for: .seconds(timeInterval))
+			} else {
+				try await Task.sleep(nanoseconds: UInt64(timeInterval * 1_000_000_000))
+			}
+			let thisResult = await doPoll(request: networkRequest)
+			instruction = try until(networkRequest, thisResult)
+		}
+
+		guard case .finish(let result) = instruction else {
+			throw NetworkError.unspecifiedError(reason: "Invalid State")
+		}
+		
+		let finalResult = try result.get()
+
+		return finalResult
+	}
+
 	/**
 	Preconfigured URLSession tasking to fetch and decode decodable data.
 
