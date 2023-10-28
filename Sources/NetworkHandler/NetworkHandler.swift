@@ -79,7 +79,7 @@ public class NetworkHandler {
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		sessionConfiguration: URLSessionConfiguration? = nil,
-		until: @escaping @NHActor (NetworkRequest, PollResult<Data>) throws -> PollContinuation<T>
+		until: @escaping @NHActor (NetworkRequest, PollResult<Data>) async throws -> PollContinuation<T>
 	) async throws -> (result: T, response: HTTPURLResponse) {
 		func doPoll(request: NetworkRequest) async -> PollResult<Data> {
 			let polledResult: PollResult<Data>
@@ -98,7 +98,7 @@ public class NetworkHandler {
 
 		let firstResult = await doPoll(request: request)
 		
-		var instruction = try until(request, firstResult)
+		var instruction = try await until(request, firstResult)
 
 		while case .continue(let networkRequest, let timeInterval) = instruction {
 			if #available(macOS 13.0, *) {
@@ -107,7 +107,7 @@ public class NetworkHandler {
 				try await Task.sleep(nanoseconds: UInt64(timeInterval * 1_000_000_000))
 			}
 			let thisResult = await doPoll(request: networkRequest)
-			instruction = try until(networkRequest, thisResult)
+			instruction = try await until(networkRequest, thisResult)
 		}
 
 		guard case .finish(let result) = instruction else {
