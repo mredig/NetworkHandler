@@ -72,6 +72,9 @@ public class NetworkHandler {
 	}
 
 	public typealias PollResult<T> = Result<(T, HTTPURLResponse), Error>
+	/// Immediately sends request, then can have a delay before repeating (or modifying) the request via the return value of the `until` block.
+	///
+	/// WIP - consider to be beta - interface is liable and LIKELY to change.
 	@NHActor
 	@discardableResult
 	public func poll<T>(
