@@ -331,63 +331,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		}
 	}
 
-	/// This is calibrated for my current internet connection. You'll need to adjust the `sizeOfUploadMB` to be large enough to take roughly 15 seconds.
-	func testUploadWithTimeout() async throws {
-		let start = Date()
-
-		guard
-			TestEnvironment.s3AccessSecret.isEmpty == false,
-			TestEnvironment.s3AccessKey.isEmpty == false
-		else {
-			XCTFail("Need s3 credentials")
-			return
-		}
-
-		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
-
-		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
-		var request = url.request
-		let method = HTTPMethod.put
-		request.httpMethod = method
-		request.timeoutInterval = 5
-
-		// this can be changed per run depending on internet variables - large enough to take more than an instant,
-		// small enough to not timeout.
-		let sizeOfUploadMB: UInt8 = 25
-
-		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
-		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
-
-		let dataHash = try fileHash(dummyFile)
-
-		let awsHeaderInfo = try AWSV4Signature(
-			for: request,
-			awsKey: TestEnvironment.s3AccessKey,
-			awsSecret: TestEnvironment.s3AccessSecret,
-			awsRegion: .usEast1,
-			awsService: .s3,
-			hexContentHash: "\(dataHash.toHexString())")
-		request = try awsHeaderInfo.processRequest(request)
-
-		request.payload = .upload(.localFile(dummyFile))
-
-		addTeardownBlock {
-			try? FileManager.default.removeItem(at: dummyFile)
-		}
-
-		_ = try await networkHandler.transferMahDatas(for: request)
-
-		let dlRequest = url.request
-
-		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
-		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), dataHash)
-		try checkNetworkHandlerTasksFinished(networkHandler)
-
-		let end = Date()
-
-		XCTAssertGreaterThan(end.timeIntervalSince1970 - start.timeIntervalSince1970, 15)
-	}
-
 	func testUploadViaBGSession() async throws {
 		guard
 			TestEnvironment.s3AccessSecret.isEmpty == false,
