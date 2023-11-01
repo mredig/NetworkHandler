@@ -1,6 +1,16 @@
 @testable import NetworkHandler
 import XCTest
 import CryptoKit
+import Swiftwood
+
+#if os(macOS)
+public typealias TestImage = NSImage
+#elseif os(iOS)
+public typealias TestImage = UIImage
+#else
+#endif
+
+public typealias log = Swiftwood
 
 open class NetworkHandlerBaseTest: XCTestCase {
 	open override func tearDown() async throws {

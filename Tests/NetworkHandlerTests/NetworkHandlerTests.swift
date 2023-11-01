@@ -1,19 +1,9 @@
 //swiftlint:disable
-
 import XCTest
 @testable import NetworkHandler
 import Crypto
 import TestSupport
 import Swiftwood
-
-#if os(macOS)
-typealias TestImage = NSImage
-#elseif os(iOS)
-typealias TestImage = UIImage
-#else
-#endif
-
-typealias log = Swiftwood
 
 /// Obviously dependent on network conditions
 class NetworkHandlerTests: NetworkHandlerBaseTest {
