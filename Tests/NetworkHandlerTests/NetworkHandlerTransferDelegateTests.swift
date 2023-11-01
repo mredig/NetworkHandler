@@ -189,7 +189,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		_ = try await networkHandler.transferMahDatas(for: request, delegate: dlDelegate)
 
-		wait(for: [taskStartedExpectation], timeout: 1)
+		await fulfillment(of: [taskStartedExpectation], timeout: 1)
 		XCTAssertEqual(stateAccumulator, [.running, .completed, .suspended])
 
 		try checkNetworkHandlerTasksFinished(networkHandler)
@@ -221,7 +221,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		try await networkHandler.transferMahDatas(for: url.request, delegate: myDel)
 
-		wait(for: [taskStartedExpectation], timeout: 1)
+		await fulfillment(of: [taskStartedExpectation], timeout: 1)
 
 		XCTAssertEqual(expectedStatuses, statuses)
 	}
