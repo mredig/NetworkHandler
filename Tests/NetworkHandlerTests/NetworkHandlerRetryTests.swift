@@ -138,7 +138,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 				requireQueryMatch: false,
 				method: .get,
 				smartBlock: { _, _, _ in
-					 (Data("Failed successfully.".utf8), 500)
+					(Data("Failed successfully.".utf8), 500)
 				})
 
 		let failedAttemptCounter = StateHolder(value: 0)
@@ -220,7 +220,49 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 		}
 	}
 
-	func testDefaultReturnValue() async throws {
+	func testDefaultReturnValueFullResponse() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let url = URL(string: "https://foo.bar/")!
+		let success = "Default Success"
+
+		await NetworkHandlerMocker
+			.addMock(
+				for: url,
+				requireQueryMatch: false,
+				method: .get,
+				smartBlock: { _, _, _ in
+					(Data("Failed successfully.".utf8), 500)
+				})
+
+		let failedAttemptCounter = StateHolder(value: 0)
+
+		let request = url.request
+		let result = try await networkHandler.transferMahDatas(
+			for: request) { [failedAttemptCounter] previousRequest, failedAttempts, error in
+				failedAttemptCounter.value += 1
+				guard
+					failedAttempts == 3,
+					case .httpNon200StatusCode(let code, _) = error,
+					code == 500
+				else { return .retry }
+				let returnData = Data(success.utf8)
+				return .defaultReturnValue(
+					data: returnData,
+					urlResponse: HTTPURLResponse(
+						url: url,
+						statusCode: 200,
+						httpVersion: nil,
+						headerFields: [
+							"Content-Length": "\(returnData.count)",
+						])!)
+			}
+
+		XCTAssertEqual(Data(success.utf8), result.data)
+		XCTAssertEqual(3, failedAttemptCounter.value)
+	}
+
+	func testDefaultReturnValueStatusCode() async throws {
 		let networkHandler = generateNetworkHandlerInstance()
 
 		let url = URL(string: "https://foo.bar/")!
@@ -249,13 +291,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 				let returnData = Data(success.utf8)
 				return .defaultReturnValue(
 					data: returnData,
-					urlResponse: HTTPURLResponse(
-						url: url,
-						statusCode: 200,
-						httpVersion: nil,
-						headerFields: [
-							"Content-Length": "\(returnData.count)",
-						])!)
+					statusCode: 200)
 			}
 
 		XCTAssertEqual(Data(success.utf8), result.data)
