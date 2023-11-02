@@ -186,55 +186,17 @@ public class NetworkHandler {
 		sessionConfiguration: URLSessionConfiguration? = nil,
 		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
 	) async throws -> (data: Data, response: HTTPURLResponse) {
-		var retryOption = RetryOption.retry
-		var theRequest = request
-		var attempt = 1
-
-		while case .retryWithConfiguration = retryOption {
-			defer { attempt += 1 }
-
-			let theError: NetworkError
-			do {
-				return try await _transferMahDatas(
-					for: theRequest,
+		try await transferTaskPerformer(
+			originalRequest: request,
+			{ request, attempt in
+				try await _transferMahDatas(
+					for: request,
 					delegate: delegate,
 					usingCache: cacheOption,
 					attempt: attempt,
 					sessionConfiguration: sessionConfiguration)
-			} catch let error as NetworkError {
-				theError = error
-			} catch {
-				theError = .otherError(error: error)
-			}
-
-			retryOption = onError(theRequest, attempt, theError)
-			switch retryOption {
-			case .retryWithConfiguration(config: let config):
-				theRequest = config.updatedRequest ?? theRequest
-				if config.delay > 0 {
-					try await Task.sleep(nanoseconds: UInt64(TimeInterval(1_000_000_000) * config .delay))
-				}
-			case .throw(updatedError: let updatedError):
-				throw updatedError ?? theError
-			case .defaultReturnValue(config: let returnConfig):
-				let response: HTTPURLResponse
-				switch returnConfig.response {
-				case .full(let fullResponse):
-					response = fullResponse
-				case .code(let statusCode):
-					response = HTTPURLResponse(
-						url: theRequest.url!,
-						statusCode: statusCode,
-						httpVersion: nil,
-						headerFields: [
-							"Content-Length": "\(returnConfig.data.count)",
-						])!
-				}
-				return (returnConfig.data, response)
-			}
-		}
-
-		throw NetworkError.unspecifiedError(reason: "Escaped while loop")
+			},
+			errorHandler: onError)
 	}
 
 	@NHActor
