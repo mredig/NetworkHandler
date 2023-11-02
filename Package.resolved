@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "PizzaMacros",
+        "repositoryURL": "https://github.com/mredig/PizzaMacros.git",
+        "state": {
+          "branch": null,
+          "revision": "d34bc3ca355b8d2b2a0d4cd6d3186d42cfbb6811",
+          "version": "0.1.0"
+        }
+      },
+      {
         "package": "SaferContinuation",
         "repositoryURL": "https://github.com/mredig/SaferContinuation.git",
         "state": {
@@ -17,6 +26,15 @@
           "branch": null,
           "revision": "9c53b7a758bb849a7df1bd2314395f5f0c14306f",
           "version": "2.0.3"
+        }
+      },
+      {
+        "package": "swift-syntax",
+        "repositoryURL": "https://github.com/apple/swift-syntax.git",
+        "state": {
+          "branch": null,
+          "revision": "6ad4ea24b01559dde0773e3d091f1b9e36175036",
+          "version": "509.0.2"
         }
       },
       {
