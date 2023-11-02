@@ -167,55 +167,141 @@ public class NetworkHandler {
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
-		sessionConfiguration: URLSessionConfiguration? = nil) async throws -> (data: Data, response: HTTPURLResponse) {
-			if let cacheKey = cacheOption.cacheKey(url: request.url) {
-				if let cachedData = cache[cacheKey] {
-					return (cachedData.data, cachedData.response)
-				}
-			}
+		sessionConfiguration: URLSessionConfiguration? = nil,
+		onError: @escaping (NetworkRequest, Int, NetworkError) -> RetryConfiguration = { _, _, _ in .throw }
+	) async throws -> (data: Data, response: HTTPURLResponse) {
+		var retryOption = RetryOption.retry
+		var theRequest = request
+		var attempt = 1
 
-			let session = sessionConfiguration
-				.map { URLSession(configuration: $0, delegate: nhMainUploadDelegate, delegateQueue: delegateQueue) }
-				?? defaultSession
-
-			defer {
-				if session !== defaultSession {
-					session.finishTasksAndInvalidate()
-				}
-			}
-
-			let (data, httpResponse): (Data, HTTPURLResponse)
+		while case .retry = retryOption {
+			defer { attempt += 1 }
+			let theError: NetworkError
 			do {
-				switch request.payload {
-				case .upload(let uploadFile):
-					(data, httpResponse) = try await uploadTask(session: session, request: request, uploadFile: uploadFile, delegate: delegate)
-				default:
-					(data, httpResponse) = try await downloadTask(session: session, request: request, delegate: delegate)
-				}
+				return try await _transferMahDatas(
+					for: theRequest,
+					delegate: delegate,
+					usingCache: cacheOption,
+					attempt: attempt,
+					sessionConfiguration: sessionConfiguration)
+			} catch let error as NetworkError {
+				theError = error
 			} catch {
-				let error = error as NSError
-				if
-					error.domain == NSURLErrorDomain,
-					error.code == NSURLErrorCancelled {
-					throw NetworkError.requestCancelled
-				} else if (error as? CancellationError) != nil {
-					throw NetworkError.requestCancelled
-				} else {
-					throw error
-				}
+				theError = .otherError(error: error)
 			}
 
-			guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
-				logIfEnabled("Error: Server replied with expected status code: Got \(httpResponse.statusCode) expected \(request.expectedResponseCodes)", logLevel: .error)
-				throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: data)
+			let retryConfig = onError(theRequest, attempt, theError)
+			retryOption = retryConfig.retryOption
+			switch retryOption {
+			case .retry:
+				theRequest = retryConfig.updatedRequest ?? theRequest
+			case .throw:
+				throw theError
+			case .throwWithError(error: let updatedError):
+				throw updatedError
+			case .defaultReturnValue(data: let data, urlResponse: let response):
+				return (data, response)
 			}
-
-			if let cacheKey = cacheOption.cacheKey(url: request.url) {
-				self.cache[cacheKey] = NetworkCacheItem(response: httpResponse, data: data)
+			if retryConfig.delay > 0 {
+				try await Task.sleep(nanoseconds: UInt64(TimeInterval(1_000_000_000) * retryConfig.delay))
 			}
-
-			return (data, httpResponse)
 		}
+
+		throw NetworkError.unspecifiedError(reason: "Escaped while loop")
+	}
+
+	public struct RetryConfiguration {
+		public static let `throw` = RetryConfiguration(delay: 0, retryOption: .throw)
+		public static let retry = RetryConfiguration(delay: 0, retryOption: .retry)
+
+		public var delay: TimeInterval
+		public var retryOption: RetryOption
+		public var updatedRequest: NetworkRequest?
+
+		public init(
+			delay: TimeInterval,
+			retryOption: NetworkHandler.RetryOption,
+			updatedRequest: NetworkRequest? = nil
+		) {
+			self.delay = delay
+			self.retryOption = retryOption
+			self.updatedRequest = updatedRequest
+		}
+
+		public static func throwWithError(error: Error) -> RetryConfiguration {
+			RetryConfiguration(delay: 0, retryOption: .throwWithError(error: error))
+		}
+
+		public static func retry(
+			withDelay delay: TimeInterval = 0,
+			updatedRequest: NetworkRequest? = nil
+		) -> RetryConfiguration {
+			RetryConfiguration(delay: delay, retryOption: .retry, updatedRequest: updatedRequest)
+		}
+	}
+	public enum RetryOption {
+		case retry
+		case throwWithError(error: Error)
+		case `throw`
+		case defaultReturnValue(data: Data, urlResponse: HTTPURLResponse)
+	}
+
+	@NHActor
+	@discardableResult private func _transferMahDatas(
+		for request: NetworkRequest,
+		delegate: NetworkHandlerTransferDelegate? = nil,
+		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
+		attempt: Int,
+		sessionConfiguration: URLSessionConfiguration? = nil
+	) async throws -> (data: Data, response: HTTPURLResponse) {
+		if let cacheKey = cacheOption.cacheKey(url: request.url) {
+			if let cachedData = cache[cacheKey] {
+				return (cachedData.data, cachedData.response)
+			}
+		}
+
+		let session = sessionConfiguration
+			.map { URLSession(configuration: $0, delegate: nhMainUploadDelegate, delegateQueue: delegateQueue) }
+		?? defaultSession
+
+		defer {
+			if session !== defaultSession {
+				session.finishTasksAndInvalidate()
+			}
+		}
+
+		let (data, httpResponse): (Data, HTTPURLResponse)
+		do {
+			switch request.payload {
+			case .upload(let uploadFile):
+				(data, httpResponse) = try await uploadTask(session: session, request: request, uploadFile: uploadFile, delegate: delegate)
+			default:
+				(data, httpResponse) = try await downloadTask(session: session, request: request, delegate: delegate)
+			}
+		} catch {
+			let error = error as NSError
+			if
+				error.domain == NSURLErrorDomain,
+				error.code == NSURLErrorCancelled {
+				throw NetworkError.requestCancelled
+			} else if (error as? CancellationError) != nil {
+				throw NetworkError.requestCancelled
+			} else {
+				throw error
+			}
+		}
+
+		guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
+			logIfEnabled("Error: Server replied with expected status code: Got \(httpResponse.statusCode) expected \(request.expectedResponseCodes)", logLevel: .error)
+			throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: data)
+		}
+
+		if let cacheKey = cacheOption.cacheKey(url: request.url) {
+			self.cache[cacheKey] = NetworkCacheItem(response: httpResponse, data: data)
+		}
+
+		return (data, httpResponse)
+	}
 
 	private func downloadTask(session: URLSession, request: NetworkRequest, delegate: NetworkHandlerTransferDelegate?) async throws -> (Data, HTTPURLResponse) {
 		let (asyncBytes, response) = try await session.bytes(for: request.urlRequest, delegate: delegate)
