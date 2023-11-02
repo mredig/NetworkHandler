@@ -168,14 +168,15 @@ public class NetworkHandler {
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		sessionConfiguration: URLSessionConfiguration? = nil,
-		onError: @escaping (NetworkRequest, Int, NetworkError) -> RetryConfiguration = { _, _, _ in .throw }
+		onError: @escaping (NetworkRequest, Int, NetworkError) -> RetryOption = { _, _, _ in .throw }
 	) async throws -> (data: Data, response: HTTPURLResponse) {
 		var retryOption = RetryOption.retry
 		var theRequest = request
 		var attempt = 1
 
-		while case .retry = retryOption {
+		while case .retryWithConfiguration = retryOption {
 			defer { attempt += 1 }
+
 			let theError: NetworkError
 			do {
 				return try await _transferMahDatas(
@@ -190,20 +191,30 @@ public class NetworkHandler {
 				theError = .otherError(error: error)
 			}
 
-			let retryConfig = onError(theRequest, attempt, theError)
-			retryOption = retryConfig.retryOption
+			retryOption = onError(theRequest, attempt, theError)
 			switch retryOption {
-			case .retry:
-				theRequest = retryConfig.updatedRequest ?? theRequest
-			case .throw:
-				throw theError
-			case .throwWithError(error: let updatedError):
-				throw updatedError
-			case .defaultReturnValue(data: let data, urlResponse: let response):
-				return (data, response)
-			}
-			if retryConfig.delay > 0 {
-				try await Task.sleep(nanoseconds: UInt64(TimeInterval(1_000_000_000) * retryConfig.delay))
+			case .retryWithConfiguration(config: let config):
+				theRequest = config.updatedRequest ?? theRequest
+				if config.delay > 0 {
+					try await Task.sleep(nanoseconds: UInt64(TimeInterval(1_000_000_000) * config .delay))
+				}
+			case .throw(updatedError: let updatedError):
+				throw updatedError ?? theError
+			case .defaultReturnValue(config: let returnConfig):
+				let response: HTTPURLResponse
+				switch returnConfig.response {
+				case .full(let fullResponse):
+					response = fullResponse
+				case .code(let statusCode):
+					response = HTTPURLResponse(
+						url: theRequest.url!,
+						statusCode: statusCode,
+						httpVersion: nil,
+						headerFields: [
+							"Content-Length": "\(returnConfig.data.count)",
+						])!
+				}
+				return (returnConfig.data, response)
 			}
 		}
 
@@ -211,43 +222,54 @@ public class NetworkHandler {
 	}
 
 	public struct RetryConfiguration {
-		public static let `throw` = RetryConfiguration(delay: 0, retryOption: .throw)
-		public static let retry = RetryConfiguration(delay: 0, retryOption: .retry)
+		public static let retry = RetryConfiguration(delay: 0)
 
 		public var delay: TimeInterval
-		public var retryOption: RetryOption
 		public var updatedRequest: NetworkRequest?
 
 		public init(
 			delay: TimeInterval,
-			retryOption: NetworkHandler.RetryOption,
 			updatedRequest: NetworkRequest? = nil
 		) {
 			self.delay = delay
-			self.retryOption = retryOption
 			self.updatedRequest = updatedRequest
 		}
+	}
 
-		public static func throwWithError(error: Error) -> RetryConfiguration {
-			RetryConfiguration(delay: 0, retryOption: .throwWithError(error: error))
+	public struct DefaultReturnValueConfiguration {
+		public var data: Data
+		public var response: ResponseOption
+
+		public enum ResponseOption {
+			case full(HTTPURLResponse)
+			case code(Int)
 		}
+	}
 
+	public enum RetryOption {
+		public static let retry = RetryOption.retryWithConfiguration(config: .retry)
+		case retryWithConfiguration(config: RetryConfiguration)
 		public static func retry(
 			withDelay delay: TimeInterval = 0,
 			updatedRequest: NetworkRequest? = nil
-		) -> RetryConfiguration {
-			RetryConfiguration(delay: delay, retryOption: .retry, updatedRequest: updatedRequest)
+		) -> RetryOption {
+			let config = RetryConfiguration(delay: delay, updatedRequest: updatedRequest)
+			return .retryWithConfiguration(config: config)
 		}
 
-		public static func defaultReturnValue(data: Data, urlResponse: HTTPURLResponse) -> RetryConfiguration {
-			RetryConfiguration(delay: 0, retryOption: .defaultReturnValue(data: data, urlResponse: urlResponse))
+		case `throw`(updatedError: Error?)
+		public static let `throw` = RetryOption.throw(updatedError: nil)
+		case defaultReturnValue(config: DefaultReturnValueConfiguration)
+
+		public static func defaultReturnValue(data: Data, statusCode: Int) -> RetryOption {
+			let config = DefaultReturnValueConfiguration(data: data, response: .code(statusCode))
+			return .defaultReturnValue(config: config)
 		}
-	}
-	public enum RetryOption {
-		case retry
-		case throwWithError(error: Error)
-		case `throw`
-		case defaultReturnValue(data: Data, urlResponse: HTTPURLResponse)
+
+		public static func defaultReturnValue(data: Data, urlResponse: HTTPURLResponse) -> RetryOption {
+			let config = DefaultReturnValueConfiguration(data: data, response: .full(urlResponse))
+			return .defaultReturnValue(config: config)
+		}
 	}
 
 	@NHActor

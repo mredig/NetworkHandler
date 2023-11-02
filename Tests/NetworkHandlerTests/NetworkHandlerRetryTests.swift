@@ -197,7 +197,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 						if code == 429 {
 							return .retry(withDelay: 1.1)
 						} else if code == 500 {
-							return .throwWithError(error: NetworkError.unspecifiedError(reason: "Got it!"))
+							return .throw(updatedError: NetworkError.unspecifiedError(reason: "Got it!"))
 						} else {
 							return .throw
 						}
