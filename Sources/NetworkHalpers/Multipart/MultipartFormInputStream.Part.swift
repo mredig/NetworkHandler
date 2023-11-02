@@ -11,8 +11,15 @@ extension MultipartFormInputStream {
 				return type?.preferredMIMEType ?? genericBinaryMimeType
 			} else {
 				guard
-					let universalTypeIdentifier = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExt as CFString, nil)?.takeRetainedValue(),
-					let mimeType = UTTypeCopyPreferredTagWithClass(universalTypeIdentifier, kUTTagClassMIMEType)?.takeRetainedValue()
+					let universalTypeIdentifier = UTTypeCreatePreferredIdentifierForTag(
+						kUTTagClassFilenameExtension,
+						pathExt as CFString,
+						nil)?
+						.takeRetainedValue(),
+					let mimeType = UTTypeCopyPreferredTagWithClass(
+						universalTypeIdentifier,
+						kUTTagClassMIMEType)?
+						.takeRetainedValue()
 				else { return genericBinaryMimeType }
 
 				return mimeType as String
@@ -53,9 +60,14 @@ extension MultipartFormInputStream {
 		init(withName name: String, boundary: String, data: Data, contentType: String, filename: String? = nil) {
 			let headerStr: String
 			if let filename = filename {
-				headerStr = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\nContent-Type: \(contentType)\r\n\r\n"
+				headerStr = """
+				--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\nContent-\
+				Type: \(contentType)\r\n\r\n
+				"""
 			} else {
-				headerStr = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\nContent-Type: \(contentType)\r\n\r\n"
+				headerStr = """
+				--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\nContent-Type: \(contentType)\r\n\r\n
+				"""
 			}
 			self.headers = headerStr.data(using: .utf8) ?? Data(headerStr.utf8)
 			self.body = InputStream(data: data)
@@ -66,10 +78,19 @@ extension MultipartFormInputStream {
 			super.init()
 		}
 
-		init(withName name: String, boundary: String, filename: String? = nil, fileURL: URL, contentType: String? = nil) throws {
+		init(
+			withName name: String,
+			boundary: String,
+			filename: String? = nil,
+			fileURL: URL,
+			contentType: String? = nil
+		) throws {
 			let contentType = contentType ?? Self.getMimeType(forFileExtension: fileURL.pathExtension)
 
-			let headerStr = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename ?? fileURL.lastPathComponent)\"\r\nContent-Type: \(contentType)\r\n\r\n"
+			let headerStr = """
+				--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; \
+				filename=\"\(filename ?? fileURL.lastPathComponent)\"\r\nContent-Type: \(contentType)\r\n\r\n
+				"""
 			self.headers = headerStr.data(using: .utf8) ?? Data(headerStr.utf8)
 			guard
 				let fileStream = InputStream(url: fileURL),
@@ -79,6 +100,7 @@ extension MultipartFormInputStream {
 			self.body = fileStream
 			self.bodyLength = fileSize
 			self.copyGenerator = {
+				// swiftlint:disable:next force_try
 				try! Part(withName: name, boundary: boundary, filename: filename, fileURL: fileURL, contentType: contentType)
 			}
 			super.init()

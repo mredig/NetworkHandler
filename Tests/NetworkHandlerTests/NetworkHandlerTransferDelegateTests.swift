@@ -1,5 +1,3 @@
-//swiftlint:disable
-
 import XCTest
 @testable import NetworkHandler
 import TestSupport
@@ -10,7 +8,6 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 	override func setUp() {
 		super.setUp()
-
 
 		let consoleDest = ConsoleLogDestination(maxBytesDisplayed: -1)
 		consoleDest.minimumLogLevel = .veryVerbose
@@ -183,7 +180,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 		let taskStartedExpectation = expectation(description: "task started")
 		dlDelegate
 			.taskPub
-			.sink { task in
+			.sink { _ in
 				taskStartedExpectation.fulfill()
 			}
 
@@ -215,7 +212,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 		let taskStartedExpectation = expectation(description: "task started")
 		myDel
 			.taskPub
-			.sink { task in
+			.sink { _ in
 				taskStartedExpectation.fulfill()
 			}
 

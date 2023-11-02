@@ -5,8 +5,8 @@ import FoundationNetworking
 #endif
 
 /**
- assists in version 2 uploads
- */
+assists in version 2 uploads
+*/
 internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 	static private let uploadDelegateLock = NSLock()
 
@@ -35,7 +35,13 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 		return pub
 	}
 
-	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+	func urlSession(
+		_ session: URLSession,
+		task: URLSessionTask,
+		didSendBodyData bytesSent: Int64,
+		totalBytesSent: Int64,
+		totalBytesExpectedToSend: Int64
+	) {
 		Self.uploadDelegateLock.lock()
 		defer { Self.uploadDelegateLock.unlock() }
 
@@ -68,7 +74,7 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 		taskDelegates[task] = delegate
 
 		let stateObserver = task
-			.observe(\.state, options: .new) { [weak delegate] task, change in
+			.observe(\.state, options: .new) { [weak delegate] task, _ in
 				DispatchQueue.main.async {
 					delegate?.networkHandlerTask(task, stateChanged: task.state)
 				}

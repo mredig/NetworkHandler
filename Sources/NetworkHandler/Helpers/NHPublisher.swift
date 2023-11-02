@@ -4,7 +4,8 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Combine isn't available on Linux and there's not much of its functionality required for this package, so this is an exceedingly simple portion of Combine like functionality.
+/// Combine isn't available on Linux and there's not much of its functionality required for this package, so this is 
+/// an exceedingly simple portion of Combine like functionality.
 /// Definitely an internal class, not intended to be used outside of this package
 class NHPublisher<MessageType, ErrorType: Error> {
 	enum Completion {
@@ -75,8 +76,9 @@ class NHPublisher<MessageType, ErrorType: Error> {
 	private var previousMessage: MessageType?
 	/**
 	- predicate
-		A closure to evaluate whether two elements are equivalent, for purposes of filtering. Return true from this closure to indicate that the second element is a duplicate of the first.
-	 */
+	A closure to evaluate whether two elements are equivalent, for purposes of filtering. Return true from this closure 
+	to indicate that the second element is a duplicate of the first.
+	*/
 	func removeDuplicates(by predicate: @escaping (MessageType, MessageType) -> Bool) -> Self {
 		let newPub = Self()
 

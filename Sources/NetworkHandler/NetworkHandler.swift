@@ -1,5 +1,3 @@
-//swiftlint:disable line_length
-
 import Foundation
 @_exported import NetworkHalpers
 #if os(Linux)
@@ -33,13 +31,14 @@ public class NetworkHandler {
 	/// A default instance of NetworkHandler provided for convenience. Use is optional.
 	public static let `default` = NetworkHandler(name: "NHDefault", diskCacheCapacity: .max)
 
-	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is handled via `NetworkCache`
+	/// Defaults to a `URLSession` with a default `URLSessionConfiguration`, minus the `URLCache` since caching is 
+	/// handled via `NetworkCache`
 	public let defaultSession: URLSession
 	private let nhMainUploadDelegate: NHUploadDelegate
 	private let delegateQueue: OperationQueue = {
-		let q = OperationQueue()
-		q.maxConcurrentOperationCount = 1
-		return q
+		let queue = OperationQueue()
+		queue.maxConcurrentOperationCount = 1
+		return queue
 	}()
 
 	// MARK: - Lifecycle
@@ -72,7 +71,8 @@ public class NetworkHandler {
 	}
 
 	public typealias PollResult<T> = Result<(T, HTTPURLResponse), Error>
-	/// Immediately sends request, then can have a delay before repeating (or modifying) the request via the return value of the `until` block.
+	/// Immediately sends request, then can have a delay before repeating (or modifying) the request via the return value 
+	/// of the `until` block.
 	///
 	/// WIP - consider to be beta - interface is liable and LIKELY to change.
 	@NHActor
@@ -100,7 +100,7 @@ public class NetworkHandler {
 		}
 
 		let firstResult = await doPoll(request: request)
-		
+
 		var instruction = try await until(request, firstResult)
 
 		while case .continue(let networkRequest, let timeInterval) = instruction {
@@ -116,7 +116,7 @@ public class NetworkHandler {
 		guard case .finish(let result) = instruction else {
 			throw NetworkError.unspecifiedError(reason: "Invalid State")
 		}
-		
+
 		let finalResult = try result.get()
 
 		return finalResult
@@ -126,9 +126,10 @@ public class NetworkHandler {
 	Preconfigured URLSession tasking to fetch and decode decodable data.
 
 	- Parameters:
-		- request: NetworkRequest containing the url and other request information.
-		- cacheOption: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not at all. **Default**: `.dontUseCache`
-		- session: URLSession instance. **Default**: `self.defaultSession`
+	- request: NetworkRequest containing the url and other request information.
+	- cacheOption: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not 
+	at all. **Default**: `.dontUseCache`
+	- session: URLSession instance. **Default**: `self.defaultSession`
 	- Returns: The resulting, decoded data safely typed as the `DecodableType` and the `URLResponse` from the task
 	*/
 	@NHActor
@@ -136,31 +137,39 @@ public class NetworkHandler {
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
-		sessionConfiguration: URLSessionConfiguration? = nil) async throws -> (decoded: DecodableType, response: HTTPURLResponse) {
-			let totalResponse = try await transferMahDatas(for: request, delegate: delegate, usingCache: cacheOption, sessionConfiguration: sessionConfiguration)
+		sessionConfiguration: URLSessionConfiguration? = nil
+	) async throws -> (decoded: DecodableType, response: HTTPURLResponse) {
+		let totalResponse = try await transferMahDatas(
+			for: request,
+			delegate: delegate,
+			usingCache: cacheOption,
+			sessionConfiguration: sessionConfiguration)
 
-			guard DecodableType.self != Data.self else {
-				return (totalResponse.data as! DecodableType, totalResponse.response)
-			}
-
-			let decoder = request.decoder
-			do {
-				let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
-				return (decodedValue, totalResponse.response)
-			} catch {
-				logIfEnabled("Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)", logLevel: .error)
-				throw NetworkError.dataCodingError(specifically: error, sourceData: totalResponse.data)
-			}
+		guard DecodableType.self != Data.self else {
+			return (totalResponse.data as! DecodableType, totalResponse.response) // swiftlint:disable:this force_cast
 		}
+
+		let decoder = request.decoder
+		do {
+			let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
+			return (decodedValue, totalResponse.response)
+		} catch {
+			logIfEnabled(
+				"Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)",
+				logLevel: .error)
+			throw NetworkError.dataCodingError(specifically: error, sourceData: totalResponse.data)
+		}
+	}
 
 	/**
 	- Parameters:
-		- request: NetworkRequest containing the url and other request information.
-		- cacheOption: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not at all. **Default**: `.dontUseCache`
-		- session: URLSession instance. **Default**: `self.defaultSession`
-	 - Returns: The resulting,  raw data typed as `Data` and the `URLResponse` from the task
+	- request: NetworkRequest containing the url and other request information.
+	- cacheOption: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not 
+	at all. **Default**: `.dontUseCache`
+	- session: URLSession instance. **Default**: `self.defaultSession`
+	- Returns: The resulting,  raw data typed as `Data` and the `URLResponse` from the task
 
-	 Note that delegate is only valid in iOS 15, macOS 12, tvOS 15, and watchOS 8 and higher
+	Note that delegate is only valid in iOS 15, macOS 12, tvOS 15, and watchOS 8 and higher
 	*/
 	@NHActor
 	@discardableResult public func transferMahDatas(
@@ -249,9 +258,16 @@ public class NetworkHandler {
 		do {
 			switch request.payload {
 			case .upload(let uploadFile):
-				(data, httpResponse) = try await uploadTask(session: session, request: request, uploadFile: uploadFile, delegate: delegate)
+				(data, httpResponse) = try await uploadTask(
+					session: session,
+					request: request,
+					uploadFile: uploadFile,
+					delegate: delegate)
 			default:
-				(data, httpResponse) = try await downloadTask(session: session, request: request, delegate: delegate)
+				(data, httpResponse) = try await downloadTask(
+					session: session,
+					request: request,
+					delegate: delegate)
 			}
 		} catch {
 			let error = error as NSError
@@ -267,7 +283,12 @@ public class NetworkHandler {
 		}
 
 		guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
-			logIfEnabled("Error: Server replied with expected status code: Got \(httpResponse.statusCode) expected \(request.expectedResponseCodes)", logLevel: .error)
+			logIfEnabled(
+				"""
+				Error: Server replied with expected status code: Got \(httpResponse.statusCode) \
+				expected \(request.expectedResponseCodes)
+				""",
+				logLevel: .error)
 			throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: data)
 		}
 
@@ -278,7 +299,11 @@ public class NetworkHandler {
 		return (data, httpResponse)
 	}
 
-	private func downloadTask(session: URLSession, request: NetworkRequest, delegate: NetworkHandlerTransferDelegate?) async throws -> (Data, HTTPURLResponse) {
+	private func downloadTask(
+		session: URLSession,
+		request: NetworkRequest,
+		delegate: NetworkHandlerTransferDelegate?
+	) async throws -> (Data, HTTPURLResponse) {
 		let (asyncBytes, response) = try await session.bytes(for: request.urlRequest, delegate: delegate)
 		let task = asyncBytes.task
 		task.priority = request.priority.rawValue
@@ -318,7 +343,12 @@ public class NetworkHandler {
 		})
 	}
 
-	private func uploadTask(session: URLSession, request: NetworkRequest, uploadFile: NetworkRequest.UploadFile, delegate: NetworkHandlerTransferDelegate?) async throws -> (Data, HTTPURLResponse) {
+	private func uploadTask(
+		session: URLSession,
+		request: NetworkRequest,
+		uploadFile: NetworkRequest.UploadFile,
+		delegate: NetworkHandlerTransferDelegate?
+	) async throws -> (Data, HTTPURLResponse) {
 		var taskHolder: URLSessionTask?
 
 		return try await withTaskCancellationHandler(
@@ -398,7 +428,12 @@ public class NetworkHandler {
 		}
 	}
 
-	public enum CacheKeyOption: Equatable, ExpressibleByBooleanLiteral, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+	public enum CacheKeyOption:
+		Equatable,
+		ExpressibleByBooleanLiteral,
+		ExpressibleByStringLiteral,
+		ExpressibleByStringInterpolation {
+
 		case dontUseCache
 		case useURL
 		case key(String)

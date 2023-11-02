@@ -1,5 +1,3 @@
-//swiftlint:disable
-
 import XCTest
 @testable import NetworkHandler
 import Crypto
@@ -57,14 +55,15 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 
 		let request = url.request
 		let result = try await networkHandler.transferMahDatas(
-			for: request) { _, failedAttempts, error in
+			for: request,
+			onError: { _, failedAttempts, error in
 				guard
 					failedAttempts < 3,
 					case .httpNon200StatusCode(let code, _) = error,
 					code == 500
 				else { return .throw }
 				return .retry
-			}
+			})
 
 		XCTAssertEqual(Data(successString.utf8), result.data)
 		XCTAssertEqual(200, result.response.statusCode)
@@ -99,7 +98,8 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 			.request
 		let failedAttemptCounter = StateHolder(value: 0)
 		let result = try await networkHandler.transferMahDatas(
-			for: request) { [failedAttemptCounter] previousRequest, failedAttempts, error in
+			for: request,
+			onError: { [failedAttemptCounter] previousRequest, failedAttempts, error in
 				failedAttemptCounter.value += 1
 				guard
 					failedAttempts < 3,
@@ -120,7 +120,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 				newRequest.url = components.url
 
 				return .retry(updatedRequest: newRequest)
-			}
+			})
 
 		XCTAssertEqual(Data(successString.utf8), result.data)
 		XCTAssertEqual(200, result.response.statusCode)
@@ -146,7 +146,8 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 		let request = url.request
 		let result = await Task {
 			try await networkHandler.transferMahDatas(
-				for: request) { [failedAttemptCounter] previousRequest, failedAttempts, error in
+				for: request,
+				onError: { [failedAttemptCounter] _, failedAttempts, error in
 					failedAttemptCounter.value += 1
 					guard
 						failedAttempts < 3,
@@ -154,7 +155,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 						code == 500
 					else { return .throw }
 					return .retry
-				}
+				})
 		}.result
 
 		XCTAssertThrowsError(try result.get())
@@ -190,7 +191,8 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 		let request = url.request
 		let result = await Task {
 			try await networkHandler.transferMahDatas(
-				for: request) { previousRequest, failedAttempts, error in
+				for: request,
+				onError: { _, failedAttempts, error in
 					guard failedAttempts < 3 else { return .throw }
 					switch error {
 					case .httpNon200StatusCode(code: let code, data: _):
@@ -204,7 +206,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 					default:
 						return .throw
 					}
-				}
+				})
 		}.result
 
 		XCTAssertThrowsError(try result.get()) { error in
@@ -212,7 +214,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 				let error = error as? NetworkError,
 				case .unspecifiedError(reason: let reason) = error
 			else {
-				XCTFail()
+				XCTFail("Incorrect Error")
 				return
 			}
 
@@ -239,7 +241,8 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 
 		let request = url.request
 		let result = try await networkHandler.transferMahDatas(
-			for: request) { [failedAttemptCounter] previousRequest, failedAttempts, error in
+			for: request,
+			onError: { [failedAttemptCounter] _, failedAttempts, error in
 				failedAttemptCounter.value += 1
 				guard
 					failedAttempts == 3,
@@ -256,7 +259,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 						headerFields: [
 							"Content-Length": "\(returnData.count)",
 						])!)
-			}
+			})
 
 		XCTAssertEqual(Data(success.utf8), result.data)
 		XCTAssertEqual(3, failedAttemptCounter.value)
@@ -274,14 +277,15 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 				requireQueryMatch: false,
 				method: .get,
 				smartBlock: { _, _, _ in
-					 (Data("Failed successfully.".utf8), 500)
+					(Data("Failed successfully.".utf8), 500)
 				})
 
 		let failedAttemptCounter = StateHolder(value: 0)
 
 		let request = url.request
 		let result = try await networkHandler.transferMahDatas(
-			for: request) { [failedAttemptCounter] previousRequest, failedAttempts, error in
+			for: request,
+			onError: { [failedAttemptCounter] _, failedAttempts, error in
 				failedAttemptCounter.value += 1
 				guard
 					failedAttempts == 3,
@@ -292,7 +296,7 @@ class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
 				return .defaultReturnValue(
 					data: returnData,
 					statusCode: 200)
-			}
+			})
 
 		XCTAssertEqual(Data(success.utf8), result.data)
 		XCTAssertEqual(3, failedAttemptCounter.value)

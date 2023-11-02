@@ -2,9 +2,9 @@ import Foundation
 
 extension URLSessionConfiguration {
 	public static let networkHandlerDefault: URLSessionConfiguration = {
-		let c = URLSessionConfiguration.default
-		c.requestCachePolicy = .reloadIgnoringLocalCacheData
-		c.urlCache = nil
-		return c
+		let config = URLSessionConfiguration.default
+		config.requestCachePolicy = .reloadIgnoringLocalCacheData
+		config.urlCache = nil
+		return config
 	}()
 }

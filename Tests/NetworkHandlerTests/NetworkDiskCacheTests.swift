@@ -7,6 +7,7 @@ class NetworkDiskCacheTests: NetworkCacheTest {
 	static var dummy2KFile = Data(repeating: 0, count: 1024 * 2)
 	static var dummy5KFile = Data(repeating: 0, count: 1024 * 5)
 
+	// swiftlint:disable:next large_tuple
 	static func fileAssortment() -> (
 		(key: String, data: Data),
 		(key: String, data: Data),
@@ -38,10 +39,14 @@ class NetworkDiskCacheTests: NetworkCacheTest {
 		cache.setData(file3.data, key: file3.key, sync: false)
 		cache.setData(file4.data, key: file4.key, sync: false)
 
-		let save = expectation(for: .init(block: { anyCache, _ in
-			guard let cache = anyCache as? NetworkDiskCache else { return false }
-			return !cache.isActive
-		}), evaluatedWith: cache, handler: nil)
+		let save = expectation(
+			for: .init(
+				block: { anyCache, _ in
+					guard let cache = anyCache as? NetworkDiskCache else { return false }
+					return !cache.isActive
+				}),
+			evaluatedWith: cache,
+			handler: nil)
 
 		wait(for: [save], timeout: 10)
 

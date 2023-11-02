@@ -3,7 +3,6 @@ import Foundation
 import FoundationNetworking
 #endif
 
-
 public extension URL {
 	/// Easy request generation.
 	var urlRequest: URLRequest {

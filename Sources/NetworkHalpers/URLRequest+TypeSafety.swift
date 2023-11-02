@@ -4,7 +4,8 @@ import FoundationNetworking
 #endif
 
 public extension URLRequest {
-	/// A typesafe alternative to `httpMethod`. You can set and compare your values to guaranteed correct values like `.get` and `.post`
+	/// A typesafe alternative to `httpMethod`. You can set and compare your values to guaranteed correct values 
+	/// like `.get` and `.post`
 	var method: HTTPMethod? {
 		get { httpMethod.map(HTTPMethod.init(stringLiteral:)) }
 		set { httpMethod = newValue?.rawValue }
@@ -53,19 +54,26 @@ public extension URLRequest {
 	}
 
 	/**
-	Default encoder used to encode with the `encodeData` function. Changes here will reflect all requests that don't provide their own encoder going forward.
+	Default encoder used to encode with the `encodeData` function. Changes here will reflect all requests that don't 
+	provide their own encoder going forward.
 
 	Default value is `JSONEncoder()` along with all of its defaults.
 	*/
 	static var defaultEncoder: NHEncoder = JSONEncoder()
 
 	/// Sets `.httpBody` data to the result of encoding an encodable object passed in. If successful, returns the data.
-	@discardableResult mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType, encoder: NHEncoder? = nil) throws -> Data {
+	@discardableResult mutating func encodeData<EncodableType: Encodable>(
+		_ encodableType: EncodableType,
+		encoder: NHEncoder? = nil
+	) throws -> Data {
 		if method == .get {
 			NSLog("Attempt to populate a GET request http body. Used on \(type(of: encodableType))")
 		}
 		if value(forHTTPHeaderField: .contentType) == nil {
-			NSLog("You are encoding data without declaring a content-type in your request header. Used on \(type(of: encodableType))")
+			NSLog("""
+				You are encoding data without declaring a content-type in your request header. Used \
+				on \(type(of: encodableType))
+				""")
 		}
 
 		let encoder = encoder ?? Self.defaultEncoder

@@ -1,5 +1,3 @@
-// swiftlint:disable function_body_length
-
 import XCTest
 import NetworkHalpers
 import NetworkHandler
@@ -50,7 +48,11 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 		request.setValue("Arbitrary Value", forHTTPHeaderField: "Arbitrary Key")
 		XCTAssertEqual(["Content-Type": "application/xml", "Arbitrary Key": "Arbitrary Value"], request.allHeaderFields)
 
-		let allFields = ["Content-Type": "application/xml", "Authorization": "Bearer: 12345", "Arbitrary Key": "Arbitrary Value"]
+		let allFields = [
+			"Content-Type": "application/xml",
+			"Authorization": "Bearer: 12345",
+			"Arbitrary Key": "Arbitrary Value",
+		]
 		request.allHeaderFields = allFields
 		XCTAssertEqual(allFields, request.allHeaderFields)
 
@@ -164,7 +166,7 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 
 	func testPriority() async throws {
 		let dummyURL = URL(string: "https://redeggproductions.com")!
-		//setup
+		// setup
 		let networkHandler = generateNetworkHandlerInstance()
 		let demoModel = ["model": "is gud"]
 		let mockData = try JSONEncoder().encode(demoModel)

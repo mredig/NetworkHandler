@@ -1,4 +1,3 @@
-//swiftlint:disable
 import XCTest
 @testable import NetworkHandler
 import Crypto
@@ -46,7 +45,12 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				group.addTask {
 					var request = url.request
 					request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-					return try await networkHandler.transferMahDatas(for: url.request, usingCache: .dontUseCache, sessionConfiguration: config).data
+					return try await networkHandler
+						.transferMahDatas(
+							for: url.request,
+							usingCache: .dontUseCache,
+							sessionConfiguration: config)
+						.data
 				}
 			}
 
@@ -72,7 +76,11 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		config.requestCachePolicy = .reloadIgnoringCacheData
 
 		let networkStart = CFAbsoluteTimeGetCurrent()
-		let image1Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), sessionConfiguration: config)
+		let image1Result = try await networkHandler
+			.transferMahDatas(
+				for: imageURL.request,
+				usingCache: .key("kitten"),
+				sessionConfiguration: config)
 		let networkFinish = CFAbsoluteTimeGetCurrent()
 		addTeardownBlock {
 			networkHandler.resetCache()
@@ -80,9 +88,12 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// now try retrieving from cache
 		let cacheStart = CFAbsoluteTimeGetCurrent()
-		let image2Result = try await networkHandler.transferMahDatas(for: imageURL.request, usingCache: .key("kitten"), sessionConfiguration: config)
+		let image2Result = try await networkHandler
+			.transferMahDatas(
+				for: imageURL.request,
+				usingCache: .key("kitten"),
+				sessionConfiguration: config)
 		let cacheFinish = CFAbsoluteTimeGetCurrent()
-
 
 		// calculate cache speed improvement, just for funsies
 		let networkDuration = networkFinish - networkStart
@@ -95,9 +106,10 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let cacheDurationStr = formatter.string(from: cacheDuration as NSNumber) ?? "nan"
 		let cacheRatioStr = formatter.string(from: cacheRatio as NSNumber) ?? "nan"
 		print("netDuration: \(netDurationStr)\ncacheDuration: \(cacheDurationStr)\ncache took \(cacheRatioStr)x as long")
-		XCTAssertLessThan(cacheDuration,
-						  networkDuration * 0.5,
-						  "The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
+		XCTAssertLessThan(
+			cacheDuration,
+			networkDuration * 0.5,
+			"The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
 
 		let imageOneData = image1Result.data
 		let imageTwoData = image2Result.data
@@ -144,7 +156,8 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(demoData, result)
 	}
 
-//	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in a NetworkError properly
+//	/// Tests using a Mock session that checks a multitude of errors, also confirming that normal errors are wrapped in
+//	/// a NetworkError properly
 //	func testMockDataErrors() {
 //		let networkHandler = generateNetworkHandlerInstance()
 //		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
@@ -164,10 +177,14 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 //			let mockSession = NetworkMockingSession(mockData: nil, mockError: originalError)
 //
 //			var theResult: Result<DemoModel, Error>?
-//			networkHandler.transferMahCodableDatas(with: dummyModelURL.request, session: mockSession) { (result: Result<DemoModel, Error>) in
-//				theResult = result
-//				waitForMocking.fulfill()
-//			}
+//			networkHandler
+//				.transferMahCodableDatas(
+//					with: dummyModelURL.request,
+//					session: mockSession
+//				) { (result: Result<DemoModel, Error>) in
+//					theResult = result
+//					waitForMocking.fulfill()
+//				}
 //
 //			wait(for: [waitForMocking], timeout: 10)
 //
@@ -178,7 +195,8 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 //				}
 //
 //				// most of the original errors to test against are already a NetworkError. One is just a regular, error
-//				// though, so the followup case is to confirm that it was properly wrapped after going through NetworkHandler's transfer
+//				// though, so the followup case is to confirm that it was properly wrapped after going through
+//				// NetworkHandler's transfer
 //				if let expectedError = originalError as? NetworkError {
 //					XCTAssertEqual(expectedError, netError)
 //				} else if case NetworkError.otherError(error: let otherError) = netError {
@@ -238,7 +256,8 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(demoModel, result)
 	}
 
-	/// Tests using a Mock session that when expecting ONLY a 200 response code, even a 202 code will cause an error to be thrown
+	/// Tests using a Mock session that when expecting ONLY a 200 response code, even a 202 code will 
+	/// cause an error to be thrown
 	func testRespect200OnlyButGet202() async throws {
 		let networkHandler = generateNetworkHandlerInstance()
 		// expected result
@@ -558,7 +577,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let delegate = DownloadDelegate()
 		delegate
 			.taskPub
-			// must not cancel a task on the same queue it receives updates from
+		// must not cancel a task on the same queue it receives updates from
 			.receive(on: DispatchQueue(label: "consistent queue"))
 			.sink {
 				$0.cancel()

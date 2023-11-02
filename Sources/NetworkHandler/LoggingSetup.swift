@@ -1,8 +1,8 @@
 import Foundation
 import Swiftwood
 
-fileprivate let setupLock = NSLock()
-fileprivate var loggingIsSetup = false
+private let setupLock = NSLock()
+private var loggingIsSetup = false
 
 typealias log = Swiftwood
 

@@ -23,7 +23,6 @@ public enum HMACAlgorithm {
 		return CCHmacAlgorithm(value)
 	}
 
-
 	public var digestLength: Int {
 		let result: Int32
 		switch self {

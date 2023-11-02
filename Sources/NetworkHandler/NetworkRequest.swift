@@ -10,8 +10,8 @@ public struct NetworkRequest {
 	public var expectedResponseCodes: Set<Int>
 
 	/**
-	 Automatically sets the priority on the `URLSessionTask` created from this request.
-	 */
+	Automatically sets the priority on the `URLSessionTask` created from this request.
+	*/
 	public var priority: Priority = .defaultPriority
 
 	// MARK: - Upgraded Properties
@@ -57,7 +57,7 @@ public struct NetworkRequest {
 	}
 	public var payload: Payload {
 		get {
-			if let _uploadFile = _uploadFile {
+			if let _uploadFile { // swiftlint:disable:this identifier_name
 				return .upload(_uploadFile)
 			} else if let stream = urlRequest.httpBodyStream {
 				return .inputStream(stream)
@@ -121,11 +121,13 @@ public struct NetworkRequest {
 	#endif
 
 	/**
-	Default encoder used to encode with the `encodeData` function. Changes here will reflect all request that don't provide their own encoder going forward.
+	Default encoder used to encode with the `encodeData` function. Changes here will reflect all request that don't 
+	provide their own encoder going forward.
 
 	Default value is `JSONEncoder()` along with all of its defaults.
 
-	This value is just a convenient access to `URLRequest.defaultEncoder` from `NetworkHaalper`. If you change one, they are both updated.
+	This value is just a convenient access to `URLRequest.defaultEncoder` from `NetworkHaalper`. If you change one, they 
+	are both updated.
 	*/
 	public static var defaultEncoder: NHEncoder {
 		get { URLRequest.defaultEncoder }
@@ -149,15 +151,16 @@ public struct NetworkRequest {
 	public lazy var encoder: NHEncoder = { NetworkRequest.defaultEncoder }()
 
 	/**
-	Default decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`. Changes here will reflect all request that don't
-	provide their own decoder going forward.
+	Default decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`. Changes here will
+	reflect all request that don't provide their own decoder going forward.
 
 	Default value is `JSONDecoder()` along with all of its defaults.
 	*/
 	public static var defaultDecoder: NHDecoder = JSONDecoder()
 	/**
 	Decoder used to decode data received back from a `NetworkHandler.transferMahCodableDatas`. The default value is a
-	reference to `NetworkRequest.defaultDecoder`, therefore changes will affect all decodings using the default, going forward.
+	reference to `NetworkRequest.defaultDecoder`, therefore changes will affect all decodings using the default, going 
+	forward.
 
 	Either provide a new decoder for one off changes in decoding strategy, or standardize on a single stragegy for
 	all decodings, set through `NetworkRequest.defaultDecoder`. For example, if an endpoint requires *all* variables
@@ -170,7 +173,6 @@ public struct NetworkRequest {
 	in a single instance of a NetworkRequest.
 	*/
 	public var decoder: NHDecoder = NetworkRequest.defaultDecoder
-
 
 	// MARK: - Lifecycle
 	public init(_ request: URLRequest, expectedResponseCodes: Set<Int> = [200]) {
@@ -198,7 +200,8 @@ public struct NetworkRequest {
 	}
 
 	/// Sets `.httpBody` data to the result of encoding an encodable object passed in. If successful, returns the data.
-	@discardableResult public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType) throws -> Data {
+	@discardableResult
+	public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType) throws -> Data {
 		try urlRequest.encodeData(encodableType, encoder: encoder)
 	}
 }

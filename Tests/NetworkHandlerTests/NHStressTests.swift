@@ -1,22 +1,19 @@
 import XCTest
-//@testable import KnowMeEngine
-//@testable import KnowMeMockResources
 @testable import NetworkHandler
 import Swizzles
-
 
 @MainActor
 final class NHStressTests: XCTestCase {
 	func testStressingNetworkCallsAndDecodingManyTimes() async throws {
-		for i in 1...99999 {
+		for index in 1...99_999 {
 			let start = Date()
-			print("starting iteration \(i)")
+			print("starting iteration \(index)")
 			_ = await Task {
 				try await testStressingNetworkCallsAndDecoding()
 			}.result
 
 			let end = Date()
-			print("stopping iteration \(i): took \(end.timeIntervalSince1970 - start.timeIntervalSince1970) seconds")
+			print("stopping iteration \(index): took \(end.timeIntervalSince1970 - start.timeIntervalSince1970) seconds")
 		}
 	}
 
@@ -28,7 +25,8 @@ final class NHStressTests: XCTestCase {
 		request.cachePolicy = .returnCacheDataDontLoad
 		let delegate = OnTheDL()
 
-		let (objects, _): ([Randos], URLResponse) = try await networkHandler.transferMahCodableDatas(for: url.request, delegate: delegate)
+		let (objects, _): ([Randos], URLResponse) = try await networkHandler
+			.transferMahCodableDatas(for: url.request, delegate: delegate)
 
 		print(objects.count)
 	}
@@ -54,10 +52,13 @@ final class NHStressTests: XCTestCase {
 			let alphaNumsStr = alpha.uppercased() + alpha + " "
 			let alphaNums = Set(alphaNumsStr)
 			self.someString = (5...500).compactMap({ _ in String(alphaNums.randomElement()!) }).joined()
-			self.someInt = Int.random(in: 5...5000000000)
+			self.someInt = Int.random(in: 5...5_000_000_000)
 			self.abul = Bool.random()
-			self.afloat = Double.random(in: -50000000...(.greatestFiniteMagnitude))
-			self.aRay = (1..<Int.random(in: 2...100)).map { _ in (16...64).compactMap({ _ in String(alphaNums.randomElement()!) }).joined() }
+			self.afloat = Double.random(in: -50_000_000...(.greatestFiniteMagnitude))
+			self.aRay = (1..<Int.random(in: 2...100))
+				.map { _ in
+					(16...64).compactMap({ _ in String(alphaNums.randomElement()!) }).joined()
+				}
 			self.dicktion = (1...Int.random(in: 1...100)).reduce(into: [:], {
 				$0[$1] = (8...16).compactMap({ _ in String(alphaNums.randomElement()!) }).joined()
 			})

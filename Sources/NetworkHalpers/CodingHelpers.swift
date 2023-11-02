@@ -3,7 +3,6 @@ import Foundation
 import FoundationNetworking
 #endif
 
-
 /// Allows you to conform to this protocol to become compatible with `NetworkRequest.encodeData`
 public protocol NHEncoder {
 	func encode<T: Encodable>(_ encodable: T) throws -> Data

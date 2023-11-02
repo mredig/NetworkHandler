@@ -32,7 +32,10 @@ open class NetworkHandlerBaseTest: XCTestCase {
 		return networkHandler
 	}
 
-	public func wait(forArbitraryCondition arbitraryCondition: @autoclosure () async throws -> Bool, timeout: TimeInterval = 10) async throws {
+	public func wait(
+		forArbitraryCondition arbitraryCondition: @autoclosure () async throws -> Bool,
+		timeout: TimeInterval = 10
+	) async throws {
 		let start = CFAbsoluteTimeGetCurrent()
 		while try await arbitraryCondition() == false {
 			let elapsed = CFAbsoluteTimeGetCurrent() - start
@@ -61,8 +64,8 @@ open class NetworkHandlerBaseTest: XCTestCase {
 		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
 
 		(0..<megabytes).forEach { _ in
-			for i in 0..<(length / 8) {
-				quicker[i] = UInt64.random(in: 0...UInt64.max)
+			for index in 0..<(length / 8) {
+				quicker[index] = UInt64.random(in: 0...UInt64.max)
 			}
 
 			outputStream?.write(buffer, maxLength: length)
@@ -76,7 +79,7 @@ open class NetworkHandlerBaseTest: XCTestCase {
 
 		guard let input = InputStream(url: url) else { throw NSError(domain: "Error loading file for hashing", code: -1) }
 
-		let bufferSize = 1024 //KB
+		let bufferSize = 1024 // KB
 		* 1024 // MB
 		* 10 // MB count
 		let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: bufferSize)
@@ -111,7 +114,7 @@ open class NetworkHandlerBaseTest: XCTestCase {
 extension Mirror {
 	func firstChild<T>(named name: String) -> T? {
 		children.first(where: {
-			guard let _ = $0.value as? T else { return false }
+			guard $0.value is T else { return false }
 
 			return $0.label == name ? true : false
 		})?.value as? T

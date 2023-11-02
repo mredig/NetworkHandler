@@ -47,18 +47,19 @@ extension NetworkError {
 	/// Creates a collection of Network errors covering most of the spectrum
 	static func allErrorCases() -> [NetworkError] {
 		let dummyError = NSError(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil)
-		let allErrorCases: [NetworkError] = [.badData(sourceData: nil),
-											 .databaseFailure(specifically: dummyError),
-											 .dataCodingError(specifically: dummyError, sourceData: nil),
-											 .httpNon200StatusCode(code: 404, data: nil),
-											 .imageDecodeError,
-											 .noStatusCodeResponse,
-											 .otherError(error: dummyError),
-											 .urlInvalid(urlString: "he.ho.hum"),
-											 .urlInvalid(urlString: nil),
-											 .unspecifiedError(reason: "Who knows what the error might be?!"),
-											 .unspecifiedError(reason: nil),
-											 // missing at least one
+		let allErrorCases: [NetworkError] = [
+			.badData(sourceData: nil),
+			.databaseFailure(specifically: dummyError),
+			.dataCodingError(specifically: dummyError, sourceData: nil),
+			.httpNon200StatusCode(code: 404, data: nil),
+			.imageDecodeError,
+			.noStatusCodeResponse,
+			.otherError(error: dummyError),
+			.urlInvalid(urlString: "he.ho.hum"),
+			.urlInvalid(urlString: nil),
+			.unspecifiedError(reason: "Who knows what the error might be?!"),
+			.unspecifiedError(reason: nil),
+			// missing at least one
 		]
 		return allErrorCases
 	}

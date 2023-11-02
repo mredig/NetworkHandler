@@ -139,7 +139,7 @@ class MultipartInputStreamTests: XCTestCase {
 		XCTAssertEqual(expected, finalString)
 	}
 
-	/// Dependent on the service at `https://httpbin.org/`
+//	/// Dependent on the service at `https://httpbin.org/`
 //	func testMultipartUpload() throws {
 //		let networkHandler = generateNetworkHandlerInstance()
 //
@@ -203,7 +203,7 @@ class MultipartInputStreamTests: XCTestCase {
 		let (fileURL, _) = try createTestFile()
 		try multipart.addPart(named: "File2", fileURL: fileURL, contentType: "text/html")
 
-		let theCopyBefore = multipart.copy() as! MultipartFormInputStream
+		let theCopyBefore = multipart.copy() as! MultipartFormInputStream // swiftlint:disable:this force_cast
 		let theCopyData = streamToData(theCopyBefore)
 		let copyString = String(data: theCopyData, encoding: .utf8)
 		XCTAssertEqual(expected, copyString)
@@ -212,7 +212,7 @@ class MultipartInputStreamTests: XCTestCase {
 		let multipartString = String(data: originalMultipartData, encoding: .utf8)
 		XCTAssertEqual(expected, multipartString)
 
-		let theCopyAfter = multipart.copy() as! MultipartFormInputStream
+		let theCopyAfter = multipart.copy() as! MultipartFormInputStream // swiftlint:disable:this force_cast
 		let theCopyAfterData = streamToData(theCopyAfter)
 		let copyAfterString = String(data: theCopyAfterData, encoding: .utf8)
 		XCTAssertEqual(expected, copyAfterString)

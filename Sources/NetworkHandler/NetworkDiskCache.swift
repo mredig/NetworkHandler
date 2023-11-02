@@ -75,7 +75,6 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		}
 	}
 
-
 	func getData(for key: String) -> Data? {
 		Self.lockCache()
 		defer { Self.unlockCache() }
@@ -188,9 +187,13 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		guard size > capacity else { return }
 
 		do {
-			let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [.contentModificationDateKey], options: [])
+			let contents = try fileManager
+				.contentsOfDirectory(
+					at: cacheLocation,
+					includingPropertiesForKeys: [.contentModificationDateKey],
+					options: [])
 
-			let sorted = try contents.sorted { a, b in
+			let sorted = try contents.sorted { a, b in // swiftlint:disable:this identifier_name
 				let dateInfoA = try a.resourceValues(forKeys: [.contentModificationDateKey])
 				let dateInfoB = try b.resourceValues(forKeys: [.contentModificationDateKey])
 
@@ -214,7 +217,11 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 
 	private func refreshSize() {
 		do {
-			let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [.fileSizeKey], options: [])
+			let contents = try fileManager
+				.contentsOfDirectory(
+					at: cacheLocation,
+					includingPropertiesForKeys: [.fileSizeKey],
+					options: [])
 			size = try contents.reduce(0, {
 				let fileSizeValues = try $1.resourceValues(forKeys: [.fileSizeKey])
 				guard let fileSize = fileSizeValues.fileSize else { return $0 }

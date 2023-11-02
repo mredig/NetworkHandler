@@ -1,10 +1,11 @@
 import Foundation
 
 /**
-Use this to generate a binary file to upload multipart form data. This copies source data and files into a single blob prior to uploading a file, so be aware of this behavior.
-Be sure to use a `URLSessionConfig.background` instance to get proper progress reporting (for some reason? This is just from some minimal personal testing,
-but has been semi consistent in my experience).
- */
+Use this to generate a binary file to upload multipart form data. This copies source data and files into a single
+blob prior to uploading a file, so be aware of this behavior. Be sure to use a `URLSessionConfig.background` instance
+to get proper progress reporting (for some reason? This is just from some minimal personal testing, but has been
+semi consistent in my experience).
+*/
 public class MultipartFormInputTempFile {
 
 	public let boundary: String
@@ -28,23 +29,42 @@ public class MultipartFormInputTempFile {
 		addPart(part)
 	}
 
-	public func addPart(named name: String, data: Data, filename: String? = nil, contentType: String = "application/octet-stream") {
-		let part = Part(name: name, boundary: boundary, filename: filename, contentType: contentType, content: .data(data))
+	public func addPart(
+		named name: String,
+		data: Data,
+		filename: String? = nil,
+		contentType: String = "application/octet-stream"
+	) {
+		let part = Part(
+			name: name,
+			boundary: boundary,
+			filename: filename,
+			contentType: contentType,
+			content: .data(data))
 		addPart(part)
 	}
 
-	public func addPart(named name: String, fileURL: URL, filename: String? = nil, contentType: String) {
-		let part = Part(name: name, boundary: boundary, filename: filename, contentType: contentType, content: .localURL(fileURL))
+	public func addPart(
+		named name: String,
+		fileURL: URL,
+		filename: String? = nil,
+		contentType: String
+	) {
+		let part = Part(
+			name: name,
+			boundary: boundary,
+			filename: filename,
+			contentType: contentType,
+			content: .localURL(fileURL))
 		addPart(part)
 	}
-
 
 	private func addPart(_ part: Part) {
 		parts.append(part)
 	}
 
+	// swiftlint:disable:next cyclomatic_complexity
 	public func renderToFile() throws -> URL {
-
 		let tempDir = FileManager
 			.default
 			.temporaryDirectory
@@ -59,7 +79,7 @@ public class MultipartFormInputTempFile {
 		let fileHandle = OutputStream(url: multipartTempFile, append: true)
 		fileHandle?.open()
 
-		let bufferSize = 1024 //KB
+		let bufferSize = 1024 // KB
 		* 1024 // MB
 		* 25 // count of MB
 		let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: bufferSize)

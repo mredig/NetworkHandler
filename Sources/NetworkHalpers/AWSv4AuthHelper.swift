@@ -22,7 +22,7 @@ public struct AWSV4Signature {
 		awsRegion: AWSV4Signature.AWSRegion,
 		awsService: AWSV4Signature.AWSService,
 		hexContentHash: AWSContentHash,
-		additionalSignedHeaders: [HTTPHeaderKey : HTTPHeaderValue]) {
+		additionalSignedHeaders: [HTTPHeaderKey: HTTPHeaderValue]) {
 			self.requestMethod = requestMethod
 			self.url = url
 			self.date = date
@@ -71,7 +71,7 @@ public struct AWSV4Signature {
 		awsRegion: AWSV4Signature.AWSRegion,
 		awsService: AWSV4Signature.AWSService,
 		payloadData: Data,
-		additionalSignedHeaders: [HTTPHeaderKey : HTTPHeaderValue]) {
+		additionalSignedHeaders: [HTTPHeaderKey: HTTPHeaderValue]) {
 			self.init(
 				requestMethod: requestMethod,
 				url: url,
@@ -88,7 +88,7 @@ public struct AWSV4Signature {
 		[
 			"x-amz-content-sha256": "\(hexContentHash.rawValue)",
 			"x-amz-date": "\(Self.isoDateString(from: date))",
-			"Authorization": "\(authorizationString)"
+			"Authorization": "\(authorizationString)",
 		]
 	}
 
@@ -230,7 +230,10 @@ extension AWSV4Signature {
 		let dateRegionKey = HMAC<SHA256>.authenticationCode(for: Data(awsRegion.rawValue.utf8), using: dateRegionKeySecret)
 
 		let dateRegionServiceKeySecret = SymmetricKey(data: dateRegionKey)
-		let dateRegionServiceKey = HMAC<SHA256>.authenticationCode(for: Data(awsService.rawValue.utf8), using: dateRegionServiceKeySecret)
+		let dateRegionServiceKey = HMAC<SHA256>
+			.authenticationCode(
+				for: Data(awsService.rawValue.utf8),
+				using: dateRegionServiceKeySecret)
 
 		let signingKeySecret = SymmetricKey(data: dateRegionServiceKey)
 		let signingKey = HMAC<SHA256>.authenticationCode(for: Data("aws4_request".utf8), using: signingKeySecret)
@@ -242,11 +245,13 @@ extension AWSV4Signature {
 
 	public var authorizationString: String {
 		let headerStuff = self.headerStuff
-		return "AWS4-HMAC-SHA256 Credential=\(awsKey)/\(scope),SignedHeaders=\(headerStuff.signedHeaders),Signature=\(signature)"
+		return """
+			AWS4-HMAC-SHA256 Credential=\(awsKey)/\(scope),\
+			SignedHeaders=\(headerStuff.signedHeaders),Signature=\(signature)
+			"""
 	}
 
 }
-
 
 extension AWSV4Signature {
 	public struct AWSRegion: RawRepresentable, ExpressibleByStringInterpolation {

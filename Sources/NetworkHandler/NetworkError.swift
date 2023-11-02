@@ -1,5 +1,3 @@
-//swiftlint:disable conditional_returns_on_newline cyclomatic_complexity
-
 import Foundation
 #if os(Linux)
 import FoundationNetworking
@@ -80,24 +78,47 @@ public enum NetworkError: Error, Equatable {
 	*/
 	case unspecifiedError(reason: String?)
 
+	// swiftlint:disable:next cyclomatic_complexity
 	public static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
 		switch lhs {
 		case .badData(let lhsSourceData):
 			if case .badData(let rhsSourceData) = rhs, lhsSourceData == rhsSourceData { return true } else { return false }
 		case .databaseFailure(specifically: let otherError):
-			if case .databaseFailure(let rhsError) = rhs, otherError.localizedDescription == rhsError.localizedDescription { return true } else { return false }
+			if
+				case .databaseFailure(let rhsError) = rhs,
+				otherError.localizedDescription == rhsError.localizedDescription {
+
+				return true
+			} else {
+				return false
+			}
 		case .dataCodingError(specifically: let otherError, let lhsSourceData):
 			if case .dataCodingError(let rhsError, let rhsSourceData) = rhs,
 				otherError.localizedDescription == rhsError.localizedDescription,
 			lhsSourceData == rhsSourceData { return true } else { return false }
 		case .httpNon200StatusCode(code: let code, data: let data):
-			if case .httpNon200StatusCode(let rhsCode, let rhsData) = rhs, code == rhsCode, data == rhsData { return true } else { return false }
+			if
+				case .httpNon200StatusCode(let rhsCode, let rhsData) = rhs,
+				code == rhsCode,
+				data == rhsData {
+
+				return true
+			} else {
+				return false
+			}
 		case .imageDecodeError:
 			if case .imageDecodeError = rhs { return true } else { return false }
 		case .noStatusCodeResponse:
 			if case .noStatusCodeResponse = rhs { return true } else { return false }
 		case .otherError(let otherError):
-			if case .otherError(let rhsError) = rhs, otherError.localizedDescription == rhsError.localizedDescription { return true } else { return false }
+			if
+				case .otherError(let rhsError) = rhs,
+				otherError.localizedDescription == rhsError.localizedDescription {
+
+				return true
+			} else {
+				return false
+			}
 		case .urlInvalid(let urlString):
 			if case .urlInvalid(let rhsURLString) = rhs, urlString == rhsURLString { return true } else { return false }
 		case .unspecifiedError(let lhsReason):
@@ -163,4 +184,3 @@ public extension Task {
 		return
 	}
 }
-

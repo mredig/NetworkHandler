@@ -1,5 +1,3 @@
-//swiftlint:disable
-
 import XCTest
 @testable import NetworkHandler
 import Crypto
@@ -27,7 +25,8 @@ class NetworkHandlerPollingTests: NetworkHandlerBaseTest {
 		let request = sampleURL.request
 
 		let finalResult: (Data, HTTPURLResponse) = try await networkHandler.poll(
-			request: request) { previousRequest, previousResult in
+			request: request,
+			until: { previousRequest, previousResult in
 				guard
 					let prevUrl = previousRequest.url,
 					var components = URLComponents(url: prevUrl, resolvingAgainstBaseURL: false),
@@ -48,7 +47,7 @@ class NetworkHandlerPollingTests: NetworkHandlerBaseTest {
 					print("continuing: \(Date())")
 					return .continue(newRequest, 0.25)
 				}
-			}
+			})
 
 		XCTAssertEqual(resultData.0, finalResult.0)
 		XCTAssertEqual(resultData.1, finalResult.1.statusCode)

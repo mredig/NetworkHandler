@@ -4,13 +4,19 @@ import FoundationNetworking
 #endif
 
 /// Pre-typed strings for use with NetworkRequest.httpMethod (or URLRequest.httpMethod)
-public struct HTTPMethod: RawRepresentable, Equatable, Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+public struct HTTPMethod:
+	RawRepresentable,
+	Equatable,
+	Hashable,
+	ExpressibleByStringLiteral,
+	ExpressibleByStringInterpolation {
+
 	public let rawValue: String
 
 	public init?(rawValue: String) {
 		self.rawValue = rawValue
 	}
-	
+
 	public init(stringLiteral value: String) {
 		self.rawValue = value
 	}

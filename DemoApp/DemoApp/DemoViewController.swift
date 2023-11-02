@@ -99,7 +99,11 @@ extension DemoViewController {
 		return cell
 	}
 
-	override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+	override func tableView(
+		_ tableView: UITableView,
+		commit editingStyle: UITableViewCell.EditingStyle,
+		forRowAt indexPath: IndexPath
+	) {
 		if editingStyle == .delete {
 			let demoModel = demoModelController.demoModels[indexPath.row]
 			Task {
@@ -137,8 +141,6 @@ extension DemoViewController {
 				}
 				print("Error loading image from url: '\(demoModel.imageURL)': \(error)")
 			}
-
-
 		}
 //		tasks[cell] = NetworkHandler.default.transferMahDatas(
 //			with: demoModel.imageURL.request,

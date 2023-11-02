@@ -47,16 +47,21 @@ public struct HTTPHeaderKey: RawRepresentable, Hashable, ExpressibleByStringLite
 	public static let cookie: HTTPHeaderKey = "Cookie"
 	public static let expect: HTTPHeaderKey = "Expect"
 
-	public static func ==(lhs: HTTPHeaderKey, rhs: String?) -> Bool {
+	public static func == (lhs: HTTPHeaderKey, rhs: String?) -> Bool {
 		lhs.key == rhs
 	}
 
-	public static func ==(lhs: String?, rhs: HTTPHeaderKey) -> Bool {
+	public static func == (lhs: String?, rhs: HTTPHeaderKey) -> Bool {
 		rhs == lhs
 	}
 }
 
-public struct HTTPHeaderValue: RawRepresentable, Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+public struct HTTPHeaderValue:
+	RawRepresentable,
+	Hashable,
+	ExpressibleByStringLiteral,
+	ExpressibleByStringInterpolation {
+
 	public let rawValue: String
 	public var value: String { rawValue }
 
@@ -106,12 +111,11 @@ public struct HTTPHeaderValue: RawRepresentable, Hashable, ExpressibleByStringLi
 		"multipart/form-data; boundary=\(boundary)"
 	}
 
-	public static func ==(lhs: HTTPHeaderValue, rhs: String?) -> Bool {
+	public static func == (lhs: HTTPHeaderValue, rhs: String?) -> Bool {
 		lhs.value == rhs
 	}
 
-	public static func ==(lhs: String?, rhs: HTTPHeaderValue) -> Bool {
+	public static func == (lhs: String?, rhs: HTTPHeaderValue) -> Bool {
 		rhs == lhs
 	}
 }
-

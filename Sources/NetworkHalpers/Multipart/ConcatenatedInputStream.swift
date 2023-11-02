@@ -15,7 +15,7 @@ public class ConcatenatedInputStream: InputStream {
 
 	public init(streams: [InputStream]) throws {
 		super.init(data: Data())
-		
+
 		try streams.forEach {
 			try addStream($0)
 		}
@@ -43,7 +43,10 @@ public class ConcatenatedInputStream: InputStream {
 		guard _streamStatus == .notOpen else { throw StreamConcatError.cannotAddStreamsOnceOpen }
 		switch stream.streamStatus {
 		case .open:
-			log.warning("Warning: stream already open after adding to concatenation. When reading, it will continue where it left off, if already read.")
+			log.warning("""
+				Warning: stream already open after adding to concatenation. When reading, it will continue where \
+				it left off, if already read.
+				""")
 		case .notOpen:
 			break
 		default:
@@ -72,7 +75,12 @@ public class ConcatenatedInputStream: InputStream {
 		return count
 	}
 
-	private func read(stream: InputStream, into pointer: UnsafeMutablePointer<UInt8>, writingIntoPointerAt startOffset: Int, maxLength: Int) -> Int {
+	private func read(
+		stream: InputStream,
+		into pointer: UnsafeMutablePointer<UInt8>,
+		writingIntoPointerAt startOffset: Int,
+		maxLength: Int
+	) -> Int {
 		let pointerWithOffset = pointer.advanced(by: startOffset)
 		return stream.read(pointerWithOffset, maxLength: maxLength)
 	}
@@ -110,7 +118,10 @@ public class ConcatenatedInputStream: InputStream {
 		}
 	}
 
-	public override func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool { false }
+	public override func getBuffer(
+		_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>,
+		length len: UnsafeMutablePointer<Int>
+	) -> Bool { false }
 
 	public override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
 	public override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}

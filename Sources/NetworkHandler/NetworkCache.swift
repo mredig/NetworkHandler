@@ -3,9 +3,9 @@ import Foundation
 import FoundationNetworking
 #endif
 
-
 /**
-Essentially just a wrapper for NSCache, but adds redundancy in a disk cache. Specifically purposed for use with NetworkHandler
+Essentially just a wrapper for NSCache, but adds redundancy in a disk cache. Specifically purposed for 
+use with NetworkHandler
 */
 class NetworkCache {
 	// MARK: - Properties
@@ -18,7 +18,8 @@ class NetworkCache {
 	The maximum number of objects the cache should hold.
 
 	If 0, there is no count limit. The default value is 0.
-	This is not a strict limit—if the cache goes over the limit, an object in the cache could be evicted instantly, later, or possibly never, depending on the implementation details of the cache.
+	This is not a strict limit—if the cache goes over the limit, an object in the cache could be evicted instantly, 
+	later, or possibly never, depending on the implementation details of the cache.
 	*/
 	public var countLimit: Int {
 		get { cache.countLimit }
@@ -29,11 +30,12 @@ class NetworkCache {
 	The maximum total cost that the cache can hold before it starts evicting objects.
 
 	If `0`, there is no total cost limit. The default value is `0`.
-	When you add an object to the cache, you may pass in a specified cost for the object, such as the size in bytes of the object. If adding this object to the cache
-	causes the cache’s total cost to rise above `totalCostLimit`, the cache may automatically evict objects until its total cost falls below `totalCostLimit`.
-	The order in which the cache evicts objects is not guaranteed.
-	This is not a strict limit, and if the cache goes over the limit, an object in the cache could be evicted instantly, at a later point in time, or possibly never, all depending
-	on the implementation details of the cache.
+	When you add an object to the cache, you may pass in a specified cost for the object, such as the size in bytes of 
+	the object. If adding this object to the cache causes the cache’s total cost to rise above `totalCostLimit`, the 
+	cache may automatically evict objects until its total cost falls below `totalCostLimit`. The order in which the cache
+	evicts objects is not guaranteed. This is not a strict limit, and if the cache goes over the limit, an object in the
+	cache could be evicted instantly, at a later point in time, or possibly never, all depending on the implementation
+	details of the cache.
 	*/
 	public var totalCostLimit: Int {
 		get { cache.totalCostLimit }
@@ -127,7 +129,9 @@ class NetworkCacheItem: Codable {
 	required init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		let responseData = try container.decode(Data.self, forKey: .response)
-		guard let response = URLResponseCoder.decodeResponse(from: responseData) else { throw CachedItemError.responseDataCorrupt }
+		guard
+			let response = URLResponseCoder.decodeResponse(from: responseData)
+		else { throw CachedItemError.responseDataCorrupt }
 		self.response = response
 		self.data = try container.decode(Data.self, forKey: .data)
 	}

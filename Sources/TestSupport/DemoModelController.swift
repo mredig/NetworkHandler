@@ -113,7 +113,6 @@ public class DemoModelController {
 	public func generateDemoData() async throws {
 
 		try await fetchDemoModels()
-		
 
 		let baseURL = URL(string: "https://placekitten.com/")!
 
@@ -123,7 +122,10 @@ public class DemoModelController {
 				.appendingPathComponent("\(dimensions)")
 				.appendingPathComponent("\(dimensions)")
 
-			create(modelWithTitle: DemoText.demoNames.randomElement()!, andSubtitle: DemoText.demoSubtitles.randomElement()!, imageURL: kittenURL)
+			create(
+				modelWithTitle: DemoText.demoNames.randomElement()!,
+				andSubtitle: DemoText.demoSubtitles.randomElement()!,
+				imageURL: kittenURL)
 			print(self.demoModels.count)
 		}
 	}

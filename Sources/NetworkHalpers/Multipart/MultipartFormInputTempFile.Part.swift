@@ -52,7 +52,9 @@ extension MultipartFormInputTempFile {
 				self.name = name
 				self.boundary = boundary
 				self.filename = filename ?? content?.filename
-				self.contentType = contentType ?? content?.filename.map { Self.getMimeType(forFileExtension: ($0 as NSString).pathExtension )}
+				self.contentType = contentType ?? content?
+					.filename
+					.map { Self.getMimeType(forFileExtension: ($0 as NSString).pathExtension ) }
 				self.content = content
 			}
 
@@ -63,8 +65,15 @@ extension MultipartFormInputTempFile {
 				return type?.preferredMIMEType ?? genericBinaryMimeType
 			} else {
 				guard
-					let universalTypeIdentifier = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExt as CFString, nil)?.takeRetainedValue(),
-					let mimeType = UTTypeCopyPreferredTagWithClass(universalTypeIdentifier, kUTTagClassMIMEType)?.takeRetainedValue()
+					let universalTypeIdentifier = UTTypeCreatePreferredIdentifierForTag(
+						kUTTagClassFilenameExtension,
+						pathExt as CFString,
+						nil)?
+						.takeRetainedValue(),
+					let mimeType = UTTypeCopyPreferredTagWithClass(
+						universalTypeIdentifier,
+						kUTTagClassMIMEType)?
+						.takeRetainedValue()
 				else { return genericBinaryMimeType }
 
 				return mimeType as String

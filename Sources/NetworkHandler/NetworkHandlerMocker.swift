@@ -37,12 +37,22 @@ public class NetworkHandlerMocker: URLProtocol {
 	}
 
 	@MainActor
-	public static func addMock(for url: URL, requireQueryMatch: Bool = true, method: HTTPMethod, smartResponseBlock: @escaping SmartResponseMockBlock) {
+	public static func addMock(
+		for url: URL,
+		requireQueryMatch: Bool = true,
+		method: HTTPMethod,
+		smartResponseBlock: @escaping SmartResponseMockBlock
+	) {
 		acceptedIntercepts[Key(url: url, requireQueryMatch: requireQueryMatch, method: method)] = smartResponseBlock
 	}
 
 	@MainActor
-	public static func addMock(for url: URL, requireQueryMatch: Bool = true, method: HTTPMethod, smartBlock: @escaping SmartMockBlock) {
+	public static func addMock(
+		for url: URL,
+		requireQueryMatch: Bool = true,
+		method: HTTPMethod,
+		smartBlock: @escaping SmartMockBlock
+	) {
 		addMock(for: url, requireQueryMatch: requireQueryMatch, method: method, smartResponseBlock: { url, request, method in
 			let (data, code) = smartBlock(url, request, method)
 			let response = HTTPURLResponse(
@@ -65,7 +75,7 @@ public class NetworkHandlerMocker: URLProtocol {
 		guard
 			let url = request.url,
 			let method = request.method
-		else { fatalError() }
+		else { fatalError("A request made without url or method: \(request)") }
 
 		Task {
 			let data: Data
