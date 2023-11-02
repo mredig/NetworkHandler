@@ -282,7 +282,7 @@ public class NetworkHandler {
 
 			let theError: NetworkError
 			do {
-				return try await task(originalRequest, attempt)
+				return try await task(theRequest, attempt)
 			} catch let error as NetworkError {
 				theError = error
 			} catch {
