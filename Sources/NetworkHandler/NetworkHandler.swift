@@ -238,6 +238,10 @@ public class NetworkHandler {
 		) -> RetryConfiguration {
 			RetryConfiguration(delay: delay, retryOption: .retry, updatedRequest: updatedRequest)
 		}
+
+		public static func defaultReturnValue(data: Data, urlResponse: HTTPURLResponse) -> RetryConfiguration {
+			RetryConfiguration(delay: 0, retryOption: .defaultReturnValue(data: data, urlResponse: urlResponse))
+		}
 	}
 	public enum RetryOption {
 		case retry
