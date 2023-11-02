@@ -1,6 +1,10 @@
 import Foundation
 
 extension NetworkHandler {
+	/// (previousRequest, failedAttempts, mostRecentError)
+	/// Return whatever option you wish to proceed with.
+	public typealias RetryOptionBlock = (NetworkRequest, Int, NetworkError) -> RetryOption
+
 	public struct RetryConfiguration {
 		public static let simple = RetryConfiguration(delay: 0)
 

@@ -137,28 +137,35 @@ public class NetworkHandler {
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
-		sessionConfiguration: URLSessionConfiguration? = nil
+		sessionConfiguration: URLSessionConfiguration? = nil,
+		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
 	) async throws -> (decoded: DecodableType, response: HTTPURLResponse) {
-		let totalResponse = try await transferMahDatas(
-			for: request,
-			delegate: delegate,
-			usingCache: cacheOption,
-			sessionConfiguration: sessionConfiguration)
+		try await transferTaskPerformer(
+			originalRequest: request,
+			{ request, attempt in
+				let totalResponse = try await _transferMahDatas(
+					for: request,
+					delegate: delegate,
+					usingCache: cacheOption,
+					attempt: attempt,
+					sessionConfiguration: sessionConfiguration)
 
-		guard DecodableType.self != Data.self else {
-			return (totalResponse.data as! DecodableType, totalResponse.response) // swiftlint:disable:this force_cast
-		}
+				guard DecodableType.self != Data.self else {
+					return (totalResponse.data as! DecodableType, totalResponse.response) // swiftlint:disable:this force_cast
+				}
 
-		let decoder = request.decoder
-		do {
-			let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
-			return (decodedValue, totalResponse.response)
-		} catch {
-			logIfEnabled(
-				"Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)",
-				logLevel: .error)
-			throw NetworkError.dataCodingError(specifically: error, sourceData: totalResponse.data)
-		}
+				let decoder = request.decoder
+				do {
+					let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
+					return (decodedValue, totalResponse.response)
+				} catch {
+					logIfEnabled(
+						"Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)",
+						logLevel: .error)
+					throw NetworkError.dataCodingError(specifically: error, sourceData: totalResponse.data)
+				}
+			},
+			errorHandler: onError)
 	}
 
 	/**
@@ -177,7 +184,7 @@ public class NetworkHandler {
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		sessionConfiguration: URLSessionConfiguration? = nil,
-		onError: @escaping (NetworkRequest, Int, NetworkError) -> RetryOption = { _, _, _ in .throw }
+		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
 	) async throws -> (data: Data, response: HTTPURLResponse) {
 		var retryOption = RetryOption.retry
 		var theRequest = request
@@ -297,6 +304,58 @@ public class NetworkHandler {
 		}
 
 		return (data, httpResponse)
+	}
+
+	private func transferTaskPerformer<T: Decodable>(
+		originalRequest: NetworkRequest,
+		_ task: (NetworkRequest, Int) async throws -> (T, HTTPURLResponse),
+		errorHandler: RetryOptionBlock
+	) async throws -> (T, HTTPURLResponse) {
+		var retryOption = RetryOption.retry
+		var theRequest = originalRequest
+		var attempt = 1
+
+		while case .retryWithConfiguration = retryOption {
+			defer { attempt += 1 }
+
+			let theError: NetworkError
+			do {
+				return try await task(originalRequest, attempt)
+			} catch let error as NetworkError {
+				theError = error
+			} catch {
+				theError = .otherError(error: error)
+			}
+
+			retryOption = errorHandler(theRequest, attempt, theError)
+			switch retryOption {
+			case .retryWithConfiguration(config: let config):
+				theRequest = config.updatedRequest ?? theRequest
+				if config.delay > 0 {
+					try await Task.sleep(nanoseconds: UInt64(TimeInterval(1_000_000_000) * config .delay))
+				}
+			case .throw(updatedError: let updatedError):
+				throw updatedError ?? theError
+			case .defaultReturnValue:// (config: let returnConfig):
+				throw NetworkError.unspecifiedError(reason: "Not supported yet")
+//				let response: HTTPURLResponse
+//				switch returnConfig.response {
+//				case .full(let fullResponse):
+//					response = fullResponse
+//				case .code(let statusCode):
+//					response = HTTPURLResponse(
+//						url: theRequest.url!,
+//						statusCode: statusCode,
+//						httpVersion: nil,
+//						headerFields: [
+//							"Content-Length": "\(returnConfig.data.count)",
+//						])!
+//				}
+//				return (returnConfig.data, response)
+			}
+		}
+
+		throw NetworkError.unspecifiedError(reason: "Escaped while loop")
 	}
 
 	private func downloadTask(
