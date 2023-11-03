@@ -97,6 +97,10 @@ public class MultipartFormInputStream: ConcatenatedInputStream {
 
 extension MultipartFormInputStream: NSCopying {
 	public func copy(with zone: NSZone? = nil) -> Any {
+		safeCopy()
+	}
+
+	public func safeCopy() -> MultipartFormInputStream {
 		let newCopy = MultipartFormInputStream(boundary: originalBoundary)
 
 		streams.forEach {
