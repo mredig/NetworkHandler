@@ -382,6 +382,10 @@ public class NetworkHandler {
 					task = session.uploadTask(with: request.urlRequest, fromFile: url)
 				case .data(let uploadData):
 					task = session.uploadTask(with: request.urlRequest, from: uploadData)
+				case .inputStream(let inputStream):
+					task = session.uploadTask(withStreamedRequest: request.urlRequest)
+					nhMainUploadDelegate.addInputStream(inputStream, for: task)
+					task.delegate = nhMainUploadDelegate
 				}
 
 				if let delegate {

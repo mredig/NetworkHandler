@@ -498,6 +498,60 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
+	func testUploadMultipartStream() async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			XCTFail("Need s3 credentials")
+			return
+		}
+
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
+		var request = url.request
+		let method = HTTPMethod.put
+		request.httpMethod = method
+
+		// this can be changed per run depending on internet variables - large enough to take more than an instant,
+		// small enough to not timeout.
+		let sizeOfUploadMB: UInt8 = 30
+
+		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
+		defer { try? FileManager.default.removeItem(at: dummyFile) }
+		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
+
+		let boundary = "asdlfkjasdf"
+		let multipart = MultipartFormInputStream(boundary: boundary)
+		try multipart.addPart(named: "file", fileURL: dummyFile, contentType: "application/octet-stream")
+
+		let multipartHash = try streamHash(multipart.safeCopy())
+
+		let awsHeaderInfo = try AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: "\(multipartHash.toHexString())")
+		request = try awsHeaderInfo.processRequest(request)
+
+		request.payload = .upload(.inputStream(multipart))
+
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: dummyFile)
+		}
+
+		_ = try await networkHandler.transferMahDatas(for: request)
+
+		let dlRequest = url.request
+
+		let downloadedResult = try await networkHandler.transferMahDatas(for: dlRequest)
+		XCTAssertEqual(SHA256.hash(data: downloadedResult.data), multipartHash)
+		try checkNetworkHandlerTasksFinished(networkHandler)
+	}
+
 	/// Tests using a mock session that corrupt data is properly reported as NetworkError.dataCodingError
 	func testBadData() async throws {
 

@@ -12,6 +12,7 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 
 	private var taskDelegates: [URLSessionTask: NetworkHandlerTransferDelegate] = [:]
 	private var stateObservers: [URLSessionTask: NSKeyValueObservation] = [:]
+	private var inputStreams: [URLSessionTask: InputStream] = [:]
 
 	typealias DataPublisher = NHPublisher<Data, Error>
 	private var dataPublishers: [URLSessionTask: DataPublisher] = [:]
@@ -67,6 +68,19 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 		}
 	}
 
+	func urlSession(
+		_ session: URLSession,
+		task: URLSessionTask,
+		needNewBodyStream completionHandler: @escaping (InputStream?) -> Void
+	) {
+		Self.uploadDelegateLock.lock()
+		defer { Self.uploadDelegateLock.unlock() }
+
+		let stream = inputStreams[task]
+
+		completionHandler(stream)
+	}
+
 	func addTaskDelegate(_ delegate: NetworkHandlerTransferDelegate, for task: URLSessionTask) {
 		Self.uploadDelegateLock.lock()
 		defer { Self.uploadDelegateLock.unlock() }
@@ -85,12 +99,20 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 		}
 	}
 
+	func addInputStream(_ stream: InputStream, for task: URLSessionUploadTask) {
+		Self.uploadDelegateLock.lock()
+		defer { Self.uploadDelegateLock.unlock() }
+
+		inputStreams[task] = stream
+	}
+
 	func cleanUpTask(_ task: URLSessionTask) {
 		taskDelegates[task] = nil
 		dataPublishers[task] = nil
 		taskKeepalives[task] = nil
 		stateObservers[task]?.invalidate()
 		stateObservers[task] = nil
+		inputStreams[task] = nil
 	}
 }
 

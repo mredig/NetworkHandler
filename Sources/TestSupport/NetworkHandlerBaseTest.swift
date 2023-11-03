@@ -75,9 +75,13 @@ open class NetworkHandlerBaseTest: XCTestCase {
 	}
 
 	public func fileHash(_ url: URL) throws -> SHA256Digest {
-		var hasher = SHA256()
-
 		guard let input = InputStream(url: url) else { throw NSError(domain: "Error loading file for hashing", code: -1) }
+
+		return try streamHash(input)
+	}
+
+	public func streamHash(_ input: InputStream) throws -> SHA256Digest {
+		var hasher = SHA256()
 
 		let bufferSize = 1024 // KB
 		* 1024 // MB
