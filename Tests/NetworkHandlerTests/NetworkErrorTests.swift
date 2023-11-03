@@ -1,5 +1,5 @@
 import XCTest
-@testable import NetworkHandler
+import NetworkHandler
 @testable import TestSupport
 
 /// Obviously dependent on network conditions

@@ -1,5 +1,5 @@
 import XCTest
-@testable import NetworkHandler
+import NetworkHandler
 import Swizzles
 
 @MainActor

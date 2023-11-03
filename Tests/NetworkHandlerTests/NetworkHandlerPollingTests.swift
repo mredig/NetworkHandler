@@ -1,5 +1,5 @@
 import XCTest
-@testable import NetworkHandler
+import NetworkHandler
 import Crypto
 import TestSupport
 import Swiftwood
