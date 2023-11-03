@@ -5,7 +5,7 @@ import TestSupport
 import Swiftwood
 
 /// Obviously dependent on network conditions
-class NetworkHandlerRetryTests: NetworkHandlerBaseTest {
+class NetworkHandlerRetryRawDataTests: NetworkHandlerBaseTest {
 
 	class StateHolder<T> {
 		private let lock = NSLock()
