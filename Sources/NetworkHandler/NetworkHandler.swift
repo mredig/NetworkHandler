@@ -145,7 +145,7 @@ public class NetworkHandler {
 	) async throws -> NHCodedResponse<DecodableType> {
 		try await transferTaskPerformer(
 			originalRequest: request,
-			{ request, attempt in
+			transferTask: { request, attempt in
 				let totalResponse = try await _transferMahDatas(
 					for: request,
 					delegate: delegate,
@@ -191,7 +191,7 @@ public class NetworkHandler {
 	) async throws -> NHRawResponse {
 		let temp = try await transferTaskPerformer(
 			originalRequest: request,
-			{ request, attempt in
+			transferTask: { request, attempt in
 				try await _transferMahDatas(
 					for: request,
 					delegate: delegate,
@@ -274,7 +274,7 @@ public class NetworkHandler {
 
 	private func transferTaskPerformer<T: Decodable>(
 		originalRequest: NetworkRequest,
-		_ task: (NetworkRequest, Int) async throws -> (T, HTTPURLResponse),
+		transferTask: (NetworkRequest, Int) async throws -> (T, HTTPURLResponse),
 		errorHandler: RetryOptionBlock<T>
 	) async throws -> NHCodedResponse<T> {
 		var retryOption = RetryOption<T>.retry
@@ -286,7 +286,7 @@ public class NetworkHandler {
 
 			let theError: NetworkError
 			do {
-				return try await task(theRequest, attempt)
+				return try await transferTask(theRequest, attempt)
 			} catch let error as NetworkError {
 				theError = error
 			} catch {

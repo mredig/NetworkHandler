@@ -2,7 +2,11 @@ import Foundation
 import NetworkHalpers
 
 public class NetworkHandlerMocker: URLProtocol {
-	public typealias SmartResponseMockBlock = (URL, URLRequest, HTTPMethod) throws -> (data: Data, response: HTTPURLResponse)
+	public typealias SmartResponseMockBlock = (
+		URL,
+		URLRequest,
+		HTTPMethod
+	) throws -> (data: Data, response: HTTPURLResponse)
 	public typealias SmartMockBlock = (URL, URLRequest, HTTPMethod) throws -> (data: Data, code: Int)
 	@MainActor
 	static private var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
