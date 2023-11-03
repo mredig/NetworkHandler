@@ -3,7 +3,7 @@ import Foundation
 extension NetworkHandler {
 	/// (previousRequest, failedAttempts, mostRecentError)
 	/// Return whatever option you wish to proceed with.
-	public typealias RetryOptionBlock = (NetworkRequest, Int, NetworkError) -> RetryOption
+	public typealias RetryOptionBlock<T: Decodable> = (NetworkRequest, Int, NetworkError) -> RetryOption<T>
 
 	public struct RetryConfiguration {
 		public static let simple = RetryConfiguration(delay: 0)
@@ -20,8 +20,8 @@ extension NetworkHandler {
 		}
 	}
 
-	public struct DefaultReturnValueConfiguration {
-		public var data: Data
+	public struct DefaultReturnValueConfiguration<T: Decodable> {
+		public var data: T
 		public var response: ResponseOption
 
 		public enum ResponseOption {
@@ -30,8 +30,8 @@ extension NetworkHandler {
 		}
 	}
 
-	public enum RetryOption {
-		public static let retry = RetryOption.retryWithConfiguration(config: .simple)
+	public enum RetryOption<T: Decodable> {
+		public static var retry: RetryOption { .retryWithConfiguration(config: .simple) }
 		case retryWithConfiguration(config: RetryConfiguration)
 		public static func retry(
 			withDelay delay: TimeInterval = 0,
@@ -42,15 +42,15 @@ extension NetworkHandler {
 		}
 
 		case `throw`(updatedError: Error?)
-		public static let `throw` = RetryOption.throw(updatedError: nil)
-		case defaultReturnValue(config: DefaultReturnValueConfiguration)
+		public static var `throw`: RetryOption { .throw(updatedError: nil) }
+		case defaultReturnValue(config: DefaultReturnValueConfiguration<T>)
 
-		public static func defaultReturnValue(data: Data, statusCode: Int) -> RetryOption {
+		public static func defaultReturnValue(data: T, statusCode: Int) -> RetryOption {
 			let config = DefaultReturnValueConfiguration(data: data, response: .code(statusCode))
 			return .defaultReturnValue(config: config)
 		}
 
-		public static func defaultReturnValue(data: Data, urlResponse: HTTPURLResponse) -> RetryOption {
+		public static func defaultReturnValue(data: T, urlResponse: HTTPURLResponse) -> RetryOption {
 			let config = DefaultReturnValueConfiguration(data: data, response: .full(urlResponse))
 			return .defaultReturnValue(config: config)
 		}

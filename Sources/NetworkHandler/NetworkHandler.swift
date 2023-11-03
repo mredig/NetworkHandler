@@ -6,6 +6,9 @@ import FoundationNetworking
 import SaferContinuation
 import Swiftwood
 
+public typealias NHCodedResponse<T: Decodable> = (decoded: T, response: HTTPURLResponse)
+public typealias NHRawResponse = (data: Data, response: HTTPURLResponse)
+
 public class NetworkHandler {
 	// MARK: - Properties
 	@available(*, deprecated, message: "Use `enableLogging`")
@@ -138,8 +141,8 @@ public class NetworkHandler {
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		sessionConfiguration: URLSessionConfiguration? = nil,
-		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
-	) async throws -> (decoded: DecodableType, response: HTTPURLResponse) {
+		onError: @escaping RetryOptionBlock<DecodableType> = { _, _, _ in .throw }
+	) async throws -> NHCodedResponse<DecodableType> {
 		try await transferTaskPerformer(
 			originalRequest: request,
 			{ request, attempt in
@@ -184,9 +187,9 @@ public class NetworkHandler {
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		sessionConfiguration: URLSessionConfiguration? = nil,
-		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
-	) async throws -> (data: Data, response: HTTPURLResponse) {
-		try await transferTaskPerformer(
+		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
+	) async throws -> NHRawResponse {
+		let temp = try await transferTaskPerformer(
 			originalRequest: request,
 			{ request, attempt in
 				try await _transferMahDatas(
@@ -197,6 +200,7 @@ public class NetworkHandler {
 					sessionConfiguration: sessionConfiguration)
 			},
 			errorHandler: onError)
+		return (temp.decoded, temp.response)
 	}
 
 	@NHActor
@@ -206,7 +210,7 @@ public class NetworkHandler {
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		attempt: Int,
 		sessionConfiguration: URLSessionConfiguration? = nil
-	) async throws -> (data: Data, response: HTTPURLResponse) {
+	) async throws -> NHRawResponse {
 		if let cacheKey = cacheOption.cacheKey(url: request.url) {
 			if let cachedData = cache[cacheKey] {
 				return (cachedData.data, cachedData.response)
@@ -271,9 +275,9 @@ public class NetworkHandler {
 	private func transferTaskPerformer<T: Decodable>(
 		originalRequest: NetworkRequest,
 		_ task: (NetworkRequest, Int) async throws -> (T, HTTPURLResponse),
-		errorHandler: RetryOptionBlock
-	) async throws -> (T, HTTPURLResponse) {
-		var retryOption = RetryOption.retry
+		errorHandler: RetryOptionBlock<T>
+	) async throws -> NHCodedResponse<T> {
+		var retryOption = RetryOption<T>.retry
 		var theRequest = originalRequest
 		var attempt = 1
 
@@ -298,22 +302,19 @@ public class NetworkHandler {
 				}
 			case .throw(updatedError: let updatedError):
 				throw updatedError ?? theError
-			case .defaultReturnValue:// (config: let returnConfig):
-				throw NetworkError.unspecifiedError(reason: "Not supported yet")
-//				let response: HTTPURLResponse
-//				switch returnConfig.response {
-//				case .full(let fullResponse):
-//					response = fullResponse
-//				case .code(let statusCode):
-//					response = HTTPURLResponse(
-//						url: theRequest.url!,
-//						statusCode: statusCode,
-//						httpVersion: nil,
-//						headerFields: [
-//							"Content-Length": "\(returnConfig.data.count)",
-//						])!
-//				}
-//				return (returnConfig.data, response)
+			case .defaultReturnValue(config: let returnConfig):
+				let response: HTTPURLResponse
+				switch returnConfig.response {
+				case .full(let fullResponse):
+					response = fullResponse
+				case .code(let statusCode):
+					response = HTTPURLResponse(
+						url: theRequest.url!,
+						statusCode: statusCode,
+						httpVersion: nil,
+						headerFields: nil)!
+				}
+				return (returnConfig.data, response)
 			}
 		}
 
