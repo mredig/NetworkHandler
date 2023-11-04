@@ -1,8 +1,8 @@
 import Foundation
 
 @globalActor
-struct NHActor: GlobalActor {
-	actor ActorType {}
+public struct NHActor: GlobalActor {
+	public actor ActorType {}
 
-	static var shared = ActorType()
+	public static var shared = ActorType()
 }
