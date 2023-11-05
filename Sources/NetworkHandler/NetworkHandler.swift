@@ -321,6 +321,7 @@ public class NetworkHandler {
 		throw NetworkError.unspecifiedError(reason: "Escaped while loop")
 	}
 
+	package var taskHolders: [UUID: URLSessionTask] = [:]
 	private func downloadTask(
 		session: URLSession,
 		request: NetworkRequest,
@@ -330,6 +331,10 @@ public class NetworkHandler {
 		let task = asyncBytes.task
 		task.priority = request.priority.rawValue
 		delegate?.task = task
+
+		let taskID = UUID()
+		taskHolders[taskID] = task
+		defer { taskHolders[taskID] = nil }
 
 		guard let httpResponse = response as? HTTPURLResponse else {
 			logIfEnabled("Error: Server replied with no status code", logLevel: .error)
@@ -360,7 +365,8 @@ public class NetworkHandler {
 			}
 
 			return (data, httpResponse)
-		}, onCancel: { [weak task] in
+		}, onCancel: { [weak self, taskID] in
+			let task = self?.taskHolders.removeValue(forKey: taskID)
 			task?.cancel()
 		})
 	}
@@ -371,7 +377,7 @@ public class NetworkHandler {
 		uploadFile: NetworkRequest.UploadFile,
 		delegate: NetworkHandlerTransferDelegate?
 	) async throws -> (Data, HTTPURLResponse) {
-		var taskHolder: URLSessionTask?
+		let taskID = UUID()
 
 		return try await withTaskCancellationHandler(
 			operation: {
@@ -391,7 +397,8 @@ public class NetworkHandler {
 				if let delegate {
 					nhMainUploadDelegate.addTaskDelegate(delegate, for: task)
 				}
-				taskHolder = task
+				
+				taskHolders[taskID] = task
 
 				data = try await withCheckedThrowingContinuation({ continuation in
 					let safer = SaferContinuation(
@@ -443,8 +450,9 @@ public class NetworkHandler {
 
 				return (data, httpResponse)
 			},
-			onCancel: { [weak taskHolder] in
-				taskHolder?.cancel()
+			onCancel: { [weak self, taskID] in
+				let task = self?.taskHolders.removeValue(forKey: taskID)
+				task?.cancel()
 			})
 	}
 
