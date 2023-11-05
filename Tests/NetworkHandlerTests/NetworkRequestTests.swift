@@ -172,7 +172,7 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 		let mockData = try JSONEncoder().encode(demoModel)
 		await NetworkHandlerMocker.addMock(for: dummyURL, method: .get, data: mockData, code: 200)
 
-		let dlDelegate = DownloadDelegate()
+		let dlDelegate = TestingDelegate()
 
 		let defaultRequest = dummyURL.request
 		Task {

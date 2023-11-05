@@ -22,7 +22,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		var progressTracker: [Double] = []
 
-		let myDel = DownloadDelegate()
+		let myDel = TestingDelegate()
 		myDel.progressPub
 			.sink {
 				progressTracker.append($0)
@@ -95,7 +95,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		var progressTracker: [Double] = []
 
-		let myDel = DownloadDelegate()
+		let myDel = TestingDelegate()
 		myDel.progressPub.sink {
 			progressTracker.append($0)
 		}
@@ -170,7 +170,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		var stateAccumulator: Set<URLSessionTask.State> = []
 
-		let dlDelegate = DownloadDelegate()
+		let dlDelegate = TestingDelegate()
 		dlDelegate
 			.statePub
 			.sink { state in
@@ -201,7 +201,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		var statuses: [URLSessionTask.State] = []
 
-		let myDel = DownloadDelegate()
+		let myDel = TestingDelegate()
 		myDel.statePub
 			.receive(on: .main)
 			.removeDuplicates()

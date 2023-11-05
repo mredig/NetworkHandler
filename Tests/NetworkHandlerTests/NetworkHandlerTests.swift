@@ -116,6 +116,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(imageOneData, imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
 
 		XCTAssertNotNil(TestImage(data: imageOneData))
+		XCTAssertTrue(networkHandler.taskHolders.isEmpty)
 	}
 
 	// MARK: - Mock Network Tests
@@ -137,6 +138,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let result: DemoModel = try await networkHandler.transferMahCodableDatas(for: dummyModelURL.request).decoded
 		XCTAssertEqual(demoModel, result)
+		XCTAssertTrue(networkHandler.taskHolders.isEmpty)
 	}
 
 	func testDataAsCodable() async throws {
@@ -230,6 +232,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			let expectedError = NetworkError.httpNon200StatusCode(code: 404, data: Data())
 			XCTAssertEqual(expectedError, error as? NetworkError)
 		}
+		XCTAssertTrue(networkHandler.taskHolders.isEmpty)
 	}
 
 	/// Tests using a mock session that when expecting ONLY a 200 response code, a 200 code will be an expected success
@@ -254,6 +257,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let result: DemoModel = try await networkHandler.transferMahCodableDatas(for: request).decoded
 		XCTAssertEqual(demoModel, result)
+		XCTAssertTrue(networkHandler.taskHolders.isEmpty)
 	}
 
 	/// Tests using a Mock session that when expecting ONLY a 200 response code, even a 202 code will 
@@ -590,7 +594,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			(Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024 * 10), 200)
 		})
 
-		let delegate = DownloadDelegate()
+		let delegate = TestingDelegate()
 		var sessionTask: URLSessionTask?
 		delegate
 			.taskPub
@@ -620,6 +624,111 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		}
 	}
 
+	func testCancellingDownload() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let sampleURL = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+		await NetworkHandlerMocker.addMock(for: sampleURL, method: .get, smartBlock: { _, _, _ in
+			(Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024 * 10), 200)
+		})
+
+		let delegate = TestingDelegate()
+
+		let task = Task {
+			try await networkHandler.transferMahDatas(for: sampleURL.request, delegate: delegate).data
+		}
+		var completed = false
+		delegate
+			.progressPub
+			// must not cancel a task on the same queue it receives updates from
+			.receive(on: .global(qos: .userInteractive))
+			.sink {
+				guard $0 > 0.25, completed == false else { return }
+				XCTAssertEqual(1, networkHandler.taskHolders.count)
+				task.cancel()
+				completed = true
+			}
+
+		let result = await task.result
+
+		XCTAssertThrowsError(try result.get(), "Expected cancelled error") { error in
+			guard case NetworkError.requestCancelled = error else {
+				XCTFail("incorrect error: \(error)")
+				return
+			}
+		}
+		XCTAssertTrue(networkHandler.taskHolders.isEmpty)
+	}
+
+	func testCancellingUpload() async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			XCTFail("Need s3 credentials")
+			return
+		}
+
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/uploader.bin")!
+		var request = url.request
+		let method = HTTPMethod.put
+		request.httpMethod = method
+
+		// this can be changed per run depending on internet variables - large enough to take more than an instant,
+		// small enough to not timeout.
+		let sizeOfUploadMB: UInt8 = 5
+
+		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
+		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
+
+		let dataHash = try fileHash(dummyFile)
+
+		let awsHeaderInfo = try AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .fromShaHashDigest(dataHash))
+		request = try awsHeaderInfo.processRequest(request)
+
+		request.payload = .upload(.localFile(dummyFile))
+
+		addTeardownBlock {
+			try? FileManager.default.removeItem(at: dummyFile)
+		}
+
+		let delegate = TestingDelegate()
+
+		let task = Task {
+			try await networkHandler.transferMahDatas(for: url.request, delegate: delegate).data
+		}
+		var completed = false
+		delegate
+			.progressPub
+			// must not cancel a task on the same queue it receives updates from
+			.receive(on: .global(qos: .userInteractive))
+			.sink {
+				guard $0 > 0.25, completed == false else { return }
+				task.cancel()
+				completed = true
+			}
+
+		let result = await task.result
+
+		XCTAssertThrowsError(try result.get(), "Expected cancelled error") { error in
+			guard case NetworkError.requestCancelled = error else {
+				XCTFail("incorrect error: \(error)")
+				return
+			}
+		}
+
+		try checkNetworkHandlerTasksFinished(networkHandler)
+		XCTAssertTrue(networkHandler.taskHolders.isEmpty)
+	}
+
 	func testImmediateCancellingSessionTask() async throws {
 		let networkHandler = generateNetworkHandlerInstance()
 
@@ -628,7 +737,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			(Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024 * 10), 200)
 		})
 
-		let delegate = DownloadDelegate()
+		let delegate = TestingDelegate()
 		delegate
 			.taskPub
 		// must not cancel a task on the same queue it receives updates from
@@ -658,7 +767,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			(Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024 * 10), 200)
 		})
 
-		let delegate = DownloadDelegate()
+		let delegate = TestingDelegate()
 
 		let task = Task {
 			try await networkHandler.transferMahDatas(for: sampleURL.request, delegate: delegate).data
@@ -689,7 +798,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			(Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024 * 10), 200)
 		})
 
-		let delegate = DownloadDelegate()
+		let delegate = TestingDelegate()
 
 		let task = Task {
 			try await networkHandler.transferMahDatas(for: sampleURL.request, delegate: delegate).data
