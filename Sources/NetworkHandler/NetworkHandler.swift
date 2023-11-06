@@ -43,6 +43,7 @@ public class NetworkHandler {
 		queue.maxConcurrentOperationCount = 1
 		return queue
 	}()
+	private let atomicPropertyLock = NSLock()
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
@@ -321,7 +322,17 @@ public class NetworkHandler {
 		throw NetworkError.unspecifiedError(reason: "Escaped while loop")
 	}
 
-	package var taskHolders: [UUID: URLSessionTask] = [:]
+	private var _taskHolders: [UUID: URLSessionTask] = [:]
+	package var taskHolders: [UUID: URLSessionTask] {
+		get {
+			atomicPropertyLock.withLock { _taskHolders }
+		}
+		set {
+			atomicPropertyLock.withLock {
+				_taskHolders = newValue
+			}
+		}
+	}
 	private func downloadTask(
 		session: URLSession,
 		request: NetworkRequest,
