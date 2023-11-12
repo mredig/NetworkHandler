@@ -108,7 +108,7 @@ public class NetworkHandler {
 		var instruction = try await until(request, firstResult)
 
 		while case .continue(let networkRequest, let timeInterval) = instruction {
-			if #available(macOS 13.0, *) {
+			if #available(macOS 13.0, iOS 16.0, tvOS 16.0, *) {
 				try await Task.sleep(for: .seconds(timeInterval))
 			} else {
 				try await Task.sleep(nanoseconds: UInt64(timeInterval * 1_000_000_000))

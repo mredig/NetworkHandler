@@ -76,6 +76,7 @@ class NetworkHandlerRetryDecodableTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(200, result.response.statusCode)
 	}
 
+	@available(iOS 16.0, tvOS 16.0, *)
 	func testRetry3XSuccessModifiedRequest() async throws {
 		let networkHandler = generateNetworkHandlerInstance()
 
