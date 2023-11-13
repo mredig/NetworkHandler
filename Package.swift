@@ -32,6 +32,7 @@ let package = Package(
 		.package(url: "https://github.com/mredig/SaferContinuation.git", .upToNextMinor(from: "1.3.0")),
 		.package(url: "https://github.com/mredig/Swiftwood.git", .upToNextMajor(from: "0.4.0")),
 		.package(url: "https://github.com/mredig/PizzaMacros.git", .upToNextMinor(from: "0.1.0")),
+		.package(url: "https://github.com/mredig/SwiftlyDotEnv.git", .upToNextMinor(from: "0.2.3")),
 	],
 	targets: [
 		// Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -62,10 +63,15 @@ let package = Package(
 			name: "TestSupport",
 			dependencies: [
 				"NetworkHandler",
+				"SwiftlyDotEnv",
 			]),
 		.testTarget(
 			name: "NetworkHandlerTests",
-			dependencies: ["NetworkHandler", "TestSupport", "Swizzles"]),
+			dependencies: [
+				"NetworkHandler",
+				"TestSupport",
+				"Swizzles",
+			]),
 		.testTarget(
 			name: "NetworkHalpersTests",
 			dependencies: [

@@ -37,6 +37,15 @@
       }
     },
     {
+      "identity" : "swiftlydotenv",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mredig/SwiftlyDotEnv.git",
+      "state" : {
+        "revision" : "7554a5f4382d174ad5b8521260e877c108f3ee84",
+        "version" : "0.2.4"
+      }
+    },
+    {
       "identity" : "swiftwood",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mredig/Swiftwood.git",

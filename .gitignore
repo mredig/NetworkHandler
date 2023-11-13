@@ -201,3 +201,4 @@ Dependencies/
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,swift,xcode,macos,carthage,cocoapods,objective-c
 NetworkHandler-Documentation.docset/
+.env*

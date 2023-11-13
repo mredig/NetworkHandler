@@ -1,9 +1,40 @@
 import Foundation
+import SwiftlyDotEnv
 
 /// most easily populated by setting up env vars in xcode scheme. not sure how to do on linux...
 public enum TestEnvironment {
-	public static let s3AccessKey = ProcessInfo.processInfo.environment[.s3AccessKeyKey] ?? ""
-	public static let s3AccessSecret = ProcessInfo.processInfo.environment[.s3AccessSecretKey] ?? ""
+	private typealias SDEnv = SwiftlyDotEnv
+
+	private static func loadIfNeeded() {
+		guard SwiftlyDotEnv.isLoaded == false else { return }
+		do {
+			try SwiftlyDotEnv.loadDotEnv(
+				from: URL(fileURLWithPath: #filePath)
+					.deletingLastPathComponent()
+					.deletingLastPathComponent()
+					.deletingLastPathComponent(),
+				envName: "tests",
+				requiringKeys: [
+					"S3KEY",
+					"S3SECRET",
+				])
+		} catch {
+			let message = """
+				Could not load env vars (you probably need a `.env.tests` file in the NetworkHandler root directory: \(error)
+				"""
+			log.error(message)
+			fatalError(message)
+		}
+	}
+
+	public static let s3AccessKey: String = {
+		loadIfNeeded()
+		return SwiftlyDotEnv[.s3AccessKeyKey]!
+	}()
+	public static let s3AccessSecret = {
+		loadIfNeeded()
+		return SwiftlyDotEnv[.s3AccessSecretKey]!
+	}()
 }
 
 fileprivate extension String {
