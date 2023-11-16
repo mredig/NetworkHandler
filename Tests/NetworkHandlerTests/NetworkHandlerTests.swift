@@ -3,6 +3,7 @@ import XCTest
 import Crypto
 import TestSupport
 import Swiftwood
+import PizzaMacros
 
 /// Obviously dependent on network conditions
 class NetworkHandlerTests: NetworkHandlerBaseTest {
@@ -813,5 +814,70 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				return
 			}
 		}
+	}
+
+	/// Tests that timeouts will trigger retry attempts. Will fail if timeout isn't triggered, so if you have an uber
+	/// fast connection, it might falsely fail.
+	func testTimeoutTriggersRetry() async throws {
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
+
+		let url = #URL("https://s3.wasabisys.com/network-handler-tests/uploader.bin")
+		var request = url.request
+		let method = HTTPMethod.put
+		request.httpMethod = method
+
+		addTeardownBlock {
+			try await Task.sleep(nanoseconds: 1_000_000_000)
+		}
+
+		// this can be changed per run depending on internet variables - large enough to take more than an instant,
+		// small enough to not timeout.
+		let sizeOfUploadMB: UInt8 = 5
+
+		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
+		try generateRandomBytes(in: dummyFile, megabytes: sizeOfUploadMB)
+
+		let dataHash = try fileHash(dummyFile)
+
+		let awsHeaderInfo = try AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: "\(dataHash.toHexString())")
+		request = try awsHeaderInfo.processRequest(request)
+
+		request.payload = .upload(.localFile(dummyFile))
+		request.timeoutInterval = 0.0001
+
+		let delegate = TestingDelegate()
+		delegate
+			.progressPub
+			// must not cancel a task on the same queue it receives updates from
+			.receive(on: .global(qos: .userInteractive))
+			.sink {
+				print("prog: \($0)")
+			}
+
+		let atomicFailCount = AtomicValue(value: 0)
+		let expectedFailCount = 3
+
+		let throwingTask = Task { [request] in
+			try await networkHandler.transferMahDatas(
+				for: request,
+				delegate: delegate) { _, failCount, error in
+					XCTAssertFalse(error.isCancellation())
+					atomicFailCount.value = failCount
+					guard failCount < expectedFailCount else { return .throw }
+					print("❤️ retrying: \(request.url!)")
+					return .retry
+				}
+		}
+
+		let result = await throwingTask.result
+
+		XCTAssertThrowsError(try result.get())
+		XCTAssertEqual(atomicFailCount.value, expectedFailCount)
 	}
 }

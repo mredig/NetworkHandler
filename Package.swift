@@ -71,6 +71,7 @@ let package = Package(
 				"NetworkHandler",
 				"TestSupport",
 				"Swizzles",
+				"PizzaMacros",
 			]),
 		.testTarget(
 			name: "NetworkHalpersTests",
