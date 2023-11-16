@@ -249,7 +249,7 @@ public class NetworkHandler {
 				error.domain == NSURLErrorDomain,
 				error.code == NSURLErrorCancelled {
 				throw NetworkError.requestCancelled
-			} else if (error as? CancellationError) != nil {
+			} else if error is CancellationError {
 				throw NetworkError.requestCancelled
 			} else {
 				throw error
