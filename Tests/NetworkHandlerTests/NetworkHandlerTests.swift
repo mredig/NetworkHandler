@@ -463,7 +463,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// this can be changed per run depending on internet variables - large enough to take more than an instant,
 		// small enough to not timeout.
-		let sizeOfUploadMB: UInt8 = 30
+		let sizeOfUploadMB: UInt8 = 10
 
 		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
 		defer { try? FileManager.default.removeItem(at: dummyFile) }
@@ -520,7 +520,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		// this can be changed per run depending on internet variables - large enough to take more than an instant,
 		// small enough to not timeout.
-		let sizeOfUploadMB: UInt8 = 30
+		let sizeOfUploadMB: UInt8 = 10
 
 		let dummyFile = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
 		defer { try? FileManager.default.removeItem(at: dummyFile) }
