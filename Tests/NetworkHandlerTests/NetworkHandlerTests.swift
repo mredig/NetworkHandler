@@ -807,6 +807,11 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 		let result = await task.result
 
-		XCTAssertThrowsError(try result.get(), "Expected cancelled error")
+		XCTAssertThrowsError(try result.get(), "Expected cancelled error") { error in
+			guard case NetworkError.requestCancelled = error else {
+				XCTFail("incorrect error: \(error)")
+				return
+			}
+		}
 	}
 }

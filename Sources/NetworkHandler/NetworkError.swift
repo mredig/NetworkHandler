@@ -176,6 +176,36 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 	public var recoverySuggestion: String? { debugDescription }
 }
 
+public extension Error {
+	/// Checks for cancellation errors related to networking or `CancellationError` and returns true if for cancellation.
+	func isCancellation() -> Bool {
+		if
+			case let error = self as NSError,
+			error.domain == NSURLErrorDomain,
+			error.code == NSURLErrorCancelled {
+			
+			return true
+		} else if self is CancellationError {
+			return true
+		} else if let error = self as? NetworkError, error == .requestCancelled {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	/// Checks for cancellation errors (via `checkForCancellation()`) and, if it is cancellation, returns
+	/// `NetworkError.requestCancelled`
+	func convertToNetworkErrorIfCancellation() -> Error {
+		if self is NetworkError {
+			return self
+		} else {
+			guard isCancellation() else { return NetworkError.otherError(error: self) }
+			return NetworkError.requestCancelled
+		}
+	}
+}
+
 public extension Task {
 	static func checkCancellationForNetworkRequest() throws where Success == Never, Failure == Never {
 		guard

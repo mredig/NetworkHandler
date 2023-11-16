@@ -244,16 +244,7 @@ public class NetworkHandler {
 					delegate: delegate)
 			}
 		} catch {
-			let error = error as NSError
-			if
-				error.domain == NSURLErrorDomain,
-				error.code == NSURLErrorCancelled {
-				throw NetworkError.requestCancelled
-			} else if error is CancellationError {
-				throw NetworkError.requestCancelled
-			} else {
-				throw error
-			}
+			throw error.convertToNetworkErrorIfCancellation()
 		}
 
 		guard request.expectedResponseCodes.contains(httpResponse.statusCode) else {
