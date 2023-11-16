@@ -406,7 +406,7 @@ public class NetworkHandler {
 					let safer = SaferContinuation(
 						continuation,
 						isFatal: [.onMultipleCompletions, .onPostRunDelayCheck],
-						timeout: request.timeoutInterval * 1.5,
+						timeout: (request.timeoutInterval * 1.5) + 0.5,
 						delayCheckInterval: 3,
 						context: "(\(request.httpMethod as Any)): \(request.url as Any)")
 
