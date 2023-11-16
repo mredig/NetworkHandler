@@ -83,9 +83,6 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 				usingCache: .key("kitten"),
 				sessionConfiguration: config)
 		let networkFinish = CFAbsoluteTimeGetCurrent()
-		addTeardownBlock {
-			networkHandler.resetCache()
-		}
 
 		// now try retrieving from cache
 		let cacheStart = CFAbsoluteTimeGetCurrent()

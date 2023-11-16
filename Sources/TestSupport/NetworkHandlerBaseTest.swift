@@ -29,6 +29,10 @@ open class NetworkHandlerBaseTest: XCTestCase {
 			config = nil
 		}
 		let networkHandler = NetworkHandler(name: "Test Network Handler", configuration: config)
+		addTeardownBlock {
+			networkHandler.resetCache()
+		}
+		networkHandler.resetCache()
 		return networkHandler
 	}
 
