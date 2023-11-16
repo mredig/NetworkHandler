@@ -6,37 +6,11 @@ import Swiftwood
 
 /// Obviously dependent on network conditions
 class NetworkHandlerRetryRawDataTests: NetworkHandlerBaseTest {
-
-	class StateHolder<T> {
-		private let lock = NSLock()
-
-		private var _value: T
-		var value: T {
-			get {
-				lock.lock()
-				defer { lock.unlock() }
-				return _value
-			}
-
-			set {
-				lock.lock()
-				defer { lock.unlock() }
-				_value = newValue
-			}
-		}
-
-		init(value: T) {
-			lock.lock()
-			defer { lock.unlock() }
-			self._value = value
-		}
-	}
-
 	func testRetry3XSuccess() async throws {
 		let networkHandler = generateNetworkHandlerInstance()
 
 		let url = URL(string: "https://foo.bar/")!
-		let iterations = StateHolder(value: 1)
+		let iterations = AtomicValue(value: 1)
 
 		let successString = "Success!"
 		await NetworkHandlerMocker
@@ -97,7 +71,7 @@ class NetworkHandlerRetryRawDataTests: NetworkHandlerBaseTest {
 				URLQueryItem(name: "iteration", value: "1")
 			])
 			.request
-		let failedAttemptCounter = StateHolder(value: 0)
+		let failedAttemptCounter = AtomicValue(value: 0)
 		let result = try await networkHandler.transferMahDatas(
 			for: request,
 			onError: { [failedAttemptCounter] previousRequest, failedAttempts, error in
@@ -142,7 +116,7 @@ class NetworkHandlerRetryRawDataTests: NetworkHandlerBaseTest {
 					(Data("Failed successfully.".utf8), 500)
 				})
 
-		let failedAttemptCounter = StateHolder(value: 0)
+		let failedAttemptCounter = AtomicValue(value: 0)
 
 		let request = url.request
 		let result = await Task {
@@ -168,8 +142,8 @@ class NetworkHandlerRetryRawDataTests: NetworkHandlerBaseTest {
 
 		let url = URL(string: "https://foo.bar/")!
 
-		let iterations = StateHolder(value: 0)
-		let lastRequest = StateHolder(value: Date.distantPast)
+		let iterations = AtomicValue(value: 0)
+		let lastRequest = AtomicValue(value: Date.distantPast)
 		await NetworkHandlerMocker
 			.addMock(
 				for: url,
@@ -238,7 +212,7 @@ class NetworkHandlerRetryRawDataTests: NetworkHandlerBaseTest {
 					(Data("Failed successfully.".utf8), 500)
 				})
 
-		let failedAttemptCounter = StateHolder(value: 0)
+		let failedAttemptCounter = AtomicValue(value: 0)
 
 		let request = url.request
 		let result = try await networkHandler.transferMahDatas(
@@ -281,7 +255,7 @@ class NetworkHandlerRetryRawDataTests: NetworkHandlerBaseTest {
 					(Data("Failed successfully.".utf8), 500)
 				})
 
-		let failedAttemptCounter = StateHolder(value: 0)
+		let failedAttemptCounter = AtomicValue(value: 0)
 
 		let request = url.request
 		let result = try await networkHandler.transferMahDatas(
