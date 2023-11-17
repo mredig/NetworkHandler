@@ -24,3 +24,13 @@ final class AtomicValue<T>: @unchecked Sendable {
 		self._value = value
 	}
 }
+
+extension AtomicValue: CustomStringConvertible, CustomDebugStringConvertible {
+	var description: String {
+		"\(value)"
+	}
+
+	var debugDescription: String {
+		"AtomicValue: \(value)"
+	}
+}
