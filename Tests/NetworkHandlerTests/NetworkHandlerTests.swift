@@ -813,6 +813,49 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		}
 	}
 
+	/// Confirms that cancelling a poll (aka download) task causes immediate cancellation and doesn't end up waiting for a timeout
+	func testDelayedResponseCancel() async throws {
+		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: true)
+
+		let sampleURL = #URL("https://yummy.pizza/longPoll")
+		let resultData = (Data(repeating: UInt8.random(in: 0...255), count: 1024 * 1024), 200)
+		await NetworkHandlerMocker.addMock(
+			for: sampleURL,
+			method: .get,
+			smartBlock: { _, _, _ in
+				try await Task.sleep(nanoseconds: 5_000_000_000)
+				return resultData
+			})
+
+		var request = sampleURL.request
+		request.timeoutInterval = 10
+
+		let pollCount = AtomicValue(value: 0)
+
+		let task = Task { [request] in
+			let finalResult: (Data, HTTPURLResponse) = try await networkHandler.poll(
+				request: request,
+				until: { previousRequest, previousResult in
+					defer { pollCount.value += 1 }
+					guard pollCount.value < 3 else { return .finish(previousResult) }
+
+					print(pollCount)
+
+					return .continue(previousRequest, 0.5)
+				})
+			return finalResult
+		}
+		try await Task.sleep(for: .seconds(0.5))
+		let start = Date()
+		task.cancel()
+		let result = await task.result
+		let end = Date()
+
+		XCTAssertThrowsError(try result.get())
+		let transpiredTime = end.timeIntervalSince(start)
+		XCTAssertLessThan(transpiredTime, 1.5)
+	}
+
 	/// Tests that timeouts will trigger retry attempts. Will fail if timeout isn't triggered, so if you have an uber
 	/// fast connection, it might falsely fail.
 	func testTimeoutTriggersRetry() async throws {
