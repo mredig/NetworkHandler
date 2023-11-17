@@ -331,25 +331,26 @@ public class NetworkHandler {
 	) async throws -> (Data, HTTPURLResponse) {
 		let (asyncBytes, response) = try await session.bytes(for: request.urlRequest, delegate: delegate)
 		let task = asyncBytes.task
-		task.priority = request.priority.rawValue
-		delegate?.task = task
-
 		let taskID = UUID()
 		taskHolders[taskID] = task
 		defer { taskHolders[taskID] = nil }
 
-		guard let httpResponse = response as? HTTPURLResponse else {
-			logIfEnabled("Error: Server replied with no status code", logLevel: .error)
-			throw NetworkError.noStatusCodeResponse
-		}
-
-		if let delegate {
-			await MainActor.run {
-				delegate.networkHandlerTaskDidStart(task)
-			}
-		}
-
 		return try await withTaskCancellationHandler(operation: {
+			task.priority = request.priority.rawValue
+			delegate?.task = task
+
+
+			guard let httpResponse = response as? HTTPURLResponse else {
+				logIfEnabled("Error: Server replied with no status code", logLevel: .error)
+				throw NetworkError.noStatusCodeResponse
+			}
+
+			if let delegate {
+				await MainActor.run {
+					delegate.networkHandlerTaskDidStart(task)
+				}
+			}
+
 			var data = Data()
 			data.reserveCapacity(Int(httpResponse.expectedContentLength))
 			var lastUpdate = Date.distantPast
