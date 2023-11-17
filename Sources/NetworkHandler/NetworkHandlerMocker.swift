@@ -6,8 +6,8 @@ public class NetworkHandlerMocker: URLProtocol {
 		URL,
 		URLRequest,
 		HTTPMethod
-	) throws -> (data: Data, response: HTTPURLResponse)
-	public typealias SmartMockBlock = (URL, URLRequest, HTTPMethod) throws -> (data: Data, code: Int)
+	) async throws -> (data: Data, response: HTTPURLResponse)
+	public typealias SmartMockBlock = (URL, URLRequest, HTTPMethod) async throws -> (data: Data, code: Int)
 	@MainActor
 	static private var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
 	private struct Key: Hashable {
@@ -45,20 +45,10 @@ public class NetworkHandlerMocker: URLProtocol {
 		for url: URL,
 		requireQueryMatch: Bool = true,
 		method: HTTPMethod,
-		smartResponseBlock: @escaping SmartResponseMockBlock
-	) {
-		acceptedIntercepts[Key(url: url, requireQueryMatch: requireQueryMatch, method: method)] = smartResponseBlock
-	}
-
-	@MainActor
-	public static func addMock(
-		for url: URL,
-		requireQueryMatch: Bool = true,
-		method: HTTPMethod,
 		smartBlock: @escaping SmartMockBlock
 	) {
 		addMock(for: url, requireQueryMatch: requireQueryMatch, method: method, smartResponseBlock: { url, request, method in
-			let (data, code) = try smartBlock(url, request, method)
+			let (data, code) = try await smartBlock(url, request, method)
 			let response = HTTPURLResponse(
 				url: url,
 				statusCode: code,
@@ -68,6 +58,16 @@ public class NetworkHandlerMocker: URLProtocol {
 				])!
 			return (data, response)
 		})
+	}
+
+	@MainActor
+	public static func addMock(
+		for url: URL,
+		requireQueryMatch: Bool = true,
+		method: HTTPMethod,
+		smartResponseBlock: @escaping SmartResponseMockBlock
+	) {
+		acceptedIntercepts[Key(url: url, requireQueryMatch: requireQueryMatch, method: method)] = smartResponseBlock
 	}
 
 	@MainActor
@@ -98,7 +98,7 @@ public class NetworkHandlerMocker: URLProtocol {
 			}
 			let result: (data: Data, response: HTTPURLResponse)
 			do {
-				result = try block(url, request, method)
+				result = try await block(url, request, method)
 			} catch {
 				let response = HTTPURLResponse(
 					url: url,
