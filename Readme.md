@@ -49,3 +49,8 @@ NetworkHandler was originally created to reduce boilerplate when using `URLSessi
 #### Compatibility
 Everything should be compatible with all Apple platforms that support Swift 5.5 with Async/Await.
 However, while the previous version was theoretically cross compatible with Linux, this latest iteration is not. I started an attempt (which you can see on the `linux-compatibility` branch), but ultimately it was more involved than the time I had available to proceed with support. Right now, the main obstacle is KVO compatibility for progress tracking a download. If someone is abitious enough, you should be able to get progress information from the delegate's data loaded method and open a PR. A couple files also need `FoundationNetworking` imported conditionally for Linux.
+
+
+#### To Do (contribution ideas)
+* after every task, grab its metrics (URLSessionMetrics or something like that) to make an easy to use interface to see network quality
+* it'd be nice to have a codable method return a value directly decoded instead of needing a tuple (might be a 3.0 feature)
