@@ -37,6 +37,7 @@ var targets: [Target] = [
 		dependencies: [
 			//				"CryptoSwift",
 			"Swiftwood",
+			.product(name: "Crypto", package: "swift-crypto"),
 		]),
 	.target(
 		name: "TestSupport",
