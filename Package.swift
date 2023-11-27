@@ -3,6 +3,63 @@
 
 import PackageDescription
 
+var products: [Product] = [
+	.library(
+		name: "NetworkHandler",
+		targets: ["NetworkHandler"]),
+	.library(
+		name: "NetworkHalpers",
+		targets: ["NetworkHalpers"]),
+]
+
+var nhDeps: [Target.Dependency] = [
+	.product(name: "Crypto", package: "swift-crypto"),
+	"NetworkHalpers",
+	"SaferContinuation",
+	"Swiftwood",
+]
+
+var nhTestsDeps: [Target.Dependency] = [
+	"NetworkHandler",
+	"TestSupport",
+	"PizzaMacros",
+]
+#if !os(Linux)
+nhDeps.append("Swizzles")
+nhTestsDeps.append("Swizzles")
+#endif
+var targets: [Target] = [
+	.target(
+		name: "NetworkHandler",
+		dependencies: nhDeps),
+	.target(
+		name: "NetworkHalpers",
+		dependencies: [
+			//				"CryptoSwift",
+			"Swiftwood",
+		]),
+	.target(
+		name: "TestSupport",
+		dependencies: [
+			"NetworkHandler",
+			"SwiftlyDotEnv",
+		]),
+	.testTarget(
+		name: "NetworkHandlerTests",
+		dependencies: nhTestsDeps),
+	.testTarget(
+		name: "NetworkHalpersTests",
+		dependencies: [
+			"NetworkHalpers",
+			"TestSupport",
+			"PizzaMacros",
+		]),
+]
+#if !os(Linux)
+products.append(.library(name: "Swizzles", targets: ["Swizzles"]))
+targets.append(.target(name: "Swizzles",  publicHeadersPath: "include", cSettings: [.headerSearchPath(".")]))
+#endif
+
 let package = Package(
 	name: "NetworkHandler",
 	platforms: [
@@ -11,74 +68,13 @@ let package = Package(
 		.tvOS(.v15),
 		.watchOS(.v8),
 	],
-	products: [
-		// Products define the executables and libraries produced by a package, and make them visible to other packages.
-		.library(
-			name: "NetworkHandler",
-			targets: ["NetworkHandler"]),
-		.library(
-			name: "NetworkHalpers",
-			targets: ["NetworkHalpers"]),
-		.library(
-			name: "Swizzles",
-			targets: [
-				"Swizzles",
-			]),
-	],
+	products: products,
 	dependencies: [
-		// Dependencies declare other packages that this package depends on.
-		// .package(url: /* package url */, from: "1.0.0"),
 		.package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.0.0")),
 		.package(url: "https://github.com/mredig/SaferContinuation.git", .upToNextMinor(from: "1.3.0")),
 		.package(url: "https://github.com/mredig/Swiftwood.git", .upToNextMajor(from: "0.4.0")),
 		.package(url: "https://github.com/mredig/PizzaMacros.git", .upToNextMinor(from: "0.1.0")),
 		.package(url: "https://github.com/mredig/SwiftlyDotEnv.git", .upToNextMinor(from: "0.2.3")),
 	],
-	targets: [
-		// Targets are the basic building blocks of a package. A target can define a module or a test suite.
-		// Targets can depend on other targets in this package, and on products in packages which this package depends on.
-		.target(
-			name: "Swizzles",
-			publicHeadersPath: "include",
-			cSettings: [
-				.headerSearchPath("."),
-			]
-		),
-		.target(
-			name: "NetworkHandler",
-			dependencies: [
-				.product(name: "Crypto", package: "swift-crypto"),
-				"NetworkHalpers",
-				"SaferContinuation",
-				"Swiftwood",
-				"Swizzles",
-			]),
-		.target(
-			name: "NetworkHalpers",
-			dependencies: [
-				//				"CryptoSwift",
-				"Swiftwood",
-			]),
-		.target(
-			name: "TestSupport",
-			dependencies: [
-				"NetworkHandler",
-				"SwiftlyDotEnv",
-			]),
-		.testTarget(
-			name: "NetworkHandlerTests",
-			dependencies: [
-				"NetworkHandler",
-				"TestSupport",
-				"Swizzles",
-				"PizzaMacros",
-			]),
-		.testTarget(
-			name: "NetworkHalpersTests",
-			dependencies: [
-				"NetworkHalpers",
-				"TestSupport",
-				"PizzaMacros",
-			]),
-	]
+	targets: targets
 )
