@@ -1,10 +1,14 @@
 import Foundation
+#if canImport(UniformTypeIdentifiers)
 import UniformTypeIdentifiers
+#endif
 
 extension MultipartFormInputStream {
-	class Part: ConcatenatedInputStream {
-		static let genericBinaryMimeType = "application/octet-stream"
-		static func getMimeType(forFileExtension pathExt: String) -> String {
+	static let genericBinaryMimeType = "application/octet-stream"
+	static func getMimeType(forFileExtension pathExt: String) -> String {
+		#if canImport(UniformTypeIdentifiers)
+		genericBinaryMimeType
+		#else
 			if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
 				let type = UTType(filenameExtension: pathExt)
 				return type?.preferredMIMEType ?? genericBinaryMimeType
@@ -23,8 +27,10 @@ extension MultipartFormInputStream {
 
 				return mimeType as String
 			}
-		}
+		#endif
+	}
 
+	class Part: ConcatenatedInputStream {
 		let copyGenerator: () -> Part
 
 		let headers: Data
@@ -84,7 +90,7 @@ extension MultipartFormInputStream {
 			fileURL: URL,
 			contentType: String? = nil
 		) throws {
-			let contentType = contentType ?? Self.getMimeType(forFileExtension: fileURL.pathExtension)
+			let contentType = contentType ?? MultipartFormInputStream.getMimeType(forFileExtension: fileURL.pathExtension)
 
 			let headerStr = """
 				--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; \
