@@ -1,5 +1,4 @@
 import Foundation
-import CoreServices
 import UniformTypeIdentifiers
 
 extension MultipartFormInputStream {
