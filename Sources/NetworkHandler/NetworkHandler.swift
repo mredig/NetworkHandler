@@ -1,6 +1,6 @@
 import Foundation
 @_exported import NetworkHalpers
-#if os(Linux)
+#if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
 import SaferContinuation
