@@ -1,5 +1,5 @@
 import Foundation
-import CryptoKit
+import Crypto
 
 public struct AWSV4Signature {
 

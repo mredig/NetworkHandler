@@ -1,6 +1,6 @@
 @testable import NetworkHandler
 import XCTest
-import CryptoKit
+import Crypto
 import Swiftwood
 
 #if os(macOS)

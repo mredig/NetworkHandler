@@ -1,5 +1,5 @@
 import Foundation
-import CryptoKit
+import Crypto
 
 protocol DigestToValues: Sequence {
 	func bytes() -> Data
