@@ -1,5 +1,8 @@
 import Foundation
 import NetworkHalpers
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 public class NetworkHandlerMocker: URLProtocol {
 	public typealias SmartResponseMockBlock = (

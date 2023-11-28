@@ -24,7 +24,9 @@ var nhTestsDeps: [Target.Dependency] = [
 	"TestSupport",
 	"PizzaMacros",
 ]
-#if !os(Linux)
+#if os(Linux)
+nhDeps.append("LinuxSupport")
+#else
 nhDeps.append("Swizzles")
 nhTestsDeps.append("Swizzles")
 #endif
@@ -45,6 +47,8 @@ var targets: [Target] = [
 			"NetworkHandler",
 			"SwiftlyDotEnv",
 		]),
+	.target(
+		name: "LinuxSupport"),
 	.testTarget(
 		name: "NetworkHandlerTests",
 		dependencies: nhTestsDeps),

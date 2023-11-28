@@ -82,8 +82,13 @@ public class MultipartFormInputStream: ConcatenatedInputStream {
 
 	public override func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
 	public override func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
+	#if canImport(FoundationNetworking)
+	public override func property(forKey key: Stream.PropertyKey) -> AnyObject? { nil }
+	public override func setProperty(_ property: AnyObject?, forKey key: Stream.PropertyKey) -> Bool { false }
+	#else
 	public override func property(forKey key: Stream.PropertyKey) -> Any? { nil }
 	public override func setProperty(_ property: Any?, forKey key: Stream.PropertyKey) -> Bool { false }
+	#endif
 
 	public override func addStream(_ stream: InputStream) throws {
 		guard type(of: stream) == Part.self else { throw MultipartError.streamNotPart }
