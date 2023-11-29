@@ -66,7 +66,7 @@ class NetworkHandlerRetryDecodableTests: NetworkHandlerBaseTest {
 			onError: { _, failedAttempts, error in
 				guard
 					failedAttempts < 3,
-					case .httpNon200StatusCode(let code, _) = error,
+					case .httpNon200StatusCode(let code, _, _) = error,
 					code == 500
 				else { return .throw }
 				return .retry
@@ -111,7 +111,7 @@ class NetworkHandlerRetryDecodableTests: NetworkHandlerBaseTest {
 				failedAttemptCounter.value += 1
 				guard
 					failedAttempts < 3,
-					case .httpNon200StatusCode(let code, _) = error,
+					case .httpNon200StatusCode(let code, _, _) = error,
 					code == 500,
 					let previousURL = previousRequest.url,
 					var components = URLComponents(url: previousURL, resolvingAgainstBaseURL: false),
@@ -159,7 +159,7 @@ class NetworkHandlerRetryDecodableTests: NetworkHandlerBaseTest {
 					failedAttemptCounter.value += 1
 					guard
 						failedAttempts < 3,
-						case .httpNon200StatusCode(let code, _) = error,
+						case .httpNon200StatusCode(let code, _, _) = error,
 						code == 500
 					else { return .throw }
 					return .retry
@@ -203,7 +203,7 @@ class NetworkHandlerRetryDecodableTests: NetworkHandlerBaseTest {
 				onError: { _, failedAttempts, error in
 					guard failedAttempts < 3 else { return .throw }
 					switch error {
-					case .httpNon200StatusCode(code: let code, data: _):
+					case .httpNon200StatusCode(code: let code, _, data: _):
 						if code == 429 {
 							return .retry(withDelay: 1.1)
 						} else if code == 500 {
@@ -254,7 +254,7 @@ class NetworkHandlerRetryDecodableTests: NetworkHandlerBaseTest {
 				failedAttemptCounter.value += 1
 				guard
 					failedAttempts == 3,
-					case .httpNon200StatusCode(let code, _) = error,
+					case .httpNon200StatusCode(let code, _, _) = error,
 					code == 500
 				else { return .retry }
 				return .defaultReturnValue(
@@ -294,7 +294,7 @@ class NetworkHandlerRetryDecodableTests: NetworkHandlerBaseTest {
 				failedAttemptCounter.value += 1
 				guard
 					failedAttempts == 3,
-					case .httpNon200StatusCode(let code, _) = error,
+					case .httpNon200StatusCode(let code, _, _) = error,
 					code == 500
 				else { return .retry }
 				return .defaultReturnValue(

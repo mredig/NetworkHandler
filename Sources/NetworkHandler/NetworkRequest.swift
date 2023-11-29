@@ -9,10 +9,25 @@ public struct NetworkRequest {
 	public private(set) var urlRequest: URLRequest
 	public var expectedResponseCodes: Set<Int>
 
+	/// See [X-Request-ID](https://http.dev/x-request-id) for more info. Note that while it's an optional header,
+	/// convention dictates that it should be the same when retrying a request.
+	public var requestID: String? {
+		get { value(forHTTPHeaderField: .xRequestID) }
+		set {
+			guard let newValue else {
+				return setValue(nil, forHTTPHeaderField: .xRequestID)
+			}
+			setValue("\(newValue)", forHTTPHeaderField: .xRequestID)
+		}
+	}
+
 	/**
 	Automatically sets the priority on the `URLSessionTask` created from this request.
 	*/
 	public var priority: Priority = .defaultPriority
+
+	/// On init, should all newly created NetworkRequests automatically create a `requestID`?
+	public static var automaticallyAddRequestID = false
 
 	// MARK: - Upgraded Properties
 	public var httpMethod: HTTPMethod? {
@@ -179,6 +194,10 @@ public struct NetworkRequest {
 	public init(_ request: URLRequest, expectedResponseCodes: Set<Int> = [200]) {
 		self.urlRequest = request
 		self.expectedResponseCodes = expectedResponseCodes
+
+		if Self.automaticallyAddRequestID {
+			requestID = UUID().uuidString
+		}
 	}
 
 	// MARK: - Methods

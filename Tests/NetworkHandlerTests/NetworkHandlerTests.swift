@@ -227,7 +227,10 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let theResult = await task.result
 
 		XCTAssertThrowsError(try theResult.get(), "No error when error expected") { error in
-			let expectedError = NetworkError.httpNon200StatusCode(code: 404, data: Data())
+			let expectedError = NetworkError.httpNon200StatusCode(
+				code: 404,
+				originalRequest: dummyModelURL.request,
+				data: Data())
 			XCTAssertEqual(expectedError, error as? NetworkError)
 		}
 		XCTAssertTrue(networkHandler.taskHolders.isEmpty)
@@ -285,7 +288,9 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let result = await task.result
 
 		XCTAssertThrowsError(try result.get(), "Got unexpected error") { error in
-			XCTAssertEqual(NetworkError.httpNon200StatusCode(code: 202, data: mockData), error as? NetworkError)
+			XCTAssertEqual(
+				NetworkError.httpNon200StatusCode(code: 202, originalRequest: request, data: mockData),
+				error as? NetworkError)
 		}
 	}
 
@@ -337,7 +342,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 		let result = await task.result
 
 		XCTAssertThrowsError(try result.get(), "No error when error expected") { error in
-			let expectedError = NetworkError.httpNon200StatusCode(code: 202, data: mockData)
+			let expectedError = NetworkError.httpNon200StatusCode(code: 202, originalRequest: request, data: mockData)
 			XCTAssertEqual(expectedError, error as? NetworkError)
 		}
 	}

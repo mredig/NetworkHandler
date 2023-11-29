@@ -2,6 +2,7 @@ import XCTest
 import NetworkHalpers
 import NetworkHandler
 import TestSupport
+import PizzaMacros
 
 /// Obviously dependent on network conditions
 class NetworkRequestTests: NetworkHandlerBaseTest {
@@ -225,5 +226,20 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 
 		arbitraryRequest.priority = 4
 		XCTAssertEqual(1, arbitraryRequest.priority.rawValue)
+	}
+
+	func testRequestID() throws {
+		let dummyURL = #URL("https://redeggproductions.com")
+
+		var noID = dummyURL.request
+		XCTAssertNil(noID.requestID)
+
+		NetworkRequest.automaticallyAddRequestID = true
+		noID = dummyURL.request
+		XCTAssertNotNil(noID.requestID)
+
+		NetworkRequest.automaticallyAddRequestID = false
+		noID = dummyURL.request
+		XCTAssertNil(noID.requestID)
 	}
 }

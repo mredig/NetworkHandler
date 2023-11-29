@@ -46,6 +46,7 @@ public struct HTTPHeaderKey: RawRepresentable, Hashable, ExpressibleByStringLite
 	public static let frontEndHttps: HTTPHeaderKey = "Front-End-Https"
 	public static let cookie: HTTPHeaderKey = "Cookie"
 	public static let expect: HTTPHeaderKey = "Expect"
+	public static let xRequestID: HTTPHeaderKey = "X-Request-ID"
 
 	public static func == (lhs: HTTPHeaderKey, rhs: String?) -> Bool {
 		lhs.key == rhs

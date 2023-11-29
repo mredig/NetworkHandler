@@ -42,7 +42,7 @@ public enum NetworkError: Error, Equatable {
 	of 200-299 (depending on whether `strict200CodeResponse` is on or off). Wraps
 	the response code and included `Data?`, is there is any.
 	*/
-	case httpNon200StatusCode(code: Int, data: Data?)
+	case httpNon200StatusCode(code: Int, originalRequest: NetworkRequest, data: Data?)
 	/**
 	Not used within the NetworkHandler framework, but a preset error available for
 	use when there's an error with whatever database you're using. Wraps the
@@ -96,11 +96,12 @@ public enum NetworkError: Error, Equatable {
 			if case .dataCodingError(let rhsError, let rhsSourceData) = rhs,
 				otherError.localizedDescription == rhsError.localizedDescription,
 			lhsSourceData == rhsSourceData { return true } else { return false }
-		case .httpNon200StatusCode(code: let code, data: let data):
+		case .httpNon200StatusCode(code: let code, originalRequest: let request, data: let data):
 			if
-				case .httpNon200StatusCode(let rhsCode, let rhsData) = rhs,
+				case .httpNon200StatusCode(let rhsCode, let rhsRequest, let rhsData) = rhs,
 				code == rhsCode,
-				data == rhsData {
+				data == rhsData,
+				request.urlRequest == rhsRequest.urlRequest {
 
 				return true
 			} else {
@@ -150,8 +151,20 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 			return "NetworkError: Database Failure: (\(error))"
 		case .dataCodingError(specifically: let error, sourceData: let sourceData):
 			return "NetworkError: Data Coding Error\n Error: \(error)\nSourceData: \(stringifyData(sourceData))"
-		case .httpNon200StatusCode(code: let code, data: let data):
-			return "NetworkError: Bad Response Code (\(code)) with data: \(stringifyData(data))"
+		case .httpNon200StatusCode(code: let code, originalRequest: let request, data: let data):
+			let requestInfo = {
+				let method = request.httpMethod?.rawValue ?? ("UNKNOWN_METHOD")
+				let url = request.url?.absoluteString ?? "unknown url"
+
+				var combined = "\(method)): \(url)"
+				if let requestID = request.requestID {
+					combined = "(\(requestID) \(combined)"
+				} else {
+					combined = "(\(combined)"
+				}
+				return combined
+			}()
+			return "NetworkError: Bad Response Code (\(code)) for request: \(requestInfo) with data: \(stringifyData(data))"
 		case .imageDecodeError:
 			return "NetworkError: Image Decode Error"
 		case .noStatusCodeResponse:

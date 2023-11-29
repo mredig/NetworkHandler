@@ -1,9 +1,11 @@
 import XCTest
 import NetworkHandler
 @testable import TestSupport
+import PizzaMacros
 
 /// Obviously dependent on network conditions
 class NetworkErrorTests: XCTestCase {
+	static let simpleURL = #URL("http://he@ho.hum")
 
 	// MARK: - Template/Prototype Objects
 	/// Tests Equatability on NetworkError cases
@@ -33,8 +35,8 @@ class NetworkErrorTests: XCTestCase {
 
 		XCTAssertEqual(error1Str, error.debugDescription)
 
-		error = .httpNon200StatusCode(code: 401, data: testData)
-		let error2Str = "NetworkError: Bad Response Code (401) with data: \(testString)"
+		error = .httpNon200StatusCode(code: 401, originalRequest: Self.simpleURL.request, data: testData)
+		let error2Str = "NetworkError: Bad Response Code (401) for request: (GET): http://he@ho.hum with data: \(testString)"
 		XCTAssertEqual(error2Str, error.debugDescription)
 
 		error = .badData(sourceData: nil)
@@ -51,7 +53,7 @@ extension NetworkError {
 			.badData(sourceData: nil),
 			.databaseFailure(specifically: dummyError),
 			.dataCodingError(specifically: dummyError, sourceData: nil),
-			.httpNon200StatusCode(code: 404, data: nil),
+			.httpNon200StatusCode(code: 404, originalRequest: NetworkErrorTests.simpleURL.request, data: nil),
 			.imageDecodeError,
 			.noStatusCodeResponse,
 			.otherError(error: dummyError),

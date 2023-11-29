@@ -254,7 +254,7 @@ public class NetworkHandler {
 				expected \(request.expectedResponseCodes)
 				""",
 				logLevel: .error)
-			throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, data: data)
+			throw NetworkError.httpNon200StatusCode(code: httpResponse.statusCode, originalRequest: request, data: data)
 		}
 
 		if let cacheKey = cacheOption.cacheKey(url: request.url) {
