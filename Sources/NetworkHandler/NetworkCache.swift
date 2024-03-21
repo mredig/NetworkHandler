@@ -3,6 +3,15 @@ import Foundation
 import FoundationNetworking
 #endif
 
+
+/**
+Idea to resolve non blocking issue in [this test](test://com.apple.xcode/NetworkHandler/NetworkHandlerTests/NetworkCacheTests/testCacheAddRemove)
+
+ create a cache-cache. Create a dict that stores the value right away, (using a lock for thread safety). then periodically check if the backing cache value is populated.
+ once it's populated, clear from the cache-cache. in the meantime, the cache-cache can serve up the content
+ */
+
+
 /**
 Essentially just a wrapper for NSCache, but adds redundancy in a disk cache. Specifically purposed for 
 use with NetworkHandler
