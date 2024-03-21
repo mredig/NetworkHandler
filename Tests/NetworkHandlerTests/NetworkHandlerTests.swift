@@ -10,7 +10,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 
 	// MARK: - Properties
 	var demoModelController: DemoModelController?
-	let imageURL = URL(string: "https://placekitten.com/300/300")!
+	let imageURL = #URL("https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg")
 
 	// MARK: - Lifecycle
 	override func setUp() {
