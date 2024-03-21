@@ -3,6 +3,7 @@ import NetworkHandler
 import Crypto
 import TestSupport
 import Swiftwood
+import PizzaMacros
 
 /// Obviously dependent on network conditions
 class NetworkHandlerPollingTests: NetworkHandlerBaseTest {
@@ -10,11 +11,11 @@ class NetworkHandlerPollingTests: NetworkHandlerBaseTest {
 	func testPolling() async throws {
 		let networkHandler = generateNetworkHandlerInstance()
 
-		let sampleURL = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+		let sampleURL = #URL("https://s3.wasabisys.com/network-handler-tests/randomData.bin")
 			.appending(queryItems: [
 				URLQueryItem(name: "iteration", value: "1")
 			])
-		let resultURL = URL(string: "https://s3.wasabisys.com/network-handler-tests/randomData.bin")!
+		let resultURL = #URL("https://s3.wasabisys.com/network-handler-tests/randomData.bin")
 			.appending(queryItems: [
 				URLQueryItem(name: "iteration", value: "5")
 			])
