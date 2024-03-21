@@ -209,7 +209,7 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 //	}
 
 	/// Tests a Mock session giving a 404 response code
-	func testMock404Response() async throws {
+	func testMock404ResponseDeliberatelySet() async throws {
 		let networkHandler = generateNetworkHandlerInstance()
 
 		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
@@ -219,7 +219,33 @@ class NetworkHandlerTests: NetworkHandlerBaseTest {
 			.appendingPathComponent(demoModel.id.uuidString)
 			.appendingPathExtension("json")
 
-		await NetworkHandlerMocker.addMock(for: dummyModelURL, method: .get, data: Data(), code: 404)
+		await NetworkHandlerMocker.addMock(for: dummyModelURL, method: .get, data: Data([1]), code: 404)
+
+		let task = Task { () -> DemoModel in
+			try await networkHandler.transferMahCodableDatas(for: dummyModelURL.request).decoded
+		}
+		let theResult = await task.result
+
+		XCTAssertThrowsError(try theResult.get(), "No error when error expected") { error in
+			let expectedError = NetworkError.httpNon200StatusCode(
+				code: 404,
+				originalRequest: dummyModelURL.request,
+				data: Data([1]))
+			XCTAssertEqual(expectedError, error as? NetworkError)
+		}
+		XCTAssertTrue(networkHandler.taskHolders.isEmpty)
+	}
+
+	/// Tests a Mock session giving a 404 response code
+	func testMock404Response() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let demoModel = DemoModel(title: "Test model", subtitle: "test Sub", imageURL: imageURL)
+
+		let dummyBaseURL = URL(string: "https://networkhandlertestbase.firebaseio.com/DemoAndTests")!
+		let dummyModelURL = dummyBaseURL
+			.appendingPathComponent(demoModel.id.uuidString)
+			.appendingPathExtension("json")
 
 		let task = Task { () -> DemoModel in
 			try await networkHandler.transferMahCodableDatas(for: dummyModelURL.request).decoded

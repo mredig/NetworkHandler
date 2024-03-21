@@ -93,7 +93,20 @@ public class NetworkHandlerMocker: URLProtocol {
 			guard
 				let block = await [noQueryBlock, queryMatchBlock].compactMap({ $0 }).first
 			else {
-				client?.urlProtocol(self, didFailWithError: MockerError(message: "URL/Method combo not mocked"))
+				client?.urlProtocol(
+					self,
+					didReceive: HTTPURLResponse(
+						url: url,
+						statusCode: 404,
+						httpVersion: nil,
+						headerFields: [
+							"Content-Type": "text/html",
+						])!,
+					cacheStoragePolicy: .notAllowed)
+
+				client?.urlProtocol(self, didLoad: Data())
+
+				client?.urlProtocolDidFinishLoading(self)
 				return
 			}
 			let result: (data: Data, response: HTTPURLResponse)
