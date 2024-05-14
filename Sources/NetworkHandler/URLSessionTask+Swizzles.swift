@@ -1,3 +1,4 @@
+#if !os(Linux)
 import Foundation
 import Swizzles
 
@@ -29,3 +30,4 @@ extension URLSessionTask {
 		}
 	}
 }
+#endif

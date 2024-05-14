@@ -57,7 +57,9 @@ public class NetworkHandler {
 		self.nhMainUploadDelegate = uploadDelegate
 		self.defaultSession = URLSession(configuration: config, delegate: uploadDelegate, delegateQueue: delegateQueue)
 
+		#if !os(Linux)
 		_ = URLSessionTask.swizzleSetState
+		#endif
 	}
 
 	deinit {

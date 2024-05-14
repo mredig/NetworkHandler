@@ -1,6 +1,5 @@
 import XCTest
 import NetworkHandler
-import Swizzles
 
 @MainActor
 final class NHStressTests: XCTestCase {

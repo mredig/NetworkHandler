@@ -192,6 +192,7 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 		try checkNetworkHandlerTasksFinished(networkHandler)
 	}
 
+	#if !os(Linux)
 	func testDownloadStatusUpdates() async throws {
 		let networkHandler = generateNetworkHandlerInstance(mockedDefaultSession: false)
 
@@ -222,4 +223,5 @@ class NetworkHandlerTransferDelegateTests: NetworkHandlerBaseTest {
 
 		XCTAssertEqual(expectedStatuses, statuses)
 	}
+	#endif
 }
