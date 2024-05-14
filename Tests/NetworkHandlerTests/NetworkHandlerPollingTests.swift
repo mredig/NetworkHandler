@@ -55,4 +55,36 @@ class NetworkHandlerPollingTests: NetworkHandlerBaseTest {
 		XCTAssertEqual(resultData.1, finalResult.1.statusCode)
 		XCTAssertEqual(resultURL, finalResult.1.url)
 	}
+
+	func testPollingDecodeError() async throws {
+		let networkHandler = generateNetworkHandlerInstance()
+
+		let dummyModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/randomData.bin")
+			.appending(queryItems: [
+				URLQueryItem(name: "iteration", value: "1")
+			])
+
+		let mockData = ##"{"jsonRoot": ["fee", "foe", "fum"]}"##.data(using: .utf8)!
+		await NetworkHandlerMocker.addMock(for: dummyModelURL, method: .get, data: mockData, code: 200)
+
+		let request = dummyModelURL.request
+
+		let result: Result<DemoModel, Error> = await Task { [request] in
+			try await networkHandler.poll(
+				request: request,
+				until: { previousRequest, pollResult in
+					let asdf = try pollResult.get()
+					return .finish(.success((asdf.0, asdf.1)))
+				}).result
+		}.result
+
+		XCTAssertThrowsError(try result.get()) { error in
+			guard
+				case NetworkError.dataCodingError = error
+			else {
+				XCTFail("Wrong error! should be a `NetworkError` \(error)")
+				return
+			}
+		}
+	}
 }

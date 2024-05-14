@@ -81,22 +81,24 @@ public class NetworkHandler {
 	/// WIP - consider to be beta - interface is liable and LIKELY to change.
 	@NHActor
 	@discardableResult
-	public func poll<T>(
+	public func poll<T: Decodable>(
 		request: NetworkRequest,
 		delegate: NetworkHandlerTransferDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		sessionConfiguration: URLSessionConfiguration? = nil,
-		until: @escaping @NHActor (NetworkRequest, PollResult<Data>) async throws -> PollContinuation<T>
+		until: @escaping @NHActor (NetworkRequest, PollResult<T>) async throws -> PollContinuation<T>
 	) async throws -> (result: T, response: HTTPURLResponse) {
-		func doPoll(request: NetworkRequest) async -> PollResult<Data> {
-			let polledResult: PollResult<Data>
+		func doPoll(request: NetworkRequest) async -> PollResult<T> {
+			let polledResult: PollResult<T>
 			do {
 				let result = try await transferMahDatas(
 					for: request,
 					delegate: delegate,
 					usingCache: cacheOption,
 					sessionConfiguration: sessionConfiguration)
-				polledResult = .success(result)
+				let decoded: T = try decodeData(from: request, data: result.data)
+				let response = NHCodedResponse(decoded, result.response)
+				polledResult = .success(response)
 			} catch {
 				polledResult = .failure(error)
 			}
@@ -154,20 +156,7 @@ public class NetworkHandler {
 					attempt: attempt,
 					sessionConfiguration: sessionConfiguration)
 
-				guard DecodableType.self != Data.self else {
-					return (totalResponse.data as! DecodableType, totalResponse.response) // swiftlint:disable:this force_cast
-				}
-
-				let decoder = request.decoder
-				do {
-					let decodedValue = try decoder.decode(DecodableType.self, from: totalResponse.data)
-					return (decodedValue, totalResponse.response)
-				} catch {
-					logIfEnabled(
-						"Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)",
-						logLevel: .error)
-					throw NetworkError.dataCodingError(specifically: error, sourceData: totalResponse.data)
-				}
+				return try (decodeData(from: request, data: totalResponse.data), totalResponse.response)
 			},
 			errorHandler: onError)
 	}
@@ -311,6 +300,23 @@ public class NetworkHandler {
 		}
 
 		throw NetworkError.unspecifiedError(reason: "Escaped while loop")
+	}
+
+	private func decodeData<DecodableType: Decodable>(from request: NetworkRequest, data: Data) throws -> DecodableType {
+		guard DecodableType.self != Data.self else {
+			return data as! DecodableType // swiftlint:disable:this force_cast
+		}
+
+		let decoder = request.decoder
+		do {
+			let decodedValue = try decoder.decode(DecodableType.self, from: data)
+			return decodedValue
+		} catch {
+			logIfEnabled(
+				"Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)",
+				logLevel: .error)
+			throw NetworkError.dataCodingError(specifically: error, sourceData: data)
+		}
 	}
 
 	private var _taskHolders: [UUID: URLSessionTask] = [:]
