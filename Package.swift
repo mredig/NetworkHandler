@@ -12,7 +12,7 @@ let nhDeps = {
 	]
 
 	#if os(Linux)
-	out.append("LinuxSupport")
+	out.append("NHLinuxSupport")
 	#else
 	out.append("Swizzles")
 	#endif
@@ -44,7 +44,7 @@ let targets = {
 				"Swiftwood",
 			]),
 		.target(
-			name: "LinuxSupport"),
+			name: "NHLinuxSupport"),
 		.target(
 			name: "TestSupport",
 			dependencies: [

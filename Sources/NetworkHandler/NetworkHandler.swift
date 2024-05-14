@@ -2,7 +2,7 @@ import Foundation
 @_exported import NetworkHalpers
 #if canImport(FoundationNetworking)
 import FoundationNetworking
-import LinuxSupport
+import NHLinuxSupport
 #endif
 import SaferContinuation
 import Swiftwood
