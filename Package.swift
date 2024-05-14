@@ -11,7 +11,9 @@ let nhDeps = {
 		"Swiftwood",
 	]
 
-	#if !os(Linux)
+	#if os(Linux)
+	out.append("LinuxSupport")
+	#else
 	out.append("Swizzles")
 	#endif
 	return out
@@ -41,6 +43,8 @@ let targets = {
 				.product(name: "Crypto", package: "swift-crypto"),
 				"Swiftwood",
 			]),
+		.target(
+			name: "LinuxSupport"),
 		.target(
 			name: "TestSupport",
 			dependencies: [
