@@ -1,7 +1,4 @@
 import Foundation
-#if !os(Linux)
-import UniformTypeIdentifiers
-#endif
 
 extension MultipartFormInputTempFile {
 	struct Part {
@@ -53,39 +50,11 @@ extension MultipartFormInputTempFile {
 				self.name = name
 				self.boundary = boundary
 				self.filename = filename ?? content?.filename
-				#if os(Linux)
-				self.contentType = contentType ?? Self.genericBinaryMimeType
-				#else
 				self.contentType = contentType ?? content?
 					.filename
-					.map { Self.getMimeType(forFileExtension: ($0 as NSString).pathExtension ) }
-				#endif
+					.map { MultipartFormInputStream.getMimeType(forFileExtension: ($0 as NSString).pathExtension ) }
 				self.content = content
 			}
-
-		static let genericBinaryMimeType = "application/octet-stream"
-		#if !os(Linux)
-		static func getMimeType(forFileExtension pathExt: String) -> String {
-			if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
-				let type = UTType(filenameExtension: pathExt)
-				return type?.preferredMIMEType ?? genericBinaryMimeType
-			} else {
-				guard
-					let universalTypeIdentifier = UTTypeCreatePreferredIdentifierForTag(
-						kUTTagClassFilenameExtension,
-						pathExt as CFString,
-						nil)?
-						.takeRetainedValue(),
-					let mimeType = UTTypeCopyPreferredTagWithClass(
-						universalTypeIdentifier,
-						kUTTagClassMIMEType)?
-						.takeRetainedValue()
-				else { return genericBinaryMimeType }
-
-				return mimeType as String
-			}
-		}
-		#endif
 
 		enum Content {
 			case localURL(URL)

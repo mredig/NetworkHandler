@@ -1,4 +1,4 @@
-#if !os(Linux)
+#if !canImport(FoundationNetworking)
 import Foundation
 import Swizzles
 

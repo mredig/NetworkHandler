@@ -1,6 +1,6 @@
 import Foundation
 @_exported import NetworkHalpers
-#if os(Linux)
+#if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
 
@@ -11,7 +11,9 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 	static private let uploadDelegateLock = NSLock()
 
 	private var taskDelegates: [URLSessionTask: NetworkHandlerTransferDelegate] = [:]
+	#if !canImport(FoundationNetworking)
 	private var stateObservers: [URLSessionTask: NSKeyValueObservation] = [:]
+	#endif
 	private var inputStreams: [URLSessionTask: InputStream] = [:]
 
 	typealias DataPublisher = NHPublisher<Data, Error>
@@ -87,6 +89,7 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 
 		taskDelegates[task] = delegate
 
+		#if !canImport(FoundationNetworking)
 		let stateObserver = task
 			.observe(\.state, options: .new) { [weak delegate] task, _ in
 				DispatchQueue.main.async {
@@ -97,6 +100,7 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 		DispatchQueue.main.async {
 			delegate.networkHandlerTask(task, stateChanged: task.state)
 		}
+		#endif
 	}
 
 	func addInputStream(_ stream: InputStream, for task: URLSessionUploadTask) {
@@ -110,8 +114,10 @@ internal class NHUploadDelegate: NSObject, URLSessionTaskDelegate {
 		taskDelegates[task] = nil
 		dataPublishers[task] = nil
 		taskKeepalives[task] = nil
+		#if !canImport(FoundationNetworking)
 		stateObservers[task]?.invalidate()
 		stateObservers[task] = nil
+		#endif
 		inputStreams[task] = nil
 	}
 }
@@ -134,9 +140,11 @@ extension NHUploadDelegate {
 	}
 
 	func assertClean() throws {
+		#if !canImport(FoundationNetworking)
 		guard
 			stateObservers.isEmpty
 		else { throw DelegateTestError.stateObserversNotEmpty }
+		#endif
 
 		guard
 			dataPublishers.isEmpty

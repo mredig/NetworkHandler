@@ -1,34 +1,36 @@
 import Foundation
-#if !os(Linux)
+#if canImport(UniformTypeIdentifiers)
 import UniformTypeIdentifiers
 #endif
 
 extension MultipartFormInputStream {
-	class Part: ConcatenatedInputStream {
-		static let genericBinaryMimeType = "application/octet-stream"
-		#if !os(Linux)
-		static func getMimeType(forFileExtension pathExt: String) -> String {
-			if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
-				let type = UTType(filenameExtension: pathExt)
-				return type?.preferredMIMEType ?? genericBinaryMimeType
-			} else {
-				guard
-					let universalTypeIdentifier = UTTypeCreatePreferredIdentifierForTag(
-						kUTTagClassFilenameExtension,
-						pathExt as CFString,
-						nil)?
-						.takeRetainedValue(),
-					let mimeType = UTTypeCopyPreferredTagWithClass(
-						universalTypeIdentifier,
-						kUTTagClassMIMEType)?
-						.takeRetainedValue()
-				else { return genericBinaryMimeType }
+	static let genericBinaryMimeType = "application/octet-stream"
+	static func getMimeType(forFileExtension pathExt: String) -> String {
+		#if canImport(UniformTypeIdentifiers)
+		if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
+			let type = UTType(filenameExtension: pathExt)
+			return type?.preferredMIMEType ?? genericBinaryMimeType
+		} else {
+			guard
+				let universalTypeIdentifier = UTTypeCreatePreferredIdentifierForTag(
+					kUTTagClassFilenameExtension,
+					pathExt as CFString,
+					nil)?
+					.takeRetainedValue(),
+				let mimeType = UTTypeCopyPreferredTagWithClass(
+					universalTypeIdentifier,
+					kUTTagClassMIMEType)?
+					.takeRetainedValue()
+			else { return genericBinaryMimeType }
 
-				return mimeType as String
-			}
+			return mimeType as String
 		}
+		#else
+		genericBinaryMimeType
 		#endif
+	}
 
+	class Part: ConcatenatedInputStream {
 		let copyGenerator: () -> Part
 
 		let headers: Data
@@ -88,13 +90,7 @@ extension MultipartFormInputStream {
 			fileURL: URL,
 			contentType: String? = nil
 		) throws {
-			#if !os(Linux)
-			let contentType = contentType ?? Self.getMimeType(forFileExtension: fileURL.pathExtension)
-			#else
-			guard
-				let contentType
-			else { throw PartError.contentTypeRequiredOnLinux }
-			#endif
+			let contentType = contentType ?? MultipartFormInputStream.getMimeType(forFileExtension: fileURL.pathExtension)
 
 			let headerStr = """
 				--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; \
@@ -145,7 +141,6 @@ extension MultipartFormInputStream {
 
 		enum PartError: Error {
 			case fileAttributesInaccessible
-			case contentTypeRequiredOnLinux
 		}
 	}
 }

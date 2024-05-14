@@ -1,7 +1,8 @@
 import Foundation
 @_exported import NetworkHalpers
-#if os(Linux)
+#if canImport(FoundationNetworking)
 import FoundationNetworking
+import LinuxSupport
 #endif
 import SaferContinuation
 import Swiftwood
@@ -57,7 +58,7 @@ public class NetworkHandler {
 		self.nhMainUploadDelegate = uploadDelegate
 		self.defaultSession = URLSession(configuration: config, delegate: uploadDelegate, delegateQueue: delegateQueue)
 
-		#if !os(Linux)
+		#if !canImport(FoundationNetworking)
 		_ = URLSessionTask.swizzleSetState
 		#endif
 	}
