@@ -1,10 +1,12 @@
 import Foundation
-import CoreServices
+#if !os(Linux)
 import UniformTypeIdentifiers
+#endif
 
 extension MultipartFormInputStream {
 	class Part: ConcatenatedInputStream {
 		static let genericBinaryMimeType = "application/octet-stream"
+		#if !os(Linux)
 		static func getMimeType(forFileExtension pathExt: String) -> String {
 			if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
 				let type = UTType(filenameExtension: pathExt)
@@ -25,6 +27,7 @@ extension MultipartFormInputStream {
 				return mimeType as String
 			}
 		}
+		#endif
 
 		let copyGenerator: () -> Part
 
@@ -85,7 +88,13 @@ extension MultipartFormInputStream {
 			fileURL: URL,
 			contentType: String? = nil
 		) throws {
+			#if !os(Linux)
 			let contentType = contentType ?? Self.getMimeType(forFileExtension: fileURL.pathExtension)
+			#else
+			guard
+				let contentType
+			else { throw PartError.contentTypeRequiredOnLinux }
+			#endif
 
 			let headerStr = """
 				--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"; \
@@ -136,6 +145,7 @@ extension MultipartFormInputStream {
 
 		enum PartError: Error {
 			case fileAttributesInaccessible
+			case contentTypeRequiredOnLinux
 		}
 	}
 }

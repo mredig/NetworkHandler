@@ -1,5 +1,5 @@
 import Foundation
-import CryptoKit
+import Crypto
 
 extension Digest {
 	func toHexString() -> String {
