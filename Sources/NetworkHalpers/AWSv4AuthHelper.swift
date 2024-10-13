@@ -163,7 +163,11 @@ extension AWSV4Signature {
 		return set
 	}()
 	private var urlPath: String {
-		components.path.addingPercentEncoding(withAllowedCharacters: Self.allowedCharacters) ?? components.path
+		let path = components.path.addingPercentEncoding(withAllowedCharacters: Self.allowedCharacters) ?? components.path
+		guard path.isEmpty == false else {
+			return "/"
+		}
+		return path
 	}
 
 	private var queryItemString: String {
