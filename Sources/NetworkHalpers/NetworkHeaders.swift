@@ -1,8 +1,13 @@
 import Foundation
 
 public struct HTTPHeader: Hashable, Sendable {
-	let key: HTTPHeaderKey
-	let value: HTTPHeaderValue
+	public let key: HTTPHeaderKey
+	public let value: HTTPHeaderValue
+
+	public init(key: HTTPHeaderKey, value: HTTPHeaderValue) {
+		self.key = key
+		self.value = value
+	}
 }
 
 /// Pre-typed strings for use with formatting headers
@@ -132,5 +137,90 @@ public struct HTTPHeaderValue:
 
 	public static func == (lhs: String?, rhs: HTTPHeaderValue) -> Bool {
 		rhs == lhs
+	}
+}
+
+public struct HTTPHeaders: Hashable, Sendable, MutableCollection, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
+	public var startIndex: [HTTPHeader].Index { headers.startIndex }
+	public var endIndex: [HTTPHeader].Index { headers.endIndex }
+
+	public typealias Index = [HTTPHeader].Index
+
+	public var headers: [HTTPHeader]
+
+	public init(_ headers: [HTTPHeader]) {
+		self.headers = headers
+	}
+
+	public init(_ headers: [String: String]) {
+		self.init(headers.map { HTTPHeader(key: "\($0.key)", value: "\($0.value)") })
+	}
+
+	public init(_ headers: [HTTPHeaderKey: HTTPHeaderValue]) {
+		self.init(headers.map { HTTPHeader(key: $0.key, value: $0.value) })
+	}
+
+	public init(arrayLiteral elements: HTTPHeader...) {
+		self.init(elements)
+	}
+
+	public init(dictionaryLiteral elements: (HTTPHeaderKey, HTTPHeaderValue)...) {
+		self.init(elements.map { HTTPHeader(key: $0, value: $1) })
+	}
+
+	public func index(after i: [HTTPHeader].Index) -> [HTTPHeader].Index {
+		headers.index(after: i)
+	}
+
+	public subscript(position: [HTTPHeader].Index) -> HTTPHeader {
+		get { headers[position] }
+		set { headers[position] = newValue }
+	}
+
+	@discardableResult
+	public mutating func remove(at index: [HTTPHeader].Index) -> HTTPHeader {
+		headers.remove(at: index)
+	}
+
+	public mutating func append(_ new: HTTPHeader) {
+		headers.append(new)
+	}
+
+	public subscript (key: HTTPHeaderKey) -> HTTPHeaderValue? {
+		get {
+			headers.first(where: { $0.key == key })?.value
+		}
+
+		set {
+			let currentIndex = headers.firstIndex(where: { $0.key == key })
+
+			switch (currentIndex, newValue) {
+			case (.some(let index), .some(let newValue)):
+				let newEntry = HTTPHeader(key: key, value: newValue)
+				headers[index] = newEntry
+			case (.some(let index), nil):
+				headers.remove(at: index)
+			case (nil, .some(let newValue)):
+				let newEntry = HTTPHeader(key: key, value: newValue)
+				headers.append(newEntry)
+			case (nil, nil):
+				return
+			}
+		}
+	}
+
+	public func indicies(for key: HTTPHeaderKey) -> [[HTTPHeader].Index] {
+		headers.enumerated().compactMap {
+			guard $0.element.key == key else { return nil }
+			return $0.offset
+		}
+	}
+
+	public func allHeaders(withKey key: HTTPHeaderKey) -> [HTTPHeader] {
+		headers.filter { $0.key == key }
+	}
+
+	public func keys() -> [HTTPHeaderKey] {
+		headers.map(\.key)
 	}
 }
