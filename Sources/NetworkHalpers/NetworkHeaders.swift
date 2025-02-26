@@ -8,9 +8,9 @@ public struct HTTPHeader: Hashable, Sendable {
 /// Pre-typed strings for use with formatting headers
 public struct HTTPHeaderKey: RawRepresentable, Hashable, Sendable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
 	/// A normalized, lowercased version of the `canonical` value. This allows for case insensitive equality and hashing.
-	public var key: String { canonical.lowercased() }
-	/// Required for `RawRepresentable`. Simply forwards the `key` value.
-	public var rawValue: String { key }
+	public var key: String { rawValue }
+	/// Required for `RawRepresentable`. Duplicates the `key` value.
+	public var rawValue: String { canonical.lowercased() }
 	/// Value that will be stored as the key in the HTTP Header.
 	public var canonical: String
 

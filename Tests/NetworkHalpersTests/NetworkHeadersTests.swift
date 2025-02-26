@@ -15,5 +15,10 @@ struct NetworkHeadersTests {
 		#expect(b == d)
 		#expect(c == d)
 		#expect(Set([a, b, c, d]).count == 1)
+
+		#expect("content-Type" == a)
+		#expect("Content-Type" == a)
+		#expect("content-Type" == d)
+		#expect("Content-Type" == d)
 	}
 }
