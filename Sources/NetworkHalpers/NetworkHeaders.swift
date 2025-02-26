@@ -177,11 +177,13 @@ public struct HTTPHeaders: Hashable, Sendable, MutableCollection, ExpressibleByA
 		set { headers[position] = newValue }
 	}
 
+	/// Removes and optionally returns the header at the given index. Retrieving beyond the end index is illegal!
 	@discardableResult
 	public mutating func remove(at index: [HTTPHeader].Index) -> HTTPHeader {
 		headers.remove(at: index)
 	}
 
+	/// Adds a new header to the collection. Allows for duplicating keys.
 	public mutating func append(_ new: HTTPHeader) {
 		headers.append(new)
 	}
@@ -209,6 +211,7 @@ public struct HTTPHeaders: Hashable, Sendable, MutableCollection, ExpressibleByA
 		}
 	}
 
+	/// Retrieves all the indicies, including duplicates, for a given key.
 	public func indicies(for key: HTTPHeaderKey) -> [[HTTPHeader].Index] {
 		headers.enumerated().compactMap {
 			guard $0.element.key == key else { return nil }
@@ -216,11 +219,39 @@ public struct HTTPHeaders: Hashable, Sendable, MutableCollection, ExpressibleByA
 		}
 	}
 
+	/// Retrieves all the headers, including duplicates, for a given key.
 	public func allHeaders(withKey key: HTTPHeaderKey) -> [HTTPHeader] {
 		headers.filter { $0.key == key }
 	}
 
+	/// Retrieves all used keys
 	public func keys() -> [HTTPHeaderKey] {
 		headers.map(\.key)
+	}
+}
+
+public extension HTTPHeaders {
+
+	/// Appends the key/value pair to the headers. Allows duplicate keys.
+	mutating func addValue(_ value: HTTPHeaderValue, forKey key: HTTPHeaderKey) {
+		append(HTTPHeader(key: key, value: value))
+	}
+
+	/// Replaces the first instance of the given key, if it already exists. Otherwise appends.
+	mutating func setValue(_ value: HTTPHeaderValue, forKey key: HTTPHeaderKey) {
+		self[key] = value
+	}
+
+	/// If the provided key is in this instance, returns the value.
+	func value(for key: HTTPHeaderKey) -> String? {
+		self[key]?.rawValue
+	}
+
+	mutating func setContentType(_ contentType: HTTPHeaderValue) {
+		setValue(contentType, forKey: .contentType)
+	}
+
+	mutating func setAuthorization(_ value: HTTPHeaderValue) {
+		setValue(value, forKey: .authorization)
 	}
 }

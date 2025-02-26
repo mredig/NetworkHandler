@@ -6,7 +6,7 @@ import FoundationNetworking
 /// Pre-typed strings for use with NetworkRequest.httpMethod (or URLRequest.httpMethod)
 public struct HTTPMethod:
 	RawRepresentable,
-	Equatable,
+	Sendable,
 	Hashable,
 	ExpressibleByStringLiteral,
 	ExpressibleByStringInterpolation {

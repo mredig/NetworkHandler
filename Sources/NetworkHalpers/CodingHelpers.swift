@@ -4,12 +4,12 @@ import FoundationNetworking
 #endif
 
 /// Allows you to conform to this protocol to become compatible with `NetworkRequest.encodeData`
-public protocol NHEncoder {
+public protocol NHEncoder: Sendable {
 	func encode<T: Encodable>(_ encodable: T) throws -> Data
 }
 
 /// Allows you to conform to this protocol to become compatible with `NetworkHandler.transferMahCodableDatas`
-public protocol NHDecoder {
+public protocol NHDecoder: Sendable {
 	func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T
 }
 

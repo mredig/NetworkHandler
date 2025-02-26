@@ -47,7 +47,7 @@ class NetworkRequestTests: NetworkHandlerBaseTest {
 		XCTAssertNil(request.value(forHTTPHeaderField: .authorization))
 
 		request.setValue("Arbitrary Value", forHTTPHeaderField: "Arbitrary Key")
-		XCTAssertEqual(["Content-Type": "application/xml", "Arbitrary Key": "Arbitrary Value"], request.allHeaderFields)
+		XCTAssertEqual(["Content-Type": "application/xml", "arbitrary key": "Arbitrary Value"], request.allHeaderFields)
 
 		let allFields = [
 			"Content-Type": "application/xml",

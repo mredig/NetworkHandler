@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -100,9 +100,9 @@ let products = {
 let package = Package(
 	name: "NetworkHandler",
 	platforms: [
-		.macOS(.v12),
-		.iOS(.v15),
-		.tvOS(.v15),
+		.macOS(.v13),
+		.iOS(.v16),
+		.tvOS(.v16),
 		.watchOS(.v8),
 	],
 	products: products,
