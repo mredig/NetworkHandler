@@ -1,6 +1,6 @@
 import Foundation
 
-public struct HTTPHeader: Hashable {
+public struct HTTPHeader: Hashable, Sendable {
 	let key: HTTPHeaderKey
 	let value: HTTPHeaderValue
 }
@@ -72,6 +72,7 @@ public struct HTTPHeaderKey: RawRepresentable, Hashable, Sendable, ExpressibleBy
 public struct HTTPHeaderValue:
 	RawRepresentable,
 	Hashable,
+	Sendable,
 	ExpressibleByStringLiteral,
 	ExpressibleByStringInterpolation {
 
