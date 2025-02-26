@@ -6,16 +6,20 @@ public struct HTTPHeader: Hashable {
 }
 
 /// Pre-typed strings for use with formatting headers
-public struct HTTPHeaderKey: RawRepresentable, Hashable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
-	public var key: String { rawValue }
-	public let rawValue: String
+public struct HTTPHeaderKey: RawRepresentable, Hashable, Sendable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
+	/// A normalized, lowercased version of the `canonical` value. This allows for case insensitive equality and hashing.
+	public var key: String { canonical.lowercased() }
+	/// Required for `RawRepresentable`. Simply forwards the `key` value.
+	public var rawValue: String { key }
+	/// Value that will be stored as the key in the HTTP Header.
+	public var canonical: String
 
 	public init(stringLiteral value: StringLiteralType) {
-		self.rawValue = value
+		self.init(rawValue: value)
 	}
 
 	public init(rawValue: String) {
-		self.rawValue = rawValue
+		self.canonical = rawValue
 	}
 
 	public static let accept: HTTPHeaderKey = "Accept"
@@ -48,8 +52,16 @@ public struct HTTPHeaderKey: RawRepresentable, Hashable, ExpressibleByStringLite
 	public static let expect: HTTPHeaderKey = "Expect"
 	public static let xRequestID: HTTPHeaderKey = "X-Request-ID"
 
+	public static func == (lhs: HTTPHeaderKey, rhs: HTTPHeaderKey) -> Bool {
+		lhs.key == rhs.key
+	}
+
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(key)
+	}
+
 	public static func == (lhs: HTTPHeaderKey, rhs: String?) -> Bool {
-		lhs.key == rhs
+		lhs.key == rhs?.lowercased()
 	}
 
 	public static func == (lhs: String?, rhs: HTTPHeaderKey) -> Bool {
