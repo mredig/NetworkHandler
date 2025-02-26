@@ -36,7 +36,10 @@ let targets = {
 	var out: [Target] = [
 		.target(
 			name: "NetworkHandler",
-			dependencies: nhDeps),
+			dependencies: nhDeps,
+			swiftSettings: [
+				.enableUpcomingFeature("BareSlashRegexLiterals")
+			]),
 		.target(
 			name: "NetworkHalpers",
 			dependencies: [
