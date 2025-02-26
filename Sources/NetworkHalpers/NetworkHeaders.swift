@@ -87,6 +87,7 @@ public struct HTTPHeaderValue:
 		self.rawValue = rawValue
 	}
 
+	// common Content-Type values
 	public static let javascript: HTTPHeaderValue = "application/javascript"
 	public static let json: HTTPHeaderValue = "application/json"
 	public static let octetStream: HTTPHeaderValue = "application/octet-stream"
