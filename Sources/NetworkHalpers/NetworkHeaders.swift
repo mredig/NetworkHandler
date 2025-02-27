@@ -1,4 +1,5 @@
 import Foundation
+import SwiftPizzaSnips
 
 public struct HTTPHeader: Hashable, Sendable {
 	public let key: HTTPHeaderKey
@@ -81,6 +82,13 @@ public struct HTTPHeaderKey: RawRepresentable, Hashable, Sendable, ExpressibleBy
 	}
 }
 
+extension HTTPHeaderKey: CustomStringConvertible, CustomDebugStringConvertible {
+	public var description: String { canonical }
+	public var debugDescription: String {
+		"HeaderKey: \(description)"
+	}
+}
+
 public struct HTTPHeaderValue:
 	RawRepresentable,
 	Hashable,
@@ -144,6 +152,13 @@ public struct HTTPHeaderValue:
 
 	public static func == (lhs: String?, rhs: HTTPHeaderValue) -> Bool {
 		rhs == lhs
+	}
+}
+
+extension HTTPHeaderValue: CustomStringConvertible, CustomDebugStringConvertible {
+	public var description: String { value }
+	public var debugDescription: String {
+		"HeaderValue: \(description)"
 	}
 }
 
@@ -238,7 +253,6 @@ public struct HTTPHeaders: Hashable, Sendable, MutableCollection, ExpressibleByA
 }
 
 public extension HTTPHeaders {
-
 	/// Appends the key/value pair to the headers. Allows duplicate keys.
 	mutating func addValue(_ value: HTTPHeaderValue, forKey key: HTTPHeaderKey) {
 		append(HTTPHeader(key: key, value: value))
@@ -260,5 +274,17 @@ public extension HTTPHeaders {
 
 	mutating func setAuthorization(_ value: HTTPHeaderValue) {
 		setValue(value, forKey: .authorization)
+	}
+}
+
+extension HTTPHeaders: CustomStringConvertible, CustomDebugStringConvertible {
+	public var description: String {
+		headers
+			.map { "\($0.key): \($0.value)" }
+			.joined(separator: "\n")
+	}
+
+	public var debugDescription: String {
+		"\(Self.self):\n\(description.prefixingLines(with: "\t"))"
 	}
 }

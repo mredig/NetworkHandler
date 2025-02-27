@@ -9,6 +9,7 @@ let nhDeps = {
 		"NetworkHalpers",
 		"SaferContinuation",
 		"Swiftwood",
+		"SwiftPizzaSnips",
 	]
 
 	#if os(Linux)
@@ -45,6 +46,7 @@ let targets = {
 			dependencies: [
 				.product(name: "Crypto", package: "swift-crypto"),
 				"Swiftwood",
+				"SwiftPizzaSnips",
 			]),
 		.target(
 			name: "NHLinuxSupport"),
@@ -113,7 +115,8 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.0.0")),
 		.package(url: "https://github.com/mredig/SaferContinuation.git", .upToNextMinor(from: "1.3.0")),
 		.package(url: "https://github.com/mredig/Swiftwood.git", .upToNextMajor(from: "0.4.0")),
-		.package(url: "https://github.com/mredig/PizzaMacros.git", .upToNextMinor(from: "0.1.0")),
+		.package(url: "https://github.com/mredig/PizzaMacros.git", .upToNextMajor(from: "0.1.0")),
+		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", .upToNextMajor(from: "0.4.0")),
 		.package(url: "https://github.com/mredig/SwiftlyDotEnv.git", .upToNextMinor(from: "0.2.3")),
 	],
 	targets: targets)

@@ -1,4 +1,5 @@
 {
+  "originHash" : "c779ffacc33941dc043c289e15bee9d49fbfdd3a0513565ba7c71aec05cb3869",
   "pins" : [
     {
       "identity" : "pizzamacros",
@@ -46,6 +47,15 @@
       }
     },
     {
+      "identity" : "swiftpizzasnips",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mredig/SwiftPizzaSnips.git",
+      "state" : {
+        "revision" : "25e313f4e940be711ca256a95eca8ecb9e7433f2",
+        "version" : "0.4.33"
+      }
+    },
+    {
       "identity" : "swiftwood",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mredig/Swiftwood.git",
@@ -55,5 +65,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
