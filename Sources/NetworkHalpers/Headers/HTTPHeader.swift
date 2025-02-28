@@ -1,9 +1,11 @@
-public struct HTTPHeader: Hashable, Sendable {
-	public let key: HTTPHeaderKey
-	public let value: HTTPHeaderValue
+extension HTTPHeaders {
+	public struct Header: Hashable, Sendable {
+		public let key: Key
+		public let value: Value
 
-	public init(key: HTTPHeaderKey, value: HTTPHeaderValue) {
-		self.key = key
-		self.value = value
+		public init(key: Key, value: Value) {
+			self.key = key
+			self.value = value
+		}
 	}
 }

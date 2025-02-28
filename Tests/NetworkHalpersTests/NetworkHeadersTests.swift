@@ -101,9 +101,9 @@ struct NetworkHeadersTests {
 
 	@Test func headersArrayLiteral() async throws {
 		let simpleHeaders: HTTPHeaders = [
-			HTTPHeader(key: "Content-Type", value: "application/json"),
-			HTTPHeader(key: "Authorization", value: "Bearer foobar"),
-			HTTPHeader(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header(key: "Content-Type", value: "application/json"),
+			HTTPHeaders.Header(key: "Authorization", value: "Bearer foobar"),
+			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
 		]
 
 		let userAgentValue = simpleHeaders["User-Agent"]!
@@ -133,15 +133,15 @@ struct NetworkHeadersTests {
 
 	@Test func headersMutation() async throws {
 		var simpleHeaders: HTTPHeaders = [
-			HTTPHeader(key: "Content-Type", value: "application/json"),
-			HTTPHeader(key: "Authorization", value: "Bearer foobar"),
-			HTTPHeader(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header(key: "Content-Type", value: "application/json"),
+			HTTPHeaders.Header(key: "Authorization", value: "Bearer foobar"),
+			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
 		]
 
 		#expect(simpleHeaders.keys().count == 3)
 		#expect(simpleHeaders.allHeaders(withKey: .contentType).count == 1)
 
-		simpleHeaders.append(HTTPHeader(key: .contentType, value: "application/json"))
+		simpleHeaders.append(HTTPHeaders.Header(key: .contentType, value: "application/json"))
 		#expect(simpleHeaders.keys().count == 4)
 		#expect(simpleHeaders.allHeaders(withKey: .contentType).count == 2)
 		let contentIndicies = simpleHeaders.indicies(for: .contentType)
@@ -153,9 +153,9 @@ struct NetworkHeadersTests {
 
 	@Test func headersSubscripts() async throws {
 		var simpleHeaders: HTTPHeaders = [
-			HTTPHeader(key: "Content-Type", value: "application/json"),
-			HTTPHeader(key: "Authorization", value: "Bearer foobar"),
-			HTTPHeader(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header(key: "Content-Type", value: "application/json"),
+			HTTPHeaders.Header(key: "Authorization", value: "Bearer foobar"),
+			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
 		]
 
 		#expect(simpleHeaders.keys().count == 3)
@@ -177,15 +177,15 @@ struct NetworkHeadersTests {
 
 	@Test func headersIndicies() async throws {
 		var simpleHeaders: HTTPHeaders = [
-			HTTPHeader(key: "Content-Type", value: "application/json"),
-			HTTPHeader(key: "Authorization", value: "Bearer foobar"),
-			HTTPHeader(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header(key: "Content-Type", value: "application/json"),
+			HTTPHeaders.Header(key: "Authorization", value: "Bearer foobar"),
+			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
 		]
 
-		#expect(simpleHeaders[0] == HTTPHeader(key: .contentType, value: .json))
+		#expect(simpleHeaders[0] == HTTPHeaders.Header(key: .contentType, value: .json))
 
-		simpleHeaders[0] = HTTPHeader(key: .contentType, value: "application/json2")
-		#expect(simpleHeaders[0] == HTTPHeader(key: .contentType, value: "application/json2"))
+		simpleHeaders[0] = HTTPHeaders.Header(key: .contentType, value: "application/json2")
+		#expect(simpleHeaders[0] == HTTPHeaders.Header(key: .contentType, value: "application/json2"))
 
 		#expect(simpleHeaders.index(after: 0) == 1)
 		#expect(simpleHeaders.startIndex == 0)
