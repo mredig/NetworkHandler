@@ -95,6 +95,34 @@ public struct AWSV4Signature {
 		]
 	}
 
+	public func processRequestInfo(
+		url: URL,
+		method: HTTPMethod,
+		headersBlock: (HTTPHeaders) -> Void
+	) throws(AWSAuthError) {
+		guard url == self.url else {
+			throw .requestURLNoMatch
+		}
+		guard method == self.requestMethod else {
+			throw .requestMethodNoMatch
+		}
+
+		let headers: HTTPHeaders = {
+			var start: HTTPHeaders = []
+			amzHeaders.forEach {
+				let newHeader = HTTPHeaders.Header(key: $0.key, value: $0.value)
+				start.append(newHeader)
+			}
+			additionalSignedHeaders.forEach {
+				let newHeader = HTTPHeaders.Header(key: $0.key, value: $0.value)
+				start.append(newHeader)
+			}
+			return start
+		}()
+
+		headersBlock(headers)
+	}
+
 	public func processRequest(_ request: URLRequest) throws -> URLRequest {
 		guard
 			url == request.url
