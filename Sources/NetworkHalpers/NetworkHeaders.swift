@@ -277,6 +277,26 @@ public extension HTTPHeaders {
 	}
 }
 
+public extension HTTPHeaders {
+	mutating func combine(with other: HTTPHeaders) {
+		headers.append(contentsOf: other.headers)
+	}
+
+	func combining(with other: HTTPHeaders) -> HTTPHeaders {
+		var new = self
+		new.combine(with: other)
+		return new
+	}
+
+	static func + (lhs: HTTPHeaders, rhs: HTTPHeaders) -> HTTPHeaders {
+		lhs.combining(with: rhs)
+	}
+
+	static func += (lhs: inout HTTPHeaders, rhs: HTTPHeaders) {
+		lhs.combine(with: rhs)
+	}
+}
+
 extension HTTPHeaders: CustomStringConvertible, CustomDebugStringConvertible {
 	public var description: String {
 		headers
