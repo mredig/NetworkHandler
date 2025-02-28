@@ -1,5 +1,5 @@
 {
-  "originHash" : "c779ffacc33941dc043c289e15bee9d49fbfdd3a0513565ba7c71aec05cb3869",
+  "originHash" : "ea8babe3bcc9152e122cfec1fed81599861bde41c023486a235a7edc7065101e",
   "pins" : [
     {
       "identity" : "pizzamacros",
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mredig/SwiftPizzaSnips.git",
       "state" : {
-        "revision" : "25e313f4e940be711ca256a95eca8ecb9e7433f2",
-        "version" : "0.4.33"
+        "branch" : "0.4.34a",
+        "revision" : "bc5ddf79e23e0a2afcfc956dfecbce253c7d2cec"
       }
     },
     {
