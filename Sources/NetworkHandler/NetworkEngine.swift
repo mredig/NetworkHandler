@@ -8,4 +8,6 @@ public protocol NetworkEngine {
 		uploadProgress: AsyncThrowingStream<Int64, Error>,
 		response: Task<EngineResponseHeader, Error>,
 		responseBody: ResponseBodyStream)
+
+	func shutdown()
 }

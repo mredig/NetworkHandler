@@ -119,6 +119,10 @@ extension URLSession: NetworkEngine {
 		return (progStream, responseTask, bodyStream)
 	}
 
+	public func shutdown() {
+		finishTasksAndInvalidate()
+	}
+
 	public enum UploadError: Error {
 		case noServerResponseHeader
 		case noInputStream
