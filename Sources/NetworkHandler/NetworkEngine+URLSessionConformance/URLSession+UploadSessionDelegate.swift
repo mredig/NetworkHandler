@@ -55,12 +55,12 @@ extension URLSession {
 		/// That said, I don't fully know the mechanism for the delegate thread, so until I can trust it fully, I'm going to keep using this.
 		private let lock = MutexLock()
 
-		func addTaskWith(
-			stream: InputStream,
 		/// Adds a task for tracking with the delegate.
+		func addTask(
+			_ task: URLSessionUploadTask,
+			withStream stream: InputStream,
 			progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation,
-			bodyContinuation: ResponseBodyStream.Continuation,
-			task: URLSessionUploadTask
+			bodyContinuation: ResponseBodyStream.Continuation
 		) {
 			let state = State(progressContinuation: progressContinuation, bodyContinuation: bodyContinuation, task: task, stream: stream, parent: self)
 			lock.withLock {

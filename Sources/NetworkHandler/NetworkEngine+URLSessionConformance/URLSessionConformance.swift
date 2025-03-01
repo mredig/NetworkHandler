@@ -82,11 +82,11 @@ extension URLSession: NetworkEngine {
 		}
 
 		let task = uploadTask(withStreamedRequest: urlRequest)
-		delegate.addTaskWith(
-			stream: payloadStream,
+		delegate.addTask(
+			task,
+			withStream: payloadStream,
 			progressContinuation: progContinuation,
-			bodyContinuation: bodyContinuation,
-			task: task)
+			bodyContinuation: bodyContinuation)
 		task.delegate = delegate
 
 		let responseTask = Task {
