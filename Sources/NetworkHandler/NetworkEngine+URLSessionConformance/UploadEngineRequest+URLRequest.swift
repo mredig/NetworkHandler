@@ -8,15 +8,6 @@ extension UploadEngineRequest {
 		}
 		new.httpMethod = self.method.rawValue
 
-		switch payload {
-		case .data(let data):
-			new.httpBodyStream = InputStream(data: data)
-		case .localFile(let localFile):
-			new.httpBodyStream = InputStream(url: localFile)
-		case .streamProvider(let stream):
-			new.httpBodyStream = stream
-		}
-
 		new.timeoutInterval = self.timeoutInterval
 
 		return new

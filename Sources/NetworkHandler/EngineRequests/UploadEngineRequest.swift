@@ -16,16 +16,12 @@ public struct UploadEngineRequest: Hashable, Sendable {
 		metadata[keyPath: member]
 	}
 
-	public var payload: UploadFile
-
 	public init(
 		expectedResponseCodes: ResponseCodes = [200],
 		headers: HTTPHeaders = [:],
 		method: HTTPMethod = .get,
-		url: URL,
-		payload: UploadFile
+		url: URL
 	) {
-		self.payload = payload
 		self.metadata = EngineRequestMetadata(
 			expectedResponseCodes: expectedResponseCodes,
 			headers: headers,

@@ -56,21 +56,30 @@ extension URLSession: NetworkEngine {
 		return (engResponse, stream)
 	}
 
-	public func uploadNetworkData(with request: UploadEngineRequest) async throws -> (
+	public func uploadNetworkData(request: UploadEngineRequest, with payload: UploadEngineRequest.UploadFile) async throws -> (
 		uploadProgress: AsyncThrowingStream<Int64, any Error>,
 		response: Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream
 	) {
-		var urlRequest = request.urlRequest
-		guard
-			let payloadStream = urlRequest.httpBodyStream
-		else { throw UploadError.noInputStream }
-		urlRequest.httpBodyStream = nil
+		let urlRequest = request.urlRequest
 
 		let (progStream, progContinuation) = AsyncThrowingStream<Int64, Error>.makeStream()
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream()
 
 		let delegate = delegate as! UploadDellowFelegate
+
+		let payloadStream: InputStream
+		switch payload {
+		case .data(let data):
+			payloadStream = InputStream(data: data)
+		case .localFile(let localFile):
+			guard
+				let stream = InputStream(url: localFile)
+			else { throw UploadError.createStreamFromLocalFileFailed }
+			payloadStream = stream
+		case .streamProvider(let stream):
+			payloadStream = stream
+		}
 
 		let task = uploadTask(withStreamedRequest: urlRequest)
 		delegate.addTaskWith(
@@ -85,7 +94,6 @@ extension URLSession: NetworkEngine {
 				while task.response == nil {
 					try await Task.sleep(for: .milliseconds(100))
 				}
-//				try await Task.sleep(for: .seconds(100))
 				guard let response = task.response else { fatalError() }
 				
 				return EngineResponseHeader(from: response)
@@ -118,5 +126,6 @@ extension URLSession: NetworkEngine {
 		case noServerResponseHeader
 		case noInputStream
 		case notTrackingRequestedTask
+		case createStreamFromLocalFileFailed
 	}
 }
