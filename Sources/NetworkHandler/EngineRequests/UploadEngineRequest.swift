@@ -116,6 +116,10 @@ public struct UploadEngineRequest: Hashable, Sendable {
 					}
 				})
 
+				if hasDataAvailableBlock(currentOffset) == false {
+					statusOnExit = .atEnd
+				}
+
 				return chunk.count
 			} catch {
 				statusOnExit = .error
