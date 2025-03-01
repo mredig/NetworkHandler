@@ -3,15 +3,12 @@ import Foundation
 import SwiftPizzaSnips
 
 extension URLSession: NetworkEngine {
-	public static func asEngine() -> NetworkEngine {
+	public static func asEngine(withConfiguration configuration: URLSessionConfiguration = .default) -> NetworkEngine {
 		let delegate = UploadDellowFelegate()
-		let config = URLSessionConfiguration.default
 		let queue = OperationQueue()
 		queue.maxConcurrentOperationCount = 1
 		queue.name = "Dellow Felegate"
-		let newSession = URLSession(configuration: config, delegate: delegate, delegateQueue: queue)
-
-		return newSession
+		return URLSession(configuration: configuration, delegate: delegate, delegateQueue: queue)
 	}
 
 	public func fetchNetworkData(from request: DownloadEngineRequest) async throws -> (EngineResponseHeader, ResponseBodyStream) {
