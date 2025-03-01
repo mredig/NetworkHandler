@@ -117,7 +117,7 @@ let package = Package(
 		.package(url: "https://github.com/mredig/Swiftwood.git", .upToNextMajor(from: "0.4.0")),
 		.package(url: "https://github.com/mredig/PizzaMacros.git", .upToNextMajor(from: "0.1.0")),
 //		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", .upToNextMajor(from: "0.4.0")),
-		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", branch: "0.4.34a"),
+		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", branch: "0.4.34d"),
 		.package(url: "https://github.com/mredig/SwiftlyDotEnv.git", .upToNextMinor(from: "0.2.3")),
 	],
 	targets: targets)

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftPizzaSnips
 
 extension URLSession {
 	class UploadDellowFelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
@@ -15,24 +16,15 @@ extension URLSession {
 			unowned let parent: UploadDellowFelegate
 
 			@NHActor
-			var waitingContinuations: [CheckedContinuation<HTTPURLResponse, Error>] = []
+			var waitingContinuations: [CheckedContinuation<Void, Error>] = []
 
 			enum Completion {
 				case inProgress
-				case finished(HTTPURLResponse)
+				case finished
 				case error(Error)
 			}
-			@NHActor
-			var dataSendCompletion: Completion = .inProgress {
-				didSet {
-					switch dataSendCompletion {
-					case .inProgress:
-						return
-					case .finished, .error:
-						parent.triggerUploadContinuations(for: self)
-					}
-				}
-			}
+
+			var dataSendCompletion: Completion = .inProgress
 
 			init(
 				progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation,
@@ -50,27 +42,7 @@ extension URLSession {
 		}
 
 		private var states: [URLSessionTask: State] = [:]
-
-
-
-		private let lock = NSLock()
-
-		//		init(
-		//			stream: InputStream,
-		//			progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation,
-		//			bodyContinuation: ResponseBodyStream.Continuation,
-		//			task: URLSessionUploadTask
-		//		) {
-		//			self.stream = stream
-		//			self.progressContinuation = progressContinuation
-		//			self.bodyContinuation = bodyContinuation
-		//			self.task = task
-		//			let state = State(
-		//				progressContinuation: progressContinuation,
-		//				bodyContinuation: bodyContinuation,
-		//				task: task,
-		//				stream: stream)
-		//		}
+		private let lock = MutexLock()
 
 		func addTaskWith(
 			stream: InputStream,
@@ -82,10 +54,6 @@ extension URLSession {
 			lock.withLock {
 				states[task] = state
 			}
-		}
-
-		deinit {
-			print("gonzo!")
 		}
 
 		func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
@@ -114,14 +82,8 @@ extension URLSession {
 					fatalError("Multiple continuation completions")
 				}
 
-				guard
-					let response = state.task.response as? HTTPURLResponse
-				else {
-					throw UploadError.noServerResponseHeader
-				}
-
 				lock.withLock {
-					states[dataTask]?.dataSendCompletion = .finished(response)
+					states[dataTask]?.dataSendCompletion = .finished
 				}
 			}
 
@@ -163,6 +125,12 @@ extension URLSession {
 				}
 			}
 			state.progressContinuation.yield(totalBytesSent)
+
+			guard
+				totalBytesExpectedToSend != NSURLSessionTransferSizeUnknown,
+				totalBytesSent == totalBytesExpectedToSend
+			else { return }
+			state.progressContinuation.finish()
 		}
 
 		func urlSession(
@@ -171,62 +139,15 @@ extension URLSession {
 			didCompleteWithError error: (any Error)?
 		) {
 			lock.lock()
-			guard let state = states[task] else { return lock.unlock() }
+			guard let state = states[task] else {
+				lock.unlock()
+				return
+			}
+			states[task] = nil
 			lock.unlock()
 
+			state.progressContinuation.finish()
 			try? state.bodyContinuation.finish(throwing: error)
-			Task { @NHActor in
-				triggerUploadContinuations(for: state)
-			}
-		}
-
-		@NHActor
-		private func triggerUploadContinuations(for state: State) {
-			let result: Result<HTTPURLResponse, Error>
-			switch state.dataSendCompletion {
-			case .inProgress:
-				return
-			case .finished(let response):
-				result = .success(response)
-				state.progressContinuation.finish()
-			case .error(let error):
-				result = .failure(error)
-				state.progressContinuation.finish()
-			}
-
-			for continuation in state.waitingContinuations {
-				continuation.resume(with: result)
-			}
-			lock.withLock {
-				states[state.task]?.waitingContinuations = []
-			}
-		}
-
-		@NHActor
-		func waitForUploadCompletion(of task: URLSessionTask) async throws -> HTTPURLResponse {
-			guard
-				let state = lock.withLock({ () -> State? in
-					guard let state = states[task] else { return nil }
-					return state
-				})
-			else { throw UploadError.notTrackingRequestedTask }
-
-			if task.state == .suspended {
-				task.resume()
-			}
-			switch state.dataSendCompletion {
-			case .inProgress:
-				return try await withCheckedThrowingContinuation { continuation in
-					lock.withLock {
-						states[task]?.waitingContinuations.append(continuation)
-					}
-				}
-			case .finished(let response):
-				return response
-			case .error(let error):
-				throw error
-			}
 		}
 	}
 }
-

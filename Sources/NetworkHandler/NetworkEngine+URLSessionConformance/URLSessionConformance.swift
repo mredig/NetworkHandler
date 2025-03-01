@@ -3,6 +3,17 @@ import Foundation
 import SwiftPizzaSnips
 
 extension URLSession: NetworkEngine {
+	public static func asEngine() -> NetworkEngine {
+		let delegate = UploadDellowFelegate()
+		let config = URLSessionConfiguration.default
+		let queue = OperationQueue()
+		queue.maxConcurrentOperationCount = 1
+		queue.name = "Dellow Felegate"
+		let newSession = URLSession(configuration: config, delegate: delegate, delegateQueue: queue)
+
+		return newSession
+	}
+
 	public func fetchNetworkData(from request: DownloadEngineRequest) async throws -> (EngineResponseHeader, ResponseBodyStream) {
 		let urlRequest = request.urlRequest
 		let (dlBytes, response) = try await bytes(for: urlRequest)
@@ -43,6 +54,64 @@ extension URLSession: NetworkEngine {
 		}
 
 		return (engResponse, stream)
+	}
+
+	public func uploadNetworkData(with request: UploadEngineRequest) async throws -> (
+		uploadProgress: AsyncThrowingStream<Int64, any Error>,
+		response: Task<EngineResponseHeader, any Error>,
+		responseBody: ResponseBodyStream
+	) {
+		var urlRequest = request.urlRequest
+		guard
+			let payloadStream = urlRequest.httpBodyStream
+		else { throw UploadError.noInputStream }
+		urlRequest.httpBodyStream = nil
+
+		let (progStream, progContinuation) = AsyncThrowingStream<Int64, Error>.makeStream()
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream()
+
+		let delegate = delegate as! UploadDellowFelegate
+
+		let task = uploadTask(withStreamedRequest: urlRequest)
+		delegate.addTaskWith(
+			stream: payloadStream,
+			progressContinuation: progContinuation,
+			bodyContinuation: bodyContinuation,
+			task: task)
+		task.delegate = delegate
+
+		let responseTask = Task {
+			do {
+				while task.response == nil {
+					try await Task.sleep(for: .milliseconds(100))
+				}
+//				try await Task.sleep(for: .seconds(100))
+				guard let response = task.response else { fatalError() }
+				
+				return EngineResponseHeader(from: response)
+			} catch {
+				throw error
+			}
+		}
+
+		bodyContinuation.onTermination = { reason in
+			func performCancellation() {
+				task.cancel()
+				responseTask.cancel()
+			}
+			switch reason {
+			case .cancelled:
+				performCancellation()
+			case .finished(let error):
+				if error != nil {
+					performCancellation()
+				}
+			}
+		}
+
+		task.resume()
+
+		return (progStream, responseTask, bodyStream)
 	}
 
 	public enum UploadError: Error {
