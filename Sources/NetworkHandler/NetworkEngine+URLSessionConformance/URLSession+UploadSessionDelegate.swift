@@ -2,21 +2,28 @@ import Foundation
 import SwiftPizzaSnips
 
 extension URLSession {
+	/// Used internally for upload tasks. Requires being set as the delegate on the URLSession. I can't remember if it
+	/// mattered if it was the task delegate or not, but that's how the current implementation works, so I'd suggest
+	/// being consistent with that.
 	class UploadDellowFelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
+		/// Tracks the state of a single task. Stored in a dictionary in the delegate.
 		private struct State {
+			/// Relays the total number of bytes sent for a given task in a stream.
 			let progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation
+			/// Relays the data body chunk blobs received from the response.
 			let bodyContinuation: ResponseBodyStream.Continuation
 
+			/// The actual network task
 			let task: URLSessionUploadTask
 
+			/// Tracks the most recently progress continuation usage to keep from flooding the progress stream.
 			var lastUpdate = Date.distantPast
 
+			/// Source of the upload.
 			let stream: InputStream
 
+			/// Reference back to the delegate
 			unowned let parent: UploadDellowFelegate
-
-			@NHActor
-			var waitingContinuations: [CheckedContinuation<Void, Error>] = []
 
 			enum Completion {
 				case inProgress
@@ -24,6 +31,7 @@ extension URLSession {
 				case error(Error)
 			}
 
+			@NHActor
 			var dataSendCompletion: Completion = .inProgress
 
 			init(
@@ -41,11 +49,15 @@ extension URLSession {
 			}
 		}
 
+		/// Tracks all the tasks with their current state. Accessed only with `lock`. For more info, see `lock`
 		private var states: [URLSessionTask: State] = [:]
+		/// Lock for keeping thread safety. However, it's probably not necessary. The delegate is set to be used on a single queue, so it's probably uneeded overhead...
+		/// That said, I don't fully know the mechanism for the delegate thread, so until I can trust it fully, I'm going to keep using this.
 		private let lock = MutexLock()
 
 		func addTaskWith(
 			stream: InputStream,
+		/// Adds a task for tracking with the delegate.
 			progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation,
 			bodyContinuation: ResponseBodyStream.Continuation,
 			task: URLSessionUploadTask
