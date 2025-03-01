@@ -10,6 +10,7 @@ let nhDeps = {
 		"SaferContinuation",
 		"Swiftwood",
 		"SwiftPizzaSnips",
+		.product(name: "AsyncHTTPClient", package: "async-http-client"),
 	]
 
 	#if os(Linux)
@@ -119,5 +120,6 @@ let package = Package(
 //		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", .upToNextMajor(from: "0.4.0")),
 		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", branch: "0.4.34d"),
 		.package(url: "https://github.com/mredig/SwiftlyDotEnv.git", .upToNextMinor(from: "0.2.3")),
+		.package(url: "https://github.com/swift-server/async-http-client", .upToNextMajor(from: "1.25.2"))
 	],
 	targets: targets)
