@@ -1,7 +1,7 @@
 import NetworkHalpers
 import Foundation
 
-public struct EngineResponseHeader: Hashable, Sendable {
+public struct EngineResponseHeader: Hashable, Sendable, Codable {
 	public let status: Int
 	public let headers: HTTPHeaders
 
