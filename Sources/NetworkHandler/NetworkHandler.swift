@@ -24,7 +24,13 @@ public class NetworkHandler<Engine: NetworkEngine> {
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
-	public init(name: String, engine: Engine, logger: Logger = Logger(label: "Network Handler"), cacheLogger: Logger = Logger(label: "Network Handler Cache"), diskCacheCapacity: UInt64 = .max) {
+	public init(
+		name: String,
+		engine: Engine,
+		logger: Logger = Logger(label: "Network Handler"),
+		cacheLogger: Logger = Logger(label: "Network Handler Cache"),
+		diskCacheCapacity: UInt64 = .max
+	) {
 		self.name = name
 		self.cache = NetworkCache(name: "\(name)-Cache", logger: cacheLogger, diskCacheCapacity: diskCacheCapacity)
 		self.logger = logger
@@ -58,6 +64,7 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		decoder: NHDecoder = DownloadEngineRequest.defaultDecoder,
+		requestLogger: Logger? = nil,
 		until: @escaping @NHActor (NetworkRequest, PollResult<T>) async throws -> PollContinuation<T>
 	) async throws -> (responseHeader: EngineResponseHeader, result: T) {
 		func doPoll(request: NetworkRequest) async -> PollResult<T> {
@@ -66,7 +73,8 @@ public class NetworkHandler<Engine: NetworkEngine> {
 				let (header, data) = try await transferMahDatas(
 					for: request,
 					delegate: delegate,
-					usingCache: cacheOption)
+					usingCache: cacheOption,
+					requestLogger: requestLogger)
 				let decoded: T = try decodeData(data: data, using: decoder)
 				polledResult = .success((header, decoded))
 			} catch {
@@ -98,27 +106,30 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		return finalResult
 	}
 
-	/**
-	 Preconfigured URLSession tasking to fetch and decode decodable data.
-
-	 - Parameters:
-	 - request: NetworkRequest containing the url and other request information.
-	 - cacheOption: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
-	 at all. **Default**: `.dontUseCache`
-	 - Returns: The resulting, decoded data safely typed as the `DecodableType` and the `URLResponse` from the task
-	 */
+	/// Automatically decodes the data retrieved from the request to the generic, DecodableType.
+	/// - Parameters:
+	///   - request: NetworkRequest
+	///   - delegate: Provides transfer lifecycle information
+	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
+	///   at all. **Default**: `.dontUseCache`
+	///   - decoder: The decoder used to perform the decoding
+	///   - requestLogger: Logger to use for this request
+	///   - onError: Error and retry handling
+	/// - Returns: The response header from the server and the decoded body of the response.
 	@NHActor
 	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		decoder: NHDecoder = DownloadEngineRequest.defaultDecoder,
+		requestLogger: Logger? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, decoded: DecodableType) {
 		let (header, rawData) = try await transferMahDatas(
 			for: request,
 			delegate: delegate,
 			usingCache: cacheOption,
+			requestLogger: requestLogger,
 			onError: onError)
 
 		return try (header, decodeData(data: rawData, using: decoder))
@@ -129,6 +140,7 @@ public class NetworkHandler<Engine: NetworkEngine> {
 	///   - request: UploadEngineRequest
 	///   - payload: The file/data/stream you're uploading.
 	///   - delegate: Provides transfer lifecycle information
+	///   - requestLogger: Logger to use for this request
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
@@ -136,12 +148,14 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		for request: UploadEngineRequest,
 		payload: UploadFile,
 		delegate: NetworkHandlerTaskDelegate? = nil,
+		requestLogger: Logger? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
 		try await transferMahDatas(
 			for: .upload(request, payload: payload),
 			delegate: delegate,
 			usingCache: .dontUseCache,
+			requestLogger: requestLogger,
 			onError: onError)
 	}
 
@@ -151,6 +165,7 @@ public class NetworkHandler<Engine: NetworkEngine> {
 	///   - delegate: Provides transfer lifecycle information
 	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
 	///   at all. **Default**: `.dontUseCache`
+	///   - requestLogger: Logger to use for this request
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
@@ -158,15 +173,16 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		for request: DownloadEngineRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
+		requestLogger: Logger? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
 		try await transferMahDatas(
 			for: .download(request),
 			delegate: delegate,
 			usingCache: cacheOption,
+			requestLogger: requestLogger,
 			onError: onError)
 	}
-
 
 	/// Downloads data from a server. Also used to send smaller chunks of data, like REST requests, etc.
 	/// - Parameters:
@@ -174,6 +190,7 @@ public class NetworkHandler<Engine: NetworkEngine> {
 	///   - delegate: Provides transfer lifecycle information
 	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
 	///   at all. **Default**: `.dontUseCache`
+	///   - requestLogger: Logger to use for this request
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
@@ -181,6 +198,7 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
+		requestLogger: Logger? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
 		// FIXME: Do cache option
@@ -188,7 +206,7 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		try await retryHandler(
 			originalRequest: request,
 			transferTask: { transferRequest, attempt in
-				let (streamHeader, stream) = try await streamMahDatas(for: transferRequest, delegate: delegate)
+				let (streamHeader, stream) = try await streamMahDatas(for: transferRequest, requestLogger: requestLogger, delegate: delegate)
 
 				var accumulator = Data()
 				for try await chunk in stream {
@@ -207,13 +225,17 @@ public class NetworkHandler<Engine: NetworkEngine> {
 	@NHActor
 	@discardableResult public func streamMahDatas(
 		for request: NetworkRequest,
+		requestLogger: Logger? = nil,
 		delegate: NetworkHandlerTaskDelegate? = nil
 	) async throws -> (responseHeader: EngineResponseHeader, stream: Engine.ResponseBodyStream) {
 		let (httpResponse, bodyResponseStream): (EngineResponseHeader, Engine.ResponseBodyStream)
 		do {
 			switch request {
 			case .upload(let uploadRequest, let payload):
-				let (sendProgress, responseTask, bodyStream) = try await engine.uploadNetworkData(request: uploadRequest, with: payload)
+				let (sendProgress, responseTask, bodyStream) = try await engine.uploadNetworkData(
+					request: uploadRequest,
+					with: payload,
+					requestLogger: requestLogger)
 				async let progressBlock: Void = { @NHActor in
 					var signaledStart = false
 					for try await count in sendProgress {
@@ -231,7 +253,7 @@ public class NetworkHandler<Engine: NetworkEngine> {
 				delegate?.responseHeaderRetrieved(for: request, header: httpResponse)
 				bodyResponseStream = bodyStream
 			case .download(let downloadRequest):
-				let (header, bodyStream) = try await engine.fetchNetworkData(from: downloadRequest)
+				let (header, bodyStream) = try await engine.fetchNetworkData(from: downloadRequest, requestLogger: requestLogger)
 				httpResponse = header
 				bodyResponseStream = bodyStream
 			}
@@ -261,7 +283,6 @@ public class NetworkHandler<Engine: NetworkEngine> {
 
 		return (httpResponse, bodyResponseStream)
 	}
-
 
 	/// Internal retry loop. Evaluates conditions and output from `errorHandler` to determine what to try next.
 	private func retryHandler<T>(

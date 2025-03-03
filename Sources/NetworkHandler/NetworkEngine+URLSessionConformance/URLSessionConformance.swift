@@ -1,6 +1,7 @@
 import NetworkHalpers
 import Foundation
 import SwiftPizzaSnips
+import Logging
 
 extension URLSession: NetworkEngine {
 	public static func asEngine(withConfiguration configuration: URLSessionConfiguration = .default) -> URLSession {
@@ -11,7 +12,10 @@ extension URLSession: NetworkEngine {
 		return URLSession(configuration: configuration, delegate: delegate, delegateQueue: queue)
 	}
 
-	public func fetchNetworkData(from request: DownloadEngineRequest) async throws -> (EngineResponseHeader, ResponseBodyStream) {
+	public func fetchNetworkData(
+		from request: DownloadEngineRequest,
+		requestLogger: Logger?
+	) async throws -> (EngineResponseHeader, ResponseBodyStream) {
 		let urlRequest = request.urlRequest
 		let (dlBytes, response) = try await bytes(for: urlRequest)
 
@@ -53,7 +57,11 @@ extension URLSession: NetworkEngine {
 		return (engResponse, stream)
 	}
 
-	public func uploadNetworkData(request: UploadEngineRequest, with payload: UploadFile) async throws -> (
+	public func uploadNetworkData(
+		request: UploadEngineRequest,
+		with payload: UploadFile,
+		requestLogger: Logger?
+	) async throws -> (
 		uploadProgress: AsyncThrowingStream<Int64, any Error>,
 		response: Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream

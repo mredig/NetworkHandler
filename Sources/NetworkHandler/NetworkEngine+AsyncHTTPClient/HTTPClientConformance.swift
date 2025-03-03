@@ -4,10 +4,12 @@ import SwiftPizzaSnips
 import Swift
 import NIOCore
 import NIOHTTP1
+import Logging
 
 extension HTTPClient: NetworkEngine {
 	public func fetchNetworkData(
-		from request: DownloadEngineRequest
+		from request: DownloadEngineRequest,
+		requestLogger: Logger?
 	) async throws -> (EngineResponseHeader, ResponseBodyStream) {
 		let httpClientRequest = request.httpClientRequest
 
@@ -41,10 +43,11 @@ extension HTTPClient: NetworkEngine {
 		let engineResponse = EngineResponseHeader(from: httpClientResponse, with: request.url)
 		return (engineResponse, bodyStream)
 	}
-	
+
 	public func uploadNetworkData(
 		request: UploadEngineRequest,
-		with payload: UploadFile
+		with payload: UploadFile,
+		requestLogger: Logger?
 	) async throws -> (
 		uploadProgress: AsyncThrowingStream<Int64, any Error>,
 		response: _Concurrency.Task<EngineResponseHeader, any Error>,
@@ -68,7 +71,6 @@ extension HTTPClient: NetworkEngine {
 				let chunk = [UInt8](unsafeUninitializedCapacity: count) { arrayBuffer, initializedCount in
 					_ = arrayBuffer.update(fromContentsOf: buffer)
 					initializedCount = count
-					print(count)
 				}
 				lastSuccess = writer.write(.byteBuffer(ByteBuffer(bytes: chunk)))
 			}
