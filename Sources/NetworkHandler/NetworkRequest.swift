@@ -5,7 +5,7 @@ import FoundationNetworking
 
 
 @dynamicMemberLookup
-public enum NetworkRequest {
+public enum NetworkRequest: Sendable {
 	case upload(UploadEngineRequest, payload: UploadFile)
 	case download(DownloadEngineRequest)
 
