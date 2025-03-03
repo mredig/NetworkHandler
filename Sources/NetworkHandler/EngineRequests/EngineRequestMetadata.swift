@@ -31,6 +31,19 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable {
 
 	private var extensionStorage: [String: AnyHashable] = [:]
 
+	/// See [X-Request-ID](https://http.dev/x-request-id) for more info. Note that while it's an optional header,
+	/// convention dictates that it should be the same when retrying a request.
+	public var requestID: String? {
+		get { headers.value(for: .xRequestID) }
+		set {
+			guard let newValue else {
+				headers[.xRequestID] = nil
+				return
+			}
+			headers[.xRequestID] = "\(newValue)"
+		}
+	}
+
 	/// To support specialized properties for your platform, you can create an extension that stores its values here
 	/// (since extensions only support computed properties)
 	///
