@@ -1,6 +1,7 @@
 import NetworkHalpers
 import AsyncHTTPClient
 import Foundation
+import NIOHTTP1
 
 extension EngineResponseHeader {
 	public init(from response: HTTPClientResponse, with url: URL) {
@@ -9,5 +10,15 @@ extension EngineResponseHeader {
 		let headers = NetworkHalpers.HTTPHeaders(headerList)
 
 		self.init(status: statusCode, url: url, headers: headers)
+	}
+}
+
+extension HTTPClientResponse {
+	public init(from response: HTTPResponseHead) {
+		self.init(
+			version: response.version,
+			status: response.status,
+			headers: response.headers,
+			body: .init())
 	}
 }
