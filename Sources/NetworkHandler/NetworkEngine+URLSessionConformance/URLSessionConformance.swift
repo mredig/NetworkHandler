@@ -3,7 +3,7 @@ import Foundation
 import SwiftPizzaSnips
 
 extension URLSession: NetworkEngine {
-	public static func asEngine(withConfiguration configuration: URLSessionConfiguration = .default) -> NetworkEngine {
+	public static func asEngine(withConfiguration configuration: URLSessionConfiguration = .default) -> URLSession {
 		let delegate = UploadDellowFelegate()
 		let queue = OperationQueue()
 		queue.maxConcurrentOperationCount = 1
