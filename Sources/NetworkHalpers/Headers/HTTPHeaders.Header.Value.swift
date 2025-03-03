@@ -2,6 +2,7 @@ public typealias HTTPHeaderValue = HTTPHeaders.Header.Value
 extension HTTPHeaders.Header {
 	public struct Value:
 		RawRepresentable,
+		Codable,
 		Hashable,
 		Sendable,
 		ExpressibleByStringLiteral,

@@ -1,5 +1,5 @@
 extension HTTPHeaders {
-	public struct Header: Hashable, Sendable {
+	public struct Header: Hashable, Sendable, Codable {
 		public let key: Key
 		public let value: Value
 

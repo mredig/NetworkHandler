@@ -1,6 +1,6 @@
 import SwiftPizzaSnips
 
-public struct HTTPHeaders: Hashable, Sendable, MutableCollection, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
+public struct HTTPHeaders: Hashable, Sendable, Codable, MutableCollection, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
 	public var startIndex: [Header].Index { headers.startIndex }
 	public var endIndex: [Header].Index { headers.endIndex }
 
