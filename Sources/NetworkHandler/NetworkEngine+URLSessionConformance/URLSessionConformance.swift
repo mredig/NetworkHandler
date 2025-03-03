@@ -53,7 +53,7 @@ extension URLSession: NetworkEngine {
 		return (engResponse, stream)
 	}
 
-	public func uploadNetworkData(request: UploadEngineRequest, with payload: UploadEngineRequest.UploadFile) async throws -> (
+	public func uploadNetworkData(request: UploadEngineRequest, with payload: UploadFile) async throws -> (
 		uploadProgress: AsyncThrowingStream<Int64, any Error>,
 		response: Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream

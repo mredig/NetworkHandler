@@ -44,7 +44,7 @@ extension HTTPClient: NetworkEngine {
 	
 	public func uploadNetworkData(
 		request: UploadEngineRequest,
-		with payload: UploadEngineRequest.UploadFile
+		with payload: UploadFile
 	) async throws -> (
 		uploadProgress: AsyncThrowingStream<Int64, any Error>,
 		response: _Concurrency.Task<EngineResponseHeader, any Error>,

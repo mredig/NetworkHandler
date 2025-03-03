@@ -28,11 +28,6 @@ public struct UploadEngineRequest: Hashable, Sendable {
 			method: method,
 			url: url)
 	}
+	
 	public typealias ResponseCodes = EngineRequestMetadata.ResponseCodes
-
-	public enum UploadFile: Hashable, Sendable {
-		case localFile(URL)
-		case data(Data)
-		case streamProvider(StreamProvider)
-	}
 }
