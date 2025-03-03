@@ -122,11 +122,4 @@ extension URLSession: NetworkEngine {
 	public func shutdown() {
 		finishTasksAndInvalidate()
 	}
-
-	public enum UploadError: Error {
-		case noServerResponseHeader
-		case noInputStream
-		case notTrackingRequestedTask
-		case createStreamFromLocalFileFailed
-	}
 }
