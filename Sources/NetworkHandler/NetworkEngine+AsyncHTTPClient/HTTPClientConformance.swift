@@ -52,7 +52,7 @@ extension HTTPClient: NetworkEngine {
 	) {
 		var httpClientRequest = try request.httpClientFutureRequest
 
-		func streamWriter(
+		@Sendable func streamWriter(
 			inputStream: InputStream,
 			writer: HTTPClient.Body.StreamWriter
 		) -> EventLoopFuture<Void> {
@@ -113,44 +113,6 @@ extension HTTPClient: NetworkEngine {
 		_ = execute(request: httpClientRequest, delegate: delegate)
 
 		return (upProgStream, responseTask, bodyStream)
-
-//		let responseTask = _Concurrency.Task {
-//			let httpClientResponse = try await execute(httpClientRequest, deadline: .distantFuture)
-//			upProgContinuation.finish()
-//			return httpClientResponse
-//		}
-//
-//		let engineResponseTask = _Concurrency.Task {
-//			let response = try await responseTask.value
-//			return EngineResponseHeader(from: response, with: request.url)
-//		}
-//
-//		let bodyTask = _Concurrency.Task {
-//			do {
-//				let response = try await responseTask.value
-//				for try await buffer in response.body {
-//					try bodyContinuation.yield(Array(buffer.readableBytesView))
-//				}
-//				try bodyContinuation.finish()
-//			} catch {
-//				try bodyContinuation.finish(throwing: error)
-//			}
-//		}
-//
-//		bodyContinuation.onTermination = { reason in
-//			switch reason {
-//			case .cancelled:
-//				responseTask.cancel()
-//				bodyTask.cancel()
-//			case .finished(let error):
-//				if error != nil {
-//					responseTask.cancel()
-//					bodyTask.cancel()
-//				}
-//			}
-//		}
-
-//		return (upProgStream, engineResponseTask, bodyStream)
 	}
 	
 	public func shutdown() {
