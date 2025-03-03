@@ -5,7 +5,7 @@ import Foundation
 /// stream for uploading. Progress is tracked for uploading AND downloading.
 @dynamicMemberLookup
 public struct UploadEngineRequest: Hashable, Sendable {
-	private var metadata: EngineRequestMetadata
+	package var metadata: EngineRequestMetadata
 
 	public subscript<T>(dynamicMember member: WritableKeyPath<EngineRequestMetadata, T>) -> T {
 		get { metadata[keyPath: member] }

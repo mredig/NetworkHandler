@@ -5,7 +5,7 @@ import Foundation
 /// Upload progress is ignored, but download progress is tracked.
 @dynamicMemberLookup
 public struct DownloadEngineRequest: Hashable, Sendable {
-	private var metadata: EngineRequestMetadata
+	package var metadata: EngineRequestMetadata
 
 	public subscript<T>(dynamicMember member: WritableKeyPath<EngineRequestMetadata, T>) -> T {
 		get { metadata[keyPath: member] }
