@@ -74,10 +74,11 @@ public class DemoModelController {
 	public func fetchDemoModels() async throws {
 		let getURL = baseURL.appendingPathExtension("json")
 
-		let request = getURL.request
+		let request = getURL.downloadRequest
+		let nh = NetworkHandler(name: "Default", engine: URLSession.asEngine())
 
 		do {
-			let stuff: [DemoModel] = try await NetworkHandler.default.transferMahCodableDatas(for: request).decoded
+			let stuff: [DemoModel] = try await nh.transferMahCodableDatas(for: .download(request)).decoded
 			self.demoModels = stuff
 		} catch {
 			throw error
@@ -85,27 +86,29 @@ public class DemoModelController {
 	}
 
 	public func put(model: DemoModel) async throws -> DemoModel {
+		let nh = NetworkHandler(name: "Default", engine: URLSession.asEngine())
 		let putURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
 
-		var request = putURL.request
-		request.httpMethod = .put
+		var request = putURL.downloadRequest
+		request.method = .put
 
 		try request.encodeData(model)
 
-		return try await NetworkHandler.default.transferMahCodableDatas(for: request).decoded
+		return try await nh.transferMahCodableDatas(for: .download(request)).decoded
 	}
 
 	public func deleteFromServer(model: DemoModel) async throws {
 		let deleteURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
+		let nh = NetworkHandler(name: "Default", engine: URLSession.asEngine())
 
-		var request = deleteURL.request
-		request.httpMethod = .delete
+		var request = deleteURL.downloadRequest
+		request.method = .delete
 
-		try await NetworkHandler.default.transferMahDatas(for: request)
+		try await nh.transferMahDatas(for: .download(request))
 	}
 
 	// MARK: - demo purposes
