@@ -9,19 +9,23 @@ extension AWSV4Signature {
 		awsRegion: AWSV4Signature.AWSRegion,
 		awsService: AWSV4Signature.AWSService,
 		hexContentHash: AWSContentHash) throws {
-			try self.init(
-				for: request.urlRequest,
+			self.init(
+				requestMethod: request.method,
+				url: request.url,
+				date: date,
 				awsKey: awsKey,
 				awsSecret: awsSecret,
 				awsRegion: awsRegion,
 				awsService: awsService,
-				hexContentHash: hexContentHash)
+				hexContentHash: hexContentHash,
+				additionalSignedHeaders: [:])
 		}
 
 	public func processRequest(_ request: NetworkRequest) throws -> NetworkRequest {
-		let new = try processRequest(request.urlRequest)
-		return request.updatingURLRequest { urlRequest in
-			urlRequest = new
+		try processRequestInfo(url: request.url, method: request.method) { newHeaders in
+			var new = request
+			new.headers += newHeaders
+			return new
 		}
 	}
 }
