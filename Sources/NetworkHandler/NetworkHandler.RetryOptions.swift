@@ -9,7 +9,7 @@ extension NetworkHandler {
 	public typealias RetryOptionBlock<T: Decodable> = (NetworkRequest, Int, NetworkError) -> RetryOption<T>
 
 	public struct RetryConfiguration {
-		public static let simple = RetryConfiguration(delay: 0)
+		public static var simple: Self { RetryConfiguration(delay: 0) }
 
 		public var delay: TimeInterval
 		public var updatedRequest: NetworkRequest?
@@ -28,7 +28,7 @@ extension NetworkHandler {
 		public var response: ResponseOption
 
 		public enum ResponseOption {
-			case full(HTTPURLResponse)
+			case full(EngineResponseHeader)
 			case code(Int)
 		}
 	}
@@ -53,7 +53,7 @@ extension NetworkHandler {
 			return .defaultReturnValue(config: config)
 		}
 
-		public static func defaultReturnValue(data: T, urlResponse: HTTPURLResponse) -> RetryOption {
+		public static func defaultReturnValue(data: T, urlResponse: EngineResponseHeader) -> RetryOption {
 			let config = DefaultReturnValueConfiguration(data: data, response: .full(urlResponse))
 			return .defaultReturnValue(config: config)
 		}
