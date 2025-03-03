@@ -8,10 +8,7 @@ import NHLinuxSupport
 import SaferContinuation
 import Swiftwood
 
-public typealias NHCodedResponse<T: Decodable> = (decoded: T, response: HTTPURLResponse)
-
 public class NetworkHandler<Engine: NetworkEngine> {
-	public typealias NHRawResponse = (data: Engine.ResponseBodyStream, response: EngineResponseHeader)
 	// MARK: - Properties
 	public var enableLogging = false {
 		didSet {
@@ -133,15 +130,58 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		return try (header, decodeData(data: rawData, using: decoder))
 	}
 
-	/**
-	 - Parameters:
-	 - request: NetworkRequest containing the url and other request information.
-	 - cacheOption: NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
-	 at all. **Default**: `.dontUseCache`
-	 - Returns: The resulting,  raw data typed as `Data` and the `URLResponse` from the task
+	/// Send a large blob to a server
+	/// - Parameters:
+	///   - request: UploadEngineRequest
+	///   - payload: The file/data/stream you're uploading.
+	///   - delegate: Provides transfer lifecycle information
+	///   - onError: Error and retry handling
+	/// - Returns: The response header from the server and the body of the response.
+	@NHActor
+	@discardableResult public func uploadMahDatas(
+		for request: UploadEngineRequest,
+		payload: UploadFile,
+		delegate: NetworkHandlerTaskDelegate? = nil,
+		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
+	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
+		try await transferMahDatas(
+			for: .upload(request, payload: payload),
+			delegate: delegate,
+			usingCache: .dontUseCache,
+			onError: onError)
+	}
 
-	 Note that delegate is only valid in iOS 15, macOS 12, tvOS 15, and watchOS 8 and higher
-	 */
+	/// Downloads data from a server. Also used to send smaller chunks of data, like REST requests, etc.
+	/// - Parameters:
+	///   - request: DownloadEngineRequest
+	///   - delegate: Provides transfer lifecycle information
+	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
+	///   at all. **Default**: `.dontUseCache`
+	///   - onError: Error and retry handling
+	/// - Returns: The response header from the server and the body of the response.
+	@NHActor
+	@discardableResult public func downloadMahDatas(
+		for request: DownloadEngineRequest,
+		delegate: NetworkHandlerTaskDelegate? = nil,
+		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
+		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
+	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
+		try await transferMahDatas(
+			for: .download(request),
+			delegate: delegate,
+			usingCache: cacheOption,
+			onError: onError)
+	}
+
+
+	/// Downloads data from a server. Also used to send smaller chunks of data, like REST requests, etc.
+	/// - Parameters:
+	///   - request: NetworkRequest
+	///   - delegate: Provides transfer lifecycle information
+	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
+	///   at all. **Default**: `.dontUseCache`
+	///   - onError: Error and retry handling
+	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
 	@discardableResult public func transferMahDatas(
 		for request: NetworkRequest,
@@ -164,7 +204,12 @@ public class NetworkHandler<Engine: NetworkEngine> {
 			},
 			errorHandler: onError)
 	}
-
+	
+	/// Streams data from a server. Powers the rest of NetworkHandler.
+	/// - Parameters:
+	///   - request: NetworkRequest
+	///   - delegate: Provides transfer lifecycle information
+	/// - Returns: The response header from the server and a data stream that provides data as it is received.
 	@NHActor
 	@discardableResult public func streamMahDatas(
 		for request: NetworkRequest,
@@ -225,6 +270,8 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		return (httpResponse, bodyResponseStream)
 	}
 
+
+	/// Internal retry loop. Evaluates conditions and output from `errorHandler` to determine what to try next.
 	private func retryHandler<T>(
 		originalRequest: NetworkRequest,
 		transferTask: (_ request: NetworkRequest, _ attempt: Int) async throws -> (EngineResponseHeader, T),
