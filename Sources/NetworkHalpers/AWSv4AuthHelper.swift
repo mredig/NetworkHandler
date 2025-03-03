@@ -95,11 +95,11 @@ public struct AWSV4Signature {
 		]
 	}
 
-	public func processRequestInfo(
+	public func processRequestInfo<T>(
 		url: URL,
 		method: HTTPMethod,
-		headersBlock: (HTTPHeaders) -> Void
-	) throws(AWSAuthError) {
+		headersBlock: (HTTPHeaders) -> T
+	) throws(AWSAuthError) -> T {
 		guard url == self.url else {
 			throw .requestURLNoMatch
 		}
@@ -120,7 +120,7 @@ public struct AWSV4Signature {
 			return start
 		}()
 
-		headersBlock(headers)
+		return headersBlock(headers)
 	}
 
 	public func processRequest(_ request: URLRequest) throws -> URLRequest {
