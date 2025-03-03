@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 
 public class ConcatenatedInputStream: InputStream {
 
@@ -13,7 +14,7 @@ public class ConcatenatedInputStream: InputStream {
 	private var _streamStatus: Stream.Status = .notOpen
 	public override var streamStatus: Stream.Status { _streamStatus }
 
-	public init(streams: [InputStream]) throws {
+	public init(streams: [InputStream], logger: Logger? = nil) throws {
 		super.init(data: Data())
 
 		try streams.forEach {
@@ -21,7 +22,9 @@ public class ConcatenatedInputStream: InputStream {
 		}
 	}
 
-	public init() {
+	public var logger: Logger?
+
+	public init(logger: Logger? = nil) {
 		super.init(data: Data())
 	}
 
@@ -43,7 +46,7 @@ public class ConcatenatedInputStream: InputStream {
 		guard _streamStatus == .notOpen else { throw StreamConcatError.cannotAddStreamsOnceOpen }
 		switch stream.streamStatus {
 		case .open:
-			log.warning("""
+			logger?.warning("""
 				Warning: stream already open after adding to concatenation. When reading, it will continue where \
 				it left off, if already read.
 				""")
@@ -69,7 +72,7 @@ public class ConcatenatedInputStream: InputStream {
 				statusOnExit = .atEnd
 				return count
 			} catch {
-				log.error("Error getting current stream: \(error)")
+				logger?.error("Error getting current stream: \(error)")
 			}
 		}
 		return count
@@ -113,7 +116,7 @@ public class ConcatenatedInputStream: InputStream {
 				return try getCurrentStream()
 			}
 		default:
-			log.error("Unexpected status: \(stream.streamStatus)")
+			logger?.error("Unexpected status: \(stream.streamStatus)")
 			throw StreamConcatError.unexpectedStatus(stream.streamStatus)
 		}
 	}

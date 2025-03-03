@@ -1,5 +1,5 @@
 {
-  "originHash" : "27c1cdc8f34760d71c19c0dca49e6c571b2b996fcdb12bdc7bd235416a68550e",
+  "originHash" : "461520f4b9ca821270398accc7e160f2fba0529fe894ec4e02639a97117617fc",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "df7635ebef07d129fd92c9d9ec21e92c446ccde1",
         "version" : "0.1.4"
-      }
-    },
-    {
-      "identity" : "safercontinuation",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mredig/SaferContinuation.git",
-      "state" : {
-        "revision" : "0642addc252a1b308f39cb99a5bf541a1a2b9088",
-        "version" : "1.3.3"
       }
     },
     {
@@ -179,15 +170,6 @@
       "state" : {
         "branch" : "0.4.34d",
         "revision" : "ecac9f0400eb5e778aa71c2b6b26105af114ea7d"
-      }
-    },
-    {
-      "identity" : "swiftwood",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/mredig/Swiftwood.git",
-      "state" : {
-        "revision" : "e40757b906123fdad2f1f0e8419dd1907d422806",
-        "version" : "0.4.8"
       }
     }
   ],

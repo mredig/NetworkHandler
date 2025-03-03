@@ -7,10 +7,9 @@ let nhDeps = {
 	var out: [Target.Dependency] = [
 		.product(name: "Crypto", package: "swift-crypto"),
 		"NetworkHalpers",
-		"SaferContinuation",
-		"Swiftwood",
 		"SwiftPizzaSnips",
 		.product(name: "AsyncHTTPClient", package: "async-http-client"),
+		.product(name: "Logging", package: "swift-log"),
 	]
 
 	#if os(Linux)
@@ -24,6 +23,7 @@ let nhTestDeps = {
 		"NetworkHandler",
 		"TestSupport",
 		"PizzaMacros",
+		.product(name: "Logging", package: "swift-log"),
 	]
 	return out
 }()
@@ -40,8 +40,8 @@ let targets = {
 			name: "NetworkHalpers",
 			dependencies: [
 				.product(name: "Crypto", package: "swift-crypto"),
-				"Swiftwood",
 				"SwiftPizzaSnips",
+				.product(name: "Logging", package: "swift-log"),
 			]),
 		.target(
 			name: "NHLinuxSupport"),
@@ -65,7 +65,7 @@ let targets = {
 	return out
 }()
 
-let products = {
+let products: [Product] = {
 	var out: [Product] = [
 		// Products define the executables and libraries produced by a package, and make them visible to other packages.
 		.library(
@@ -90,12 +90,11 @@ let package = Package(
 	products: products,
 	dependencies: [
 		.package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.0.0")),
-		.package(url: "https://github.com/mredig/SaferContinuation.git", .upToNextMinor(from: "1.3.0")),
-		.package(url: "https://github.com/mredig/Swiftwood.git", .upToNextMajor(from: "0.4.0")),
 		.package(url: "https://github.com/mredig/PizzaMacros.git", .upToNextMajor(from: "0.1.0")),
 //		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", .upToNextMajor(from: "0.4.0")),
 		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", branch: "0.4.34d"),
 		.package(url: "https://github.com/mredig/SwiftlyDotEnv.git", .upToNextMinor(from: "0.2.3")),
-		.package(url: "https://github.com/swift-server/async-http-client", .upToNextMajor(from: "1.25.2"))
+		.package(url: "https://github.com/swift-server/async-http-client", .upToNextMajor(from: "1.25.2")),
+		.package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.6.2")),
 	],
 	targets: targets)

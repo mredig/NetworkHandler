@@ -5,18 +5,11 @@ import SwiftPizzaSnips
 import FoundationNetworking
 import NHLinuxSupport
 #endif
-import SaferContinuation
-import Swiftwood
+import Logging
 
 public class NetworkHandler<Engine: NetworkEngine> {
 	// MARK: - Properties
-	public var enableLogging = false {
-		didSet {
-			guard enableLogging else { return }
-			// FIXME: DO logging
-			setupLogging()
-		}
-	}
+	public let logger: Logger
 
 	/**
 	 An instance of Network Cache to speed up subsequent requests. Usage is
@@ -31,9 +24,10 @@ public class NetworkHandler<Engine: NetworkEngine> {
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
-	public init(name: String, engine: Engine, diskCacheCapacity: UInt64 = .max) {
+	public init(name: String, engine: Engine, logger: Logger = Logger(label: "Network Handler"), diskCacheCapacity: UInt64 = .max) {
 		self.name = name
 		self.cache = NetworkCache(name: "\(name)-Cache", diskCacheCapacity: diskCacheCapacity)
+		self.logger = logger
 
 		self.engine = engine
 	}
@@ -246,12 +240,10 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		}
 
 		guard request.expectedResponseCodes.rawValue.contains(httpResponse.status) else {
-			logIfEnabled(
-				"""
+			logger.error("""
 				Error: Server replied with expected status code: Got \(httpResponse.status) \
 				expected \(request.expectedResponseCodes)
-				""",
-				logLevel: .error)
+				""")
 			let data: Data? = await {
 				var accumulator = Data()
 				do {
@@ -326,16 +318,8 @@ public class NetworkHandler<Engine: NetworkEngine> {
 			let decodedValue = try decoder.decode(DecodableType.self, from: data)
 			return decodedValue
 		} catch {
-			logIfEnabled(
-				"Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)",
-				logLevel: .error)
+			logger.error("Error: Couldn't decode \(DecodableType.self) from provided data (see thrown error)")
 			throw NetworkError.dataCodingError(specifically: error, sourceData: data)
-		}
-	}
-
-	private func logIfEnabled(_ string: String, logLevel: Swiftwood.Level) {
-		if enableLogging {
-			log.custom(level: logLevel, string)
 		}
 	}
 
@@ -369,22 +353,3 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		}
 	}
 }
-
-//extension AsyncCancellableThrowingStream {
-//	static func data(_ data: Data, chunkSize: Int = 1024 * 1024 * 4) -> AsyncCancellableThrowingStream<[UInt8], Error> {
-//		AsyncCancellableThrowingStream<[UInt8], Error> { continuation in
-//			var lastOffset = 0
-//			for offset in stride(from: data.startIndex, through: data.endIndex, by: chunkSize) {
-//				defer { lastOffset = offset }
-//				guard
-//					(lastOffset..<offset).isOccupied
-//				else { continue }
-//				try! continuation.yield(Array(data[lastOffset..<offset]))
-//			}
-//			if lastOffset < data.endIndex {
-//				try! continuation.yield(Array(data[lastOffset..<data.endIndex]))
-//			}
-//			try? continuation.finish()
-//		}
-//	}
-//}

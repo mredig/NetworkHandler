@@ -134,7 +134,7 @@ extension MultipartFormInputStream {
 				try addStream(body)
 				try addStream(footerStream)
 			} catch {
-				log.error("Error concatenating streams: \(error)")
+				logger?.error("Error concatenating streams: \(error)")
 			}
 			super.open()
 		}
