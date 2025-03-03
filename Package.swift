@@ -15,8 +15,6 @@ let nhDeps = {
 
 	#if os(Linux)
 	out.append("NHLinuxSupport")
-	#else
-	out.append("Swizzles")
 	#endif
 	return out
 }()
@@ -27,10 +25,6 @@ let nhTestDeps = {
 		"TestSupport",
 		"PizzaMacros",
 	]
-
-	#if !os(Linux)
-	out.append("Swizzles")
-	#endif
 	return out
 }()
 
@@ -68,16 +62,6 @@ let targets = {
 				"PizzaMacros",
 			]),
 	]
-
-	#if !os(Linux)
-	out.append(
-		.target(
-			name: "Swizzles",
-			publicHeadersPath: "include",
-			cSettings: [
-				.headerSearchPath("."),
-			]))
-	#endif
 	return out
 }()
 
@@ -92,14 +76,6 @@ let products = {
 			targets: ["NetworkHalpers"]),
 	]
 
-	#if !os(Linux)
-	out.append(
-		.library(
-			name: "Swizzles",
-			targets: [
-				"Swizzles",
-			]))
-	#endif
 	return out
 }()
 
