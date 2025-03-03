@@ -81,7 +81,7 @@ public class NetworkHandlerMocker: URLProtocol {
 	public override func startLoading() {
 		guard
 			let url = request.url,
-			let method = request.method
+			let method = request.httpMethod.flatMap({ HTTPMethod(rawValue: $0) })
 		else { fatalError("A request made without url or method: \(request)") }
 
 		Task {

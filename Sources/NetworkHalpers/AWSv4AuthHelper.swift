@@ -1,7 +1,4 @@
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
 import Crypto
 
 public struct AWSV4Signature {
@@ -35,56 +32,6 @@ public struct AWSV4Signature {
 			self.awsService = awsService
 			self.hexContentHash = hexContentHash
 			self.additionalSignedHeaders = additionalSignedHeaders
-		}
-
-	public init(
-		for request: URLRequest,
-		date: Date = Date(),
-		awsKey: String,
-		awsSecret: String,
-		awsRegion: AWSV4Signature.AWSRegion,
-		awsService: AWSV4Signature.AWSService,
-		hexContentHash: AWSContentHash) throws {
-			guard
-				let method = request.method
-			else { throw AWSAuthError.noRequestMethod }
-			guard
-				let url = request.url
-			else { throw AWSAuthError.noURL }
-
-			self.init(
-				requestMethod: method,
-				url: url,
-				date: date,
-				awsKey: awsKey,
-				awsSecret: awsSecret,
-				awsRegion: awsRegion,
-				awsService: awsService,
-				hexContentHash: hexContentHash,
-				additionalSignedHeaders: request.allHTTPHeaders)
-		}
-
-	@available(*, deprecated, message: "Use AWSContentHash.fromData(_:) with another initializer")
-	public init(
-		requestMethod: HTTPMethod,
-		url: URL,
-		date: Date = Date(),
-		awsKey: String,
-		awsSecret: String,
-		awsRegion: AWSV4Signature.AWSRegion,
-		awsService: AWSV4Signature.AWSService,
-		payloadData: Data,
-		additionalSignedHeaders: [HTTPHeaderKey: HTTPHeaderValue]) {
-			self.init(
-				requestMethod: requestMethod,
-				url: url,
-				date: date,
-				awsKey: awsKey,
-				awsSecret: awsSecret,
-				awsRegion: awsRegion,
-				awsService: awsService,
-				hexContentHash: .fromData(payloadData),
-				additionalSignedHeaders: additionalSignedHeaders)
 		}
 
 	public var amzHeaders: [HTTPHeaderKey: HTTPHeaderValue] {
@@ -121,24 +68,6 @@ public struct AWSV4Signature {
 		}()
 
 		return headersBlock(headers)
-	}
-
-	public func processRequest(_ request: URLRequest) throws -> URLRequest {
-		guard
-			url == request.url
-		else { throw AWSAuthError.requestURLNoMatch }
-		guard
-			requestMethod == request.method
-		else { throw AWSAuthError.requestMethodNoMatch }
-		var request = request
-		amzHeaders.forEach {
-			request.setValue($0.value, forHTTPHeaderField: $0.key)
-		}
-		additionalSignedHeaders.forEach {
-			request.setValue($0.value, forHTTPHeaderField: $0.key)
-		}
-
-		return request
 	}
 
 	public enum AWSAuthError: Error {
