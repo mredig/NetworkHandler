@@ -101,27 +101,11 @@ class NetworkCache {
 	}
 }
 
-enum URLResponseCoder {
-	private static let key = "life.knowme.urlresponse"
-
-	static func encode(response: HTTPURLResponse) -> Data {
-		let keyedCoder = NSKeyedArchiver(requiringSecureCoding: true)
-		keyedCoder.encode(response, forKey: Self.key)
-		keyedCoder.finishEncoding()
-		return keyedCoder.encodedData
-	}
-
-	static func decodeResponse(from data: Data) -> HTTPURLResponse? {
-		let uncoder = try? NSKeyedUnarchiver(forReadingFrom: data)
-		return uncoder?.decodeObject(of: HTTPURLResponse.self, forKey: Self.key)
-	}
-}
-
 class NetworkCacheItem: Codable {
-	let response: HTTPURLResponse
+	let response: EngineResponseHeader
 	let data: Data
 
-	var cacheTuple: (Data, HTTPURLResponse) {
+	var cacheTuple: (Data, EngineResponseHeader) {
 		(data, response)
 	}
 
@@ -130,17 +114,14 @@ class NetworkCacheItem: Codable {
 		case data
 	}
 
-	init(response: HTTPURLResponse, data: Data) {
+	init(response: EngineResponseHeader, data: Data) {
 		self.response = response
 		self.data = data
 	}
 
 	required init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
-		let responseData = try container.decode(Data.self, forKey: .response)
-		guard
-			let response = URLResponseCoder.decodeResponse(from: responseData)
-		else { throw CachedItemError.responseDataCorrupt }
+		let response = try container.decode(EngineResponseHeader.self, forKey: .response)
 		self.response = response
 		self.data = try container.decode(Data.self, forKey: .data)
 	}
@@ -148,7 +129,7 @@ class NetworkCacheItem: Codable {
 	func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(data, forKey: .data)
-		try container.encode(URLResponseCoder.encode(response: response), forKey: .response)
+		try container.encode(response, forKey: .response)
 	}
 
 	enum CachedItemError: Error {
