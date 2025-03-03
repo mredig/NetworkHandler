@@ -1,4 +1,5 @@
 import Foundation
+import Logging
 import Crypto
 
 class NetworkDiskCache: CustomDebugStringConvertible {
@@ -29,11 +30,14 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 	}
 	static private var _isActive = false
 
+	let logger: Logger
+
 	var isActive: Bool {
 		Self._isActive
 	}
 
-	init(capacity: UInt64 = .max, cacheName: String? = nil) {
+	init(capacity: UInt64 = .max, cacheName: String? = nil, logger: Logger) {
+		self.logger = logger
 		self.capacity = capacity
 		self.cacheName = cacheName ?? "NetworkDiskCache"
 
@@ -58,7 +62,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 
 	private func _setData(_ getData: @autoclosure @escaping () -> Data?, key: String) {
 		guard let data = getData() else {
-			NSLog("Error getting data to save for key: \(key)")
+			logger.error("Error getting data to save for key", metadata: ["Key": "\(key)"])
 			return
 		}
 
@@ -70,8 +74,9 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 			_subtractSize(oldFileSize ?? 0, removingFile: false)
 			_addSize(for: data)
 			_updateAccessDate(fileLocation)
+			logger.debug("Saved cached file", metadata: ["Key": "\(key)"])
 		} catch {
-			NSLog("Error saving cache data: \(error)")
+			logger.error("Error saving cache data:", metadata: ["Error": "\(error)"])
 		}
 	}
 
@@ -88,6 +93,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		guard let loadedData = try? Data(contentsOf: filePath) else { return nil }
 		_updateAccessDate(filePath)
 
+		logger.debug("Cache hit", metadata: ["Key": "\(key)"])
 		return loadedData
 	}
 
@@ -103,8 +109,9 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		do {
 			try fileManager.removeItem(at: path)
 			_subtractSize(oldSize, removingFile: true)
+			logger.debug("Deleted cached file", metadata: ["File": "\(path.path(percentEncoded: false))"])
 		} catch {
-			NSLog("Error removing \(path): \(error)")
+			logger.error("Error removing \(path):", metadata: ["Error": "\(error)"])
 		}
 	}
 
@@ -118,8 +125,9 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 			for file in contents {
 				deleteFile(at: file)
 			}
+			logger.info("Reset disk cache", metadata: ["Name": "\(cacheName)"])
 		} catch {
-			NSLog("Error resetting cache: \(error)")
+			logger.error("Error resetting cache:", metadata: ["Error": "\(error)"])
 		}
 	}
 
@@ -147,8 +155,9 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		let now = Date()
 		do {
 			try fileManager.setAttributes([.modificationDate: now], ofItemAtPath: url.path)
+			logger.trace("Updated disk cache access date", metadata: ["Path": "\(url.path(percentEncoded: false))"])
 		} catch {
-			NSLog("Error updating access time: \(error)")
+			logger.error("Error updating access time:", metadata: ["Error": "\(error)"])
 		}
 	}
 
@@ -204,14 +213,16 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 				return dateA < dateB
 			}
 
+			logger.trace("Enforcing disk capacity...")
 			var oldestFirst = sorted.makeIterator()
 			while let oldestOnDisk = oldestFirst.next() {
 				guard size > capacity else { return }
-
+				
 				deleteFile(at: oldestOnDisk)
 			}
+			logger.trace("Done enforcing disk capacity")
 		} catch {
-			NSLog("Error enforcing disk cache capacity: \(error)")
+			logger.error("Error enforcing disk cache capacity:", metadata: ["Error": "\(error)"])
 		}
 	}
 
@@ -229,8 +240,9 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 				return $0 + UInt64(fileSize)
 			})
 			count = contents.count
+			logger.trace("Refreshed disk cache size", metadata: ["Size": "\(size)", "Count": "\(count)"])
 		} catch {
-			NSLog("Error calculating disk cache size: \(error)")
+			logger.error("Error calculating disk cache size:", metadata: ["Error": "\(error)"])
 		}
 	}
 

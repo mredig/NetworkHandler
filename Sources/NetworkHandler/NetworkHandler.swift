@@ -24,9 +24,9 @@ public class NetworkHandler<Engine: NetworkEngine> {
 
 	// MARK: - Lifecycle
 	/// Initialize a new NetworkHandler instance.
-	public init(name: String, engine: Engine, logger: Logger = Logger(label: "Network Handler"), diskCacheCapacity: UInt64 = .max) {
+	public init(name: String, engine: Engine, logger: Logger = Logger(label: "Network Handler"), cacheLogger: Logger = Logger(label: "Network Handler Cache"), diskCacheCapacity: UInt64 = .max) {
 		self.name = name
-		self.cache = NetworkCache(name: "\(name)-Cache", diskCacheCapacity: diskCacheCapacity)
+		self.cache = NetworkCache(name: "\(name)-Cache", logger: cacheLogger, diskCacheCapacity: diskCacheCapacity)
 		self.logger = logger
 
 		self.engine = engine

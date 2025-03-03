@@ -1,8 +1,5 @@
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
-
+import Logging
 
 /**
 Idea to resolve non blocking issue in [this test](test://com.apple.xcode/NetworkHandler/NetworkHandlerTests/NetworkCacheTests/testCacheAddRemove)
@@ -60,6 +57,7 @@ class NetworkCache {
 	public subscript(key: String) -> NetworkCacheItem? {
 		get {
 			if let cachedItem = cache.object(forKey: key as NSString) {
+				logger.debug("Cache hit", metadata: ["Key": "\(key)"])
 				return cachedItem
 			} else if let codedData = diskCache.getData(for: key) {
 				return try? Self.diskDecoder.decode(NetworkCacheItem.self, from: codedData)
@@ -69,6 +67,7 @@ class NetworkCache {
 		set {
 			if let newData = newValue {
 				cache.setObject(newData, forKey: key as NSString, cost: newData.data.count)
+				logger.debug("Stored cache data", metadata: ["Key": "\(key)"])
 				diskCache.setData(try? Self.diskEncoder.encode(newData), key: key)
 			} else {
 				cache.removeObject(forKey: key as NSString)
@@ -77,9 +76,15 @@ class NetworkCache {
 		}
 	}
 
+	public let logger: Logger
+
 	// MARK: - Init
-	init(name: String, diskCacheCapacity: UInt64 = .max) {
-		self.diskCache = .init(capacity: diskCacheCapacity, cacheName: name)
+	init(name: String, logger: Logger, diskCacheCapacity: UInt64 = .max) {
+		self.logger = logger
+		var diskLogger = Logger(label: "\(logger.label) - Disk Cache")
+		diskLogger.logLevel = logger.logLevel
+		diskLogger.handler = logger.handler
+		self.diskCache = .init(capacity: diskCacheCapacity, cacheName: name, logger: diskLogger)
 		self.name = name
 	}
 
@@ -87,6 +92,7 @@ class NetworkCache {
 	public func reset(memory: Bool = true, disk: Bool = true) {
 		if memory {
 			cache.removeAllObjects()
+			logger.debug("Cleared memory cache.", metadata: ["Name": "\(name)"])
 		}
 		if disk {
 			diskCache.resetCache()
@@ -96,6 +102,7 @@ class NetworkCache {
 	@discardableResult public func remove(objectFor key: String) -> NetworkCacheItem? {
 		let cachedItem = cache.object(forKey: key as NSString)
 		cache.removeObject(forKey: key as NSString)
+		logger.debug("Deleted cached data", metadata: ["Key": "\(key)"])
 		diskCache.deleteData(for: key)
 		return cachedItem
 	}
