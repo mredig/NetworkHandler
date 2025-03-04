@@ -1,9 +1,12 @@
 import Foundation
-import SwiftlyDotEnv
+@preconcurrency import SwiftlyDotEnv
+import Logging
 
 /// most easily populated by setting up env vars in xcode scheme. not sure how to do on linux...
 public enum TestEnvironment {
 	private typealias SDEnv = SwiftlyDotEnv
+
+	private static let logger = Logger(label: "Test Environment")
 
 	private static func loadIfNeeded() {
 		guard SwiftlyDotEnv.isLoaded == false else { return }
@@ -22,7 +25,7 @@ public enum TestEnvironment {
 			let message = """
 				Could not load env vars (you probably need a `.env.tests` file in the NetworkHandler root directory: \(error)
 				"""
-			log.error(message)
+			logger.error(message)
 			fatalError(message)
 		}
 	}

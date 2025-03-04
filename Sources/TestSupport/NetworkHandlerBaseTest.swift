@@ -1,7 +1,6 @@
 @testable import NetworkHandler
 import XCTest
 import Crypto
-import Swiftwood
 
 #if os(macOS)
 public typealias TestImage = NSImage
@@ -9,8 +8,6 @@ public typealias TestImage = NSImage
 public typealias TestImage = UIImage
 #else
 #endif
-
-public typealias log = Swiftwood
 
 open class NetworkHandlerBaseTest: XCTestCase {
 	open override func tearDown() async throws {
