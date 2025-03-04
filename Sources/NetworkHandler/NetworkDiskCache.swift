@@ -1,8 +1,9 @@
 import Foundation
 import Logging
 import Crypto
+import SwiftPizzaSnips
 
-class NetworkDiskCache: CustomDebugStringConvertible {
+class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 	let fileManager = FileManager.default
 
 	private(set) var size: UInt64 = 0
@@ -19,7 +20,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 
 	lazy private var cacheLocation = getCacheURL()
 
-	static private let cacheLock = NSLock()
+	static private let cacheLock = MutexLock()
 	static private func lockCache() {
 		cacheLock.lock()
 		_isActive = true
@@ -28,6 +29,13 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 		_isActive = false
 		cacheLock.unlock()
 	}
+	static private func withLock<T, F>(_ block: () throws(F) -> T) throws(F) -> T {
+		lockCache()
+		defer { unlockCache() }
+		return try block()
+	}
+
+	nonisolated(unsafe)
 	static private var _isActive = false
 
 	let logger: Logger
@@ -47,15 +55,17 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 
 	// MARK: - CRUD
 	func setData(_ getData: @autoclosure @escaping () -> Data?, key: String, sync: Bool = false) {
+		func doIt() {
+			Self.withLock {
+				_setData(getData(), key: key)
+			}
+		}
+
 		if sync {
-			Self.lockCache()
-			defer { Self.unlockCache() }
-			_setData(getData(), key: key)
+			doIt()
 		} else {
 			Task {
-				Self.lockCache()
-				defer { Self.unlockCache() }
-				_setData(getData(), key: key)
+				doIt()
 			}
 		}
 	}
@@ -81,10 +91,9 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 	}
 
 	func getData(for key: String) -> Data? {
-		Self.lockCache()
-		defer { Self.unlockCache() }
-
-		return _getData(for: key)
+		Self.withLock {
+			_getData(for: key)
+		}
 	}
 
 	private func _getData(for key: String) -> Data? {
@@ -98,11 +107,13 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 	}
 
 	func deleteData(for key: String) {
-		let filePath = path(for: key)
-		deleteFile(at: filePath)
+		Self.withLock {
+			let filePath = path(for: key)
+			_deleteFile(at: filePath)
+		}
 	}
 
-	func deleteFile(at path: URL) {
+	private func _deleteFile(at path: URL) {
 		guard fileManager.fileExists(atPath: path.path) else { return }
 
 		let oldSize = _fileSize(at: path) ?? 0
@@ -123,7 +134,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 			let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [], options: [])
 
 			for file in contents {
-				deleteFile(at: file)
+				_deleteFile(at: file)
 			}
 			logger.info("Reset disk cache", metadata: ["Name": "\(cacheName)"])
 		} catch {
@@ -133,6 +144,8 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 
 	// MARK: - Utility
 	private func getCacheURL() -> URL {
+		Self.lockCache()
+		defer { Self.unlockCache() }
 		do {
 			let cacheDir = try fileManager.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
 			let cacheResource = cacheDir.appendingPathComponent(cacheName)
@@ -218,7 +231,7 @@ class NetworkDiskCache: CustomDebugStringConvertible {
 			while let oldestOnDisk = oldestFirst.next() {
 				guard size > capacity else { return }
 				
-				deleteFile(at: oldestOnDisk)
+				_deleteFile(at: oldestOnDisk)
 			}
 			logger.trace("Done enforcing disk capacity")
 		} catch {

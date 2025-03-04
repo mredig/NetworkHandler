@@ -1,5 +1,6 @@
 import NetworkHalpers
 import Foundation
+import SwiftPizzaSnips
 
 /// A network request primarily intended for retrieving data or sending small amounts of data.
 /// Upload progress is ignored, but download progress is tracked.
@@ -16,19 +17,31 @@ public struct DownloadEngineRequest: Hashable, Sendable {
 		metadata[keyPath: member]
 	}
 
+
+	nonisolated(unsafe)
+	private static var _defaultEncoder: NHEncoder = JSONEncoder()
+	nonisolated(unsafe)
+	private static var _defaultDecoder: NHDecoder = JSONDecoder()
+	private static let coderLock = MutexLock()
 	/**
 	Default encoder used to encode with the `encodeData` function.
 
 	Default value is `JSONEncoder()` along with all of its defaults. Being that this is a static property, it will affect *all* instances.
 	*/
-	public static var defaultEncoder: NHEncoder = JSONEncoder()
+	public static var defaultEncoder: NHEncoder {
+		get { coderLock.withLock { _defaultEncoder } }
+		set { coderLock.withLock { _defaultEncoder = newValue } }
+	}
 
 	/**
 	Default decoder used to decode data received from this request.
 
 	Default value is `JSONDecoder()` along with all of its defaults. Being that this is a static property, it will affect *all* instances.
 	*/
-	public static var defaultDecoder: NHDecoder = JSONDecoder()
+	public static var defaultDecoder: NHDecoder {
+		get { coderLock.withLock { _defaultDecoder } }
+		set { coderLock.withLock { _defaultDecoder = newValue } }
+	}
 
 	public var payload: Data?
 

@@ -79,6 +79,7 @@ public struct AWSV4Signature {
 }
 
 extension AWSV4Signature {
+	nonisolated(unsafe)
 	private static let isoFormatter: ISO8601DateFormatter = {
 		let formatter = ISO8601DateFormatter()
 		formatter.timeZone = .init(secondsFromGMT: 0)
@@ -218,7 +219,7 @@ extension AWSV4Signature {
 }
 
 extension AWSV4Signature {
-	public struct AWSRegion: RawRepresentable, ExpressibleByStringInterpolation {
+	public struct AWSRegion: RawRepresentable, Sendable, ExpressibleByStringInterpolation {
 		public let rawValue: String
 
 		public init(rawValue: String) {
@@ -255,7 +256,7 @@ extension AWSV4Signature {
 		public static let saEast1: AWSRegion = "sa-east-1"
 	}
 
-	public struct AWSService: RawRepresentable, ExpressibleByStringInterpolation {
+	public struct AWSService: RawRepresentable, Sendable, ExpressibleByStringInterpolation {
 		public let rawValue: String
 
 		public init(rawValue: String) {
@@ -269,7 +270,7 @@ extension AWSV4Signature {
 		public static let s3: AWSService = "s3"
 	}
 
-	public struct AWSContentHash: RawRepresentable, ExpressibleByStringInterpolation {
+	public struct AWSContentHash: RawRepresentable, Sendable, ExpressibleByStringInterpolation {
 		public let rawValue: String
 
 		public init(rawValue: String) {

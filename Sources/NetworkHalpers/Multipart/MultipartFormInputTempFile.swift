@@ -1,4 +1,5 @@
 import Foundation
+import SwiftPizzaSnips
 
 /**
 Use this to generate a binary file to upload multipart form data. This copies source data and files into a single
@@ -6,14 +7,14 @@ blob prior to uploading a file, so be aware of this behavior. Be sure to use a `
 to get proper progress reporting (for some reason? This is just from some minimal personal testing, but has been
 semi consistent in my experience).
 */
-public class MultipartFormInputTempFile {
+public class MultipartFormInputTempFile: @unchecked Sendable {
 
 	public let boundary: String
 	private let originalBoundary: String
 
-	private var addedFooter = false
-
 	private var parts: [Part] = []
+
+	private let lock = MutexLock()
 
 	public var multipartContentTypeHeaderValue: HTTPHeaderValue {
 		"multipart/form-data; boundary=\(boundary)"
@@ -60,7 +61,9 @@ public class MultipartFormInputTempFile {
 	}
 
 	private func addPart(_ part: Part) {
-		parts.append(part)
+		lock.withLock {
+			parts.append(part)
+		}
 	}
 
 	// swiftlint:disable:next cyclomatic_complexity
@@ -88,6 +91,8 @@ public class MultipartFormInputTempFile {
 		guard
 			let pointer = buffer.baseAddress
 		else { throw MultipartError.cannotInitializeBufferPointer }
+
+		let parts = lock.withLock { self.parts }
 
 		for part in parts {
 			for (index, byte) in part.headers.enumerated() {
@@ -140,7 +145,7 @@ public class MultipartFormInputTempFile {
 		return try await task.value
 	}
 
-	enum MultipartError: CustomDebugStringConvertible, LocalizedError {
+	enum MultipartError: CustomDebugStringConvertible, Sendable, LocalizedError {
 		case streamNotPart
 		case cannotInitializeBufferPointer
 		case headerWritingNotCompleted

@@ -108,7 +108,7 @@ class NetworkCache {
 	}
 }
 
-class NetworkCacheItem: Codable {
+class NetworkCacheItem: Codable, @unchecked Sendable {
 	let response: EngineResponseHeader
 	let data: Data
 
