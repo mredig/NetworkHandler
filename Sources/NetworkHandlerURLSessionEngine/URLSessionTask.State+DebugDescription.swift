@@ -1,7 +1,4 @@
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
 
 extension URLSessionTask.State: @retroactive CustomDebugStringConvertible {
 	public var debugDescription: String {

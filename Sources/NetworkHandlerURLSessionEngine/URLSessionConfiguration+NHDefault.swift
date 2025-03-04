@@ -1,7 +1,4 @@
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
 
 extension URLSessionConfiguration {
 	public static let networkHandlerDefault: URLSessionConfiguration = {

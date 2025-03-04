@@ -6,7 +6,7 @@ extension URLSession {
 	/// Used internally for upload tasks. Requires being set as the delegate on the URLSession. I can't remember if it
 	/// mattered if it was the task delegate or not, but that's how the current implementation works, so I'd suggest
 	/// being consistent with that.
-	class UploadDellowFelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate {
+	class UploadDellowFelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate, @unchecked Sendable {
 		/// Tracks the state of a single task. Stored in a dictionary in the delegate.
 		private struct State {
 			/// Relays the total number of bytes sent for a given task in a stream.
