@@ -18,6 +18,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 
 	public let imageURL = #URL("https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg")
 	public let demoModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/demoModel.json")
+	public let demo404URL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/akjsdhjklahgdjkahsfjkahskldf.json")
 
 	public let logger: Logger
 
@@ -90,6 +91,31 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 			requestLogger: logger).decoded
 
 		#expect(expectedModel == resultModel)
+	}
+
+	public func handle404Error<E: Error & Equatable>(
+		engine: Engine,
+		expectedError: E,
+		file: String = #fileID,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = demo404URL
+		let originalRequest = NetworkRequest.download(url.downloadRequest)
+
+		let resultModel: Result<String, Error> = await Task { [logger] in
+			try await nh.transferMahCodableDatas(
+				for: originalRequest,
+				delegate: nil,
+				requestLogger: logger).decoded
+		}.result
+
+		#expect(throws: expectedError, performing: {
+			_ = try resultModel.get()
+		})
 	}
 
 	private func getNetworkHandler(with engine: Engine) -> NetworkHandler<Engine> {

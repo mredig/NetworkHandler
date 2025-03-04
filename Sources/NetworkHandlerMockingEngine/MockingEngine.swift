@@ -15,14 +15,20 @@ public actor MockingEngine: NetworkEngine {
 		self.passthroughEngine = passthroughEngine
 	}
 
-	public func addMock(for url: URL, method: HTTPMethod, responseData: Data, responseCode: Int, delay: TimeInterval = 0) {
+	public func addMock(for url: URL, method: HTTPMethod, responseData: Data?, responseCode: Int, delay: TimeInterval = 0) {
 		addMock(for: url, method: method) { request, _ in
 			if delay > 0 {
 				try await Task.sleep(for: .seconds(delay))
 			}
-			return (responseData,  EngineResponseHeader(status: responseCode, url: request.url, headers: [
-				.contentLength: "\(responseData.count)"
-			]))
+			let headers: HTTPHeaders
+			if let responseData {
+				headers = [
+					.contentLength: "\(responseData.count)"
+				]
+			} else {
+				headers = [:]
+			}
+			return (responseData,  EngineResponseHeader(status: responseCode, url: request.url, headers: headers))
 		}
 	}
 
@@ -69,7 +75,10 @@ public actor MockingEngine: NetworkEngine {
 					"Method": "\(request.method.rawValue)"
 				])
 
-			throw MockError.notHandled404
+			throw NetworkError.httpUnexpectedStatusCode(
+				code: 404,
+				originalRequest: NetworkRequest.download(request),
+				data: Self.noMockCreated404ErrorText(for: .download(request)).data(using: .utf8))
 		}
 	}
 
@@ -111,8 +120,15 @@ public actor MockingEngine: NetworkEngine {
 					"Method": "\(request.method.rawValue)"
 				])
 
-			throw MockError.notHandled404
+			throw NetworkError.httpUnexpectedStatusCode(
+				code: 404,
+				originalRequest: NetworkRequest.upload(request, payload: payload),
+				data: Self.noMockCreated404ErrorText(for: .upload(request, payload: payload)).data(using: .utf8))
 		}
+	}
+
+	public static func noMockCreated404ErrorText(for request: NetworkRequest) -> String {
+		"No mock for \(request.url) (\(request.method.rawValue))"
 	}
 
 	private func processMock(
@@ -142,7 +158,13 @@ public actor MockingEngine: NetworkEngine {
 		}
 
 		Task {
-			let responseBody = try await everythingTask.value.data
+			guard
+				let responseBody = try await everythingTask.value.data
+			else {
+				try bodyContinuation.finish()
+				return
+			}
+
 			let size = 1024 * 1024 // 1 MB
 
 			for chunk in responseBody.chunks(ofCount: size) {
@@ -218,7 +240,7 @@ public actor MockingEngine: NetworkEngine {
 	public typealias SmartResponseMockBlock = (
 		_ request: NetworkRequest,
 		_ requestBody: Data?
-	) async throws -> (data: Data, response: EngineResponseHeader)
+	) async throws -> (data: Data?, response: EngineResponseHeader)
 
 	public struct Key: Hashable, Sendable {
 		public let url: URL
@@ -236,7 +258,7 @@ public actor MockingEngine: NetworkEngine {
 		}
 	}
 
-	public enum MockError: Swift.Error {
-		case notHandled404
-	}
+//	public enum MockError: Swift.Error {
+//		case notHandled404
+//	}
 }

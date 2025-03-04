@@ -44,6 +44,33 @@ struct NetworkHandlerMockingTests {
 		try await commonTests.downloadAndDecodeData(engine: mockingEngine, modelURL: modelURL, expectedModel: testModel)
 	}
 
+	@Test func handle404DeliberatelySetInMocks() async throws {
+		let mockingEngine = generateEngine()
+
+		let demo404URL = commonTests.demo404URL
+		await mockingEngine.addMock(for: demo404URL, method: .get, responseData: nil, responseCode: 404)
+
+		try await commonTests.handle404Error(
+			engine: mockingEngine,
+			expectedError: NetworkError.httpUnexpectedStatusCode(
+				code: 404,
+				originalRequest: .download(demo404URL.downloadRequest),
+				data: nil))
+	}
+
+	@Test func handle404OmittedFromMocks() async throws {
+		let mockingEngine = generateEngine()
+
+		let demo404URL = commonTests.demo404URL
+
+		try await commonTests.handle404Error(
+			engine: mockingEngine,
+			expectedError: NetworkError.httpUnexpectedStatusCode(
+				code: 404,
+				originalRequest: .download(demo404URL.downloadRequest),
+				data: MockingEngine.noMockCreated404ErrorText(for: .download(demo404URL.downloadRequest)).data(using: .utf8)))
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine(passthroughEngine: nil)
 	}
