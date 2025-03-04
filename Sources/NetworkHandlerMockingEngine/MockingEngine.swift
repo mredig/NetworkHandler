@@ -15,9 +15,12 @@ public actor MockingEngine: NetworkEngine {
 		self.passthroughEngine = passthroughEngine
 	}
 
-	public func addMock(for url: URL, method: HTTPMethod, responseData: Data, responseCode: Int) {
+	public func addMock(for url: URL, method: HTTPMethod, responseData: Data, responseCode: Int, delay: TimeInterval = 0) {
 		addMock(for: url, method: method) { request, _ in
-			(responseData,  EngineResponseHeader(status: responseCode, url: request.url, headers: [
+			if delay > 0 {
+				try await Task.sleep(for: .seconds(delay))
+			}
+			return (responseData,  EngineResponseHeader(status: responseCode, url: request.url, headers: [
 				.contentLength: "\(responseData.count)"
 			]))
 		}

@@ -18,9 +18,10 @@ struct NetworkHandlerMockingTests {
 			for: commonTests.imageURL,
 			method: .get,
 			responseData: lighthouseData,
-			responseCode: 200)
+			responseCode: 200,
+			delay: 0.5)
 
-		try await commonTests.downloadAndCacheImages(engine: mockingEngine)
+		try await commonTests.downloadAndCacheImages(engine: mockingEngine, imageExpectationData: lighthouseData)
 	}
 
 	private func generateEngine() -> MockingEngine {

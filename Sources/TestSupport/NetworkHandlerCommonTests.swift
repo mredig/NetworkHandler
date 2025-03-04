@@ -26,11 +26,14 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 
 	public func downloadAndCacheImages(
 		engine: Engine,
+		imageExpectationData: Data,
 		file: String = #fileID,
 		line: Int = #line,
 		function: String = #function
 	) async throws {
 		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self)", engine: engine)
+		nh.resetCache()
+		defer { nh.resetCache() }
 
 		let rawStart = Date()
 		let image1Result = try await nh.transferMahDatas(
@@ -62,6 +65,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		let imageOneData = image1Result.data
 		let imageTwoData = image2Result.data
 		#expect(imageOneData == imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
+		#expect(imageOneData == imageExpectationData)
 
 		#if canImport(AppKit) || canImport(UIKit)
 		_ = try #require(TestImage(data: imageOneData))
