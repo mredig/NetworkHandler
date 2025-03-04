@@ -3,7 +3,6 @@ import Foundation
 import FoundationNetworking
 #endif
 
-
 @dynamicMemberLookup
 public enum NetworkRequest: Sendable {
 	case upload(UploadEngineRequest, payload: UploadFile)

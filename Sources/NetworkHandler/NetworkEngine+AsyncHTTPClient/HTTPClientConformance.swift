@@ -214,3 +214,5 @@ extension HTTPClient: NetworkEngine {
 		}
 	}
 }
+
+extension InputStream: @unchecked @retroactive Sendable {}
