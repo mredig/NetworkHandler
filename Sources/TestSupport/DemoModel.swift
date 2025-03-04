@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DemoModel: Codable, Equatable {
+public struct DemoModel: Codable, Equatable, Sendable {
 	public let id: UUID
 	public var title: String
 	public var subtitle: String

@@ -44,7 +44,7 @@ class AWSv4AuthTests: XCTestCase {
 	}
 
 	func testApplyingAdditionalHeaders() throws {
-		var request = Self.awsURL.request
+		let request = Self.awsURL.downloadRequest
 
 		let headerKey: HTTPHeaderKey = "AdditionalHeaderKey"
 		let headerValue: HTTPHeaderValue = "AdditionalHeaderValue"
@@ -60,9 +60,9 @@ class AWSv4AuthTests: XCTestCase {
 				headerKey: headerValue
 			])
 
-		XCTAssertNil(request.value(forHTTPHeaderField: headerKey))
-		request = try awsSignature.processRequest(request)
+		XCTAssertNil(request.headers.value(for: headerKey))
+		let dlRequest = try awsSignature.processRequest(.download(request))
 
-		XCTAssertEqual(request.value(forHTTPHeaderField: headerKey), headerValue.rawValue)
+		XCTAssertEqual(dlRequest.headers.value(for: headerKey), headerValue.rawValue)
 	}
 }

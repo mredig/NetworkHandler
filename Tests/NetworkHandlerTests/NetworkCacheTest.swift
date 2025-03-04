@@ -1,8 +1,10 @@
+import Logging
 @testable import NetworkHandler
 import XCTest
 import TestSupport
+import NetworkHandlerMockingEngine
 
-class NetworkCacheTest: NetworkHandlerBaseTest {
+class NetworkCacheTest: NetworkHandlerBaseTest<MockingEngine> {
 	func waitForCacheToFinishActivity(_ cache: NetworkDiskCache, timeout: TimeInterval = 10) {
 		let isActive = expectation(
 			for: .init(
@@ -17,7 +19,8 @@ class NetworkCacheTest: NetworkHandlerBaseTest {
 	}
 
 	func generateDiskCache(named name: String? = nil) -> NetworkDiskCache {
-		let cache = NetworkDiskCache(cacheName: name)
+		let logger = Logger(label: "Disk Test")
+		let cache = NetworkDiskCache(cacheName: name, logger: logger)
 
 		let reset = expectation(
 			for: .init(

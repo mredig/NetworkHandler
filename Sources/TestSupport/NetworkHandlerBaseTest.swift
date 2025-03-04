@@ -1,4 +1,5 @@
 @testable import NetworkHandler
+import NetworkHandlerMockingEngine
 import XCTest
 import Crypto
 
@@ -9,23 +10,15 @@ public typealias TestImage = UIImage
 #else
 #endif
 
-open class NetworkHandlerBaseTest: XCTestCase {
+open class NetworkHandlerBaseTest<Engine: NetworkEngine>: XCTestCase {
 	open override func tearDown() async throws {
 		try await super.tearDown()
 
-		await NetworkHandlerMocker.resetMocks()
+//		await NetworkHandlerMocker.resetMocks()
 	}
 
-	public func generateNetworkHandlerInstance(mockedDefaultSession: Bool = true) -> NetworkHandler {
-
-		let config: URLSessionConfiguration?
-		if mockedDefaultSession {
-			config = URLSessionConfiguration.default
-			config?.protocolClasses = [NetworkHandlerMocker.self]
-		} else {
-			config = nil
-		}
-		let networkHandler = NetworkHandler(name: "Test Network Handler", configuration: config)
+	public func generateNetworkHandlerInstance(engine: Engine) -> NetworkHandler<Engine> {
+		let networkHandler = NetworkHandler(name: "NH", engine: engine)
 		addTeardownBlock {
 			networkHandler.resetCache()
 		}
@@ -98,13 +91,6 @@ open class NetworkHandlerBaseTest: XCTestCase {
 		input.close()
 
 		return hasher.finalize()
-	}
-
-	public func checkNetworkHandlerTasksFinished(_ networkHandler: NetworkHandler) throws {
-		let nhMirror = Mirror(reflecting: networkHandler)
-		let theDel: NHUploadDelegate = nhMirror.firstChild(named: "nhMainUploadDelegate")!
-
-		try theDel.assertClean()
 	}
 
 	public struct SimpleTestError: Error {

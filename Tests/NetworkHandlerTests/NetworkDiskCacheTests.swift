@@ -1,10 +1,15 @@
 @testable import NetworkHandler
 import XCTest
+import Logging
+import NetworkHandlerMockingEngine
 
 class NetworkDiskCacheTests: NetworkCacheTest {
 
+	nonisolated(unsafe)
 	static var dummy1KFile = Data(repeating: 0, count: 1024)
+	nonisolated(unsafe)
 	static var dummy2KFile = Data(repeating: 0, count: 1024 * 2)
+	nonisolated(unsafe)
 	static var dummy5KFile = Data(repeating: 0, count: 1024 * 5)
 
 	// swiftlint:disable:next large_tuple
@@ -29,7 +34,8 @@ class NetworkDiskCacheTests: NetworkCacheTest {
 	}
 
 	func testCacheAddRemove() {
-		let cache = NetworkDiskCache()
+		let logger = Logger(label: #function)
+		let cache = NetworkDiskCache(logger: logger)
 		cache.resetCache()
 
 		let (file1, file2, file3, file4, file5) = Self.fileAssortment()

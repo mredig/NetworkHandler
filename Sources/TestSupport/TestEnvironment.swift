@@ -25,7 +25,7 @@ public enum TestEnvironment {
 			let message = """
 				Could not load env vars (you probably need a `.env.tests` file in the NetworkHandler root directory: \(error)
 				"""
-			logger.error(message)
+			logger.error("\(message)")
 			fatalError(message)
 		}
 	}

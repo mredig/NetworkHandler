@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DummyType: Codable, Equatable {
+public struct DummyType: Codable, Equatable, Sendable {
 	public let id: Int
 	public let value: String
 	public let other: Double

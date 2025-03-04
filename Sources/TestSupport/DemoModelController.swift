@@ -1,15 +1,18 @@
 import Foundation
+import SwiftPizzaSnips
 import NetworkHandler
+import NetworkHandlerAHCEngine
+import AsyncHTTPClient
 
-public class DemoModelController {
+public class DemoModelController: @unchecked Sendable {
 	private var _demoModels = [DemoModel]()
 
+	private let lock = MutexLock()
+
 	private(set) var demoModels: [DemoModel] {
-		get {
-			_demoModels
-		}
+		get { lock.withLock { _demoModels } }
 		set {
-			_demoModels = newValue.sorted { $0.title < $1.title }
+			lock.withLock { _demoModels = newValue.sorted { $0.title < $1.title } }
 		}
 	}
 
@@ -19,7 +22,8 @@ public class DemoModelController {
 		modelWithTitle title: String,
 		andSubtitle subtitle: String,
 		imageURL: URL,
-		completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel {
+		completion: @escaping @Sendable (Error?) -> Void = { _ in }
+	) -> DemoModel {
 			let model = DemoModel(title: title, subtitle: subtitle, imageURL: imageURL)
 			demoModels.append(model)
 			Task {
@@ -38,7 +42,7 @@ public class DemoModelController {
 		withTitle title: String,
 		subtitle: String,
 		imageURL: URL,
-		completion: @escaping (Error?) -> Void = { _ in }) -> DemoModel? {
+		completion: @escaping @Sendable (Error?) -> Void = { _ in }) -> DemoModel? {
 			guard let index = demoModels.firstIndex(of: model) else { return nil }
 			var updatedModel = demoModels[index]
 			updatedModel.title = title
@@ -75,10 +79,10 @@ public class DemoModelController {
 		let getURL = baseURL.appendingPathExtension("json")
 
 		let request = getURL.downloadRequest
-		let nh = NetworkHandler(name: "Default", engine: URLSession.asEngine())
+		let nh = NetworkHandler(name: "Default", engine: HTTPClient())
 
 		do {
-			let stuff: [DemoModel] = try await nh.transferMahCodableDatas(for: .download(request)).decoded
+			let stuff: [DemoModel] = try await nh.transferMahCodableDatas(for: .download(request)).decoded//.transferMahCodableDatas(for: .download(request)).decoded
 			self.demoModels = stuff
 		} catch {
 			throw error
@@ -86,7 +90,7 @@ public class DemoModelController {
 	}
 
 	public func put(model: DemoModel) async throws -> DemoModel {
-		let nh = NetworkHandler(name: "Default", engine: URLSession.asEngine())
+		let nh = NetworkHandler(name: "Default", engine: HTTPClient())
 		let putURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
@@ -103,7 +107,7 @@ public class DemoModelController {
 		let deleteURL = baseURL
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
-		let nh = NetworkHandler(name: "Default", engine: URLSession.asEngine())
+		let nh = NetworkHandler(name: "Default", engine: HTTPClient())
 
 		var request = deleteURL.downloadRequest
 		request.method = .delete

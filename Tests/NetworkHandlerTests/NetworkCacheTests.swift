@@ -1,9 +1,13 @@
 @testable import NetworkHandler
 import XCTest
+import PizzaMacros
+import NetworkHandlerMockingEngine
 
 class NetworkCacheTests: NetworkCacheTest {
+	private let mockingEngine = MockingEngine(passthroughEngine: nil)
+
 	func testCacheCountLimit() {
-		let cache = generateNetworkHandlerInstance().cache
+		let cache = generateNetworkHandlerInstance(engine: mockingEngine).cache
 
 		let initialLimit = cache.countLimit
 		cache.countLimit = 5
@@ -13,7 +17,7 @@ class NetworkCacheTests: NetworkCacheTest {
 	}
 
 	func testCacheTotalCostLimit() {
-		let cache = generateNetworkHandlerInstance().cache
+		let cache = generateNetworkHandlerInstance(engine: mockingEngine).cache
 
 		let initialLimit = cache.totalCostLimit
 		cache.totalCostLimit = 5
@@ -23,7 +27,7 @@ class NetworkCacheTests: NetworkCacheTest {
 	}
 
 	func testCacheName() {
-		let cache = generateNetworkHandlerInstance().cache
+		let cache = generateNetworkHandlerInstance(engine: mockingEngine).cache
 
 		XCTAssertEqual("Test Network Handler-Cache", cache.name)
 	}
@@ -37,21 +41,23 @@ class NetworkCacheTests: NetworkCacheTest {
 		let data1 = Data([1, 2, 3, 4, 5])
 		let data2 = Data(data1.reversed())
 
-		let response1 = HTTPURLResponse(
-			url: URL(string: "https://redeggproductions.com")!,
-			mimeType: nil,
-			expectedContentLength: 1024,
-			textEncodingName: nil)
-		let response2 = HTTPURLResponse(
-			url: URL(string: "https://github.com")!,
-			mimeType: nil,
-			expectedContentLength: 2048,
-			textEncodingName: nil)
+		let response1 = EngineResponseHeader(
+			status: 200,
+			url: #URL("https://redeggproductions.com"),
+			headers: [
+				.contentLength: "\(1024)"
+			])
+		let response2 = EngineResponseHeader(
+			status: 200,
+			url: #URL("https://github.com"),
+			headers: [
+				.contentLength: "\(2048)"
+			])
 
 		let cachedItem1 = NetworkCacheItem(response: response1, data: data1)
 		let cachedItem2 = NetworkCacheItem(response: response2, data: data2)
 
-		let networkHandler = generateNetworkHandlerInstance()
+		let networkHandler = generateNetworkHandlerInstance(engine: mockingEngine)
 		let cache = networkHandler.cache
 		let diskCache = cache.diskCache
 
