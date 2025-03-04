@@ -50,7 +50,7 @@ extension HTTPClient: NetworkEngine {
 		requestLogger: Logger?
 	) async throws -> (
 		uploadProgress: AsyncThrowingStream<Int64, any Error>,
-		response: _Concurrency.Task<EngineResponseHeader, any Error>,
+		responseTask: _Concurrency.Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream
 	) {
 		var httpClientRequest = try request.httpClientFutureRequest

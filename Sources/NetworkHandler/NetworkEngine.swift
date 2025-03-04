@@ -7,7 +7,7 @@ public protocol NetworkEngine {
 	func fetchNetworkData(from request: DownloadEngineRequest, requestLogger: Logger?) async throws -> (EngineResponseHeader, ResponseBodyStream)
 	func uploadNetworkData(request: UploadEngineRequest, with payload: UploadFile, requestLogger: Logger?) async throws -> (
 		uploadProgress: AsyncThrowingStream<Int64, Error>,
-		response: Task<EngineResponseHeader, Error>,
+		responseTask: Task<EngineResponseHeader, Error>,
 		responseBody: ResponseBodyStream)
 
 	func shutdown()

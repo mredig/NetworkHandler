@@ -63,7 +63,7 @@ extension URLSession: NetworkEngine {
 		requestLogger: Logger?
 	) async throws -> (
 		uploadProgress: AsyncThrowingStream<Int64, any Error>,
-		response: Task<EngineResponseHeader, any Error>,
+		responseTask: Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream
 	) {
 		let urlRequest = request.urlRequest
