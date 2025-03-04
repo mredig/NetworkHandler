@@ -2,6 +2,7 @@
 import NetworkHandlerMockingEngine
 import XCTest
 import Crypto
+import Foundation
 
 #if os(macOS)
 public typealias TestImage = NSImage
@@ -30,9 +31,9 @@ open class NetworkHandlerBaseTest<Engine: NetworkEngine>: XCTestCase {
 		forArbitraryCondition arbitraryCondition: @autoclosure () async throws -> Bool,
 		timeout: TimeInterval = 10
 	) async throws {
-		let start = CFAbsoluteTimeGetCurrent()
+		let start = Date()
 		while try await arbitraryCondition() == false {
-			let elapsed = CFAbsoluteTimeGetCurrent() - start
+			let elapsed = Date().timeIntervalSince(start)
 			if elapsed > timeout {
 				throw TestError(message: "Timeout")
 			}

@@ -3,7 +3,7 @@ import Foundation
 import SwiftPizzaSnips
 import Logging
 
-public class NetworkHandler<Engine: NetworkEngine> {
+public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable {
 	// MARK: - Properties
 	public let logger: Logger
 

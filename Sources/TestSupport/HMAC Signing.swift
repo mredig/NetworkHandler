@@ -1,4 +1,5 @@
 import Foundation
+#if canImport(CommonCrypto)
 import CommonCrypto
 
 public enum HMACAlgorithm {
@@ -52,3 +53,4 @@ public extension String {
 		return hmacData.base64EncodedString(options: .lineLength76Characters)
 	}
 }
+#endif
