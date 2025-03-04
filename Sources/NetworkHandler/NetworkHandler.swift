@@ -237,8 +237,8 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		for request: NetworkRequest,
 		requestLogger: Logger? = nil,
 		delegate: NetworkHandlerTaskDelegate? = nil
-	) async throws -> (responseHeader: EngineResponseHeader, stream: Engine.ResponseBodyStream) {
-		let (httpResponse, bodyResponseStream): (EngineResponseHeader, Engine.ResponseBodyStream)
+	) async throws -> (responseHeader: EngineResponseHeader, stream: ResponseBodyStream) {
+		let (httpResponse, bodyResponseStream): (EngineResponseHeader, ResponseBodyStream)
 		do {
 			switch request {
 			case .upload(let uploadRequest, let payload):

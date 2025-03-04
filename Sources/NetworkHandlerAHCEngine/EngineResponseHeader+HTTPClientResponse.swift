@@ -1,4 +1,4 @@
-import NetworkHalpers
+import NetworkHandler
 import AsyncHTTPClient
 import Foundation
 import NIOHTTP1

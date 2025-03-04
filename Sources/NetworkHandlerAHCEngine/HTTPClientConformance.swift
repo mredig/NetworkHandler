@@ -5,6 +5,7 @@ import Swift
 import NIOCore
 import NIOHTTP1
 import Logging
+import NetworkHandler
 
 extension HTTPClient: NetworkEngine {
 	public func fetchNetworkData(

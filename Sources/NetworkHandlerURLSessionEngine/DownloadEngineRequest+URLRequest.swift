@@ -1,4 +1,5 @@
 import Foundation
+import NetworkHandler
 
 extension DownloadEngineRequest {
 	var urlRequest: URLRequest {

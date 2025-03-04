@@ -1,5 +1,6 @@
 import AsyncHTTPClient
 import NIOCore
+import NetworkHandler
 
 extension UploadEngineRequest {
 	public var httpClientRequest: HTTPClientRequest {

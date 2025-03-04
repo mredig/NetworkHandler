@@ -1,7 +1,8 @@
 import Foundation
 import Logging
-import NetworkHalpers
+import NetworkHandler
 import SwiftPizzaSnips
+import Algorithms
 
 public actor MockingEngine: NetworkEngine {
 	public let passthroughEngine: NetworkEngine?

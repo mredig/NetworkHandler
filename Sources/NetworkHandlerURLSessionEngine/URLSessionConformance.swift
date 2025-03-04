@@ -1,4 +1,4 @@
-import NetworkHalpers
+import NetworkHandler
 import Foundation
 import SwiftPizzaSnips
 import Logging
