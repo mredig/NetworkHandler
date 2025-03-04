@@ -7,16 +7,12 @@ import Algorithms
 public actor MockingEngine: NetworkEngine {
 	public let passthroughEngine: NetworkEngine?
 
-	let responseHandler: SmartResponseMockBlock
-
 	public private(set) var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
 
 	public init(
-		passthroughEngine: NetworkEngine?,
-		responseHandler: @escaping @Sendable SmartResponseMockBlock
+		passthroughEngine: NetworkEngine?
 	) {
 		self.passthroughEngine = passthroughEngine
-		self.responseHandler = responseHandler
 	}
 
 	public func addMock(for url: URL, method: HTTPMethod, responseData: Data, responseCode: Int) {
