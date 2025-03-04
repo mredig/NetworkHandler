@@ -3,7 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
-extension URLSessionTask.State: CustomDebugStringConvertible {
+extension URLSessionTask.State: @retroactive CustomDebugStringConvertible {
 	public var debugDescription: String {
 		var out = ["URLSessionTask", "State"]
 		switch self {
