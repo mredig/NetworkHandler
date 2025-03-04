@@ -85,13 +85,26 @@ let package = Package(
 		.target(
 			name: "TestSupport",
 			dependencies: [
+				"PizzaMacros",
 				"NetworkHandler",
 				"SwiftlyDotEnv",
 				"NetworkHandlerAHCEngine",
 				"NetworkHandlerMockingEngine",
+			],
+			resources: [
+				.copy("Resources")
 			]),
 		.testTarget(
 			name: "NetworkHandlerTests",
+			dependencies: [
+				"NetworkHandler",
+				"TestSupport",
+				"PizzaMacros",
+				.product(name: "Logging", package: "swift-log"),
+				"NetworkHandlerMockingEngine",
+			]),
+		.testTarget(
+			name: "NetworkHandlerMockingTests",
 			dependencies: [
 				"NetworkHandler",
 				"TestSupport",
