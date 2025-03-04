@@ -126,7 +126,7 @@ extension HTTPClient: NetworkEngine {
 		}
 	}
 
-	private class HTTPDellowFelegate: HTTPClientResponseDelegate {
+	private class HTTPDellowFelegate: HTTPClientResponseDelegate, @unchecked Sendable {
 		private let lock = MutexLock()
 
 		private var bytesSent: Int64 = 0

@@ -9,7 +9,7 @@ extension DownloadEngineRequest {
 		request.headers = .init(self.headers.map { ($0.key.rawValue, $0.value.rawValue) })
 
 		if let payload {
-			request.body = .bytes(ByteBuffer(data: payload))
+			request.body = .bytes(ByteBuffer(bytes: payload))
 		}
 
 		return request

@@ -1,10 +1,6 @@
 import Foundation
 @_exported import NetworkHalpers
 import SwiftPizzaSnips
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-import NHLinuxSupport
-#endif
 import Logging
 
 public class NetworkHandler<Engine: NetworkEngine> {
