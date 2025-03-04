@@ -6,7 +6,7 @@ import FoundationNetworking
 extension NetworkHandler {
 	/// (previousRequest, failedAttempts, mostRecentError)
 	/// Return whatever option you wish to proceed with.
-	public typealias RetryOptionBlock<T: Decodable> = (NetworkRequest, Int, NetworkError) -> RetryOption<T>
+	public typealias RetryOptionBlock<T: Decodable> = @NHActor (NetworkRequest, Int, NetworkError) -> RetryOption<T>
 
 	public struct RetryConfiguration {
 		public static var simple: Self { RetryConfiguration(delay: 0) }

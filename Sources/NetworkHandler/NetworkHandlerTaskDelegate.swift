@@ -1,7 +1,7 @@
 import Foundation
 
 @NHActor
-public protocol NetworkHandlerTaskDelegate {
+public protocol NetworkHandlerTaskDelegate: Sendable {
 	func transferDidStart(for request: NetworkRequest)
 	func sentData(for request: NetworkRequest, byteCountSent: Int, totalExpectedToSend: Int?)
 	func sendingDataDidFinish(for request: NetworkRequest)

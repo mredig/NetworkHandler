@@ -246,7 +246,7 @@ public class NetworkHandler<Engine: NetworkEngine> {
 					request: uploadRequest,
 					with: payload,
 					requestLogger: requestLogger)
-				async let progressBlock: Void = { @NHActor in
+				async let progressBlock: Void = { @NHActor [delegate] in
 					var signaledStart = false
 					for try await count in sendProgress {
 						if signaledStart == false {
@@ -295,9 +295,10 @@ public class NetworkHandler<Engine: NetworkEngine> {
 	}
 
 	/// Internal retry loop. Evaluates conditions and output from `errorHandler` to determine what to try next.
+	@NHActor
 	private func retryHandler<T>(
 		originalRequest: NetworkRequest,
-		transferTask: (_ request: NetworkRequest, _ attempt: Int) async throws -> (EngineResponseHeader, T),
+		transferTask: @NHActor (_ request: NetworkRequest, _ attempt: Int) async throws -> (EngineResponseHeader, T),
 		errorHandler: RetryOptionBlock<T>
 	) async throws -> (EngineResponseHeader, T) {
 		var retryOption = RetryOption<T>.retry
