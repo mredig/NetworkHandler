@@ -17,6 +17,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 	#endif
 
 	public let imageURL = #URL("https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg")
+	public let demoModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/demoModel.json")
 
 	public let logger: Logger
 
@@ -24,6 +25,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		self.logger = logger
 	}
 
+	/// Tests downloading, caching the download, and subsequently loading the file from cache.
 	public func downloadAndCacheImages(
 		engine: Engine,
 		imageExpectationData: Data,
@@ -31,8 +33,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		line: Int = #line,
 		function: String = #function
 	) async throws {
-		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self)", engine: engine)
-		nh.resetCache()
+		let nh = getNetworkHandler(with: engine)
 		defer { nh.resetCache() }
 
 		let rawStart = Date()
@@ -70,5 +71,30 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		#if canImport(AppKit) || canImport(UIKit)
 		_ = try #require(TestImage(data: imageOneData))
 		#endif
+	}
+
+	public func downloadAndDecodeData<D: Decodable & Sendable & Equatable>(
+		engine: Engine,
+		modelURL: URL,
+		expectedModel: D,
+		file: String = #fileID,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let resultModel: D = try await nh.transferMahCodableDatas(
+			for: .download(modelURL.downloadRequest),
+			delegate: nil,
+			requestLogger: logger).decoded
+
+		#expect(expectedModel == resultModel)
+	}
+
+	private func getNetworkHandler(with engine: Engine) -> NetworkHandler<Engine> {
+		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self)", engine: engine)
+		nh.resetCache()
+		return nh
 	}
 }
