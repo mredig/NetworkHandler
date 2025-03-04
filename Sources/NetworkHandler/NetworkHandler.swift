@@ -201,9 +201,13 @@ public class NetworkHandler<Engine: NetworkEngine> {
 		requestLogger: Logger? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
-		// FIXME: Do cache option
+		if let cacheKey = cacheOption.cacheKey(url: request.url) {
+			if let cachedData = cache[cacheKey] {
+				return (cachedData.response, cachedData.data)
+			}
+		}
 
-		try await retryHandler(
+		let (header, data) = try await retryHandler(
 			originalRequest: request,
 			transferTask: { transferRequest, attempt in
 				let (streamHeader, stream) = try await streamMahDatas(for: transferRequest, requestLogger: requestLogger, delegate: delegate)
@@ -215,6 +219,12 @@ public class NetworkHandler<Engine: NetworkEngine> {
 				return (streamHeader, accumulator)
 			},
 			errorHandler: onError)
+
+		if let cacheKey = cacheOption.cacheKey(url: request.url) {
+			self.cache[cacheKey] = NetworkCacheItem(response: header, data: data)
+		}
+
+		return (header, data)
 	}
 	
 	/// Streams data from a server. Powers the rest of NetworkHandler.
