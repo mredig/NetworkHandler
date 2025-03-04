@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -48,9 +48,6 @@ let package = Package(
 				"SwiftPizzaSnips",
 				.product(name: "AsyncHTTPClient", package: "async-http-client"),
 				.product(name: "Logging", package: "swift-log"),
-			],
-			swiftSettings: [
-				.enableUpcomingFeature("BareSlashRegexLiterals")
 			]),
 		.target(
 			name: "NetworkHandlerAHCEngine",
