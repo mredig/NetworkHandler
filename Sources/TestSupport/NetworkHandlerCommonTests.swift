@@ -1,4 +1,5 @@
 import Testing
+import SwiftPizzaSnips
 import NetworkHandler
 import Logging
 import Foundation
@@ -27,6 +28,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 	}
 
 	/// Tests downloading, caching the download, and subsequently loading the file from cache.
+	/// performs a `GET` request to `imageURL`
 	public func downloadAndCacheImages(
 		engine: Engine,
 		imageExpectationData: Data,
@@ -62,15 +64,25 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		let cacheDurationStr = formatter.string(from: cacheDuration as NSNumber) ?? "nan"
 		let cacheRatioStr = formatter.string(from: cacheRatio as NSNumber) ?? "nan"
 		logger.info("netDuration: \(netDurationStr)\ncacheDuration: \(cacheDurationStr)\ncache took \(cacheRatioStr)x as long")
-		#expect(cacheDuration < (rawDuration * 0.5), "The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working")
+		#expect(
+			cacheDuration < (rawDuration * 0.5),
+			"The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working",
+			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
 
 		let imageOneData = image1Result.data
 		let imageTwoData = image2Result.data
-		#expect(imageOneData == imageTwoData, "hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)")
-		#expect(imageOneData == imageExpectationData)
+		#expect(
+			imageOneData == imageTwoData,
+			"hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)",
+			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
+		#expect(
+			imageOneData == imageExpectationData,
+			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
 
 		#if canImport(AppKit) || canImport(UIKit)
-		_ = try #require(TestImage(data: imageOneData))
+		_ = try #require(
+			TestImage(data: imageOneData),
+			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
 		#endif
 	}
 
@@ -90,9 +102,12 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 			delegate: nil,
 			requestLogger: logger).decoded
 
-		#expect(expectedModel == resultModel)
+		#expect(
+			expectedModel == resultModel,
+			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
 	}
 
+	/// performs a `GET` request to `demo404URL`
 	public func handle404Error<E: Error & Equatable>(
 		engine: Engine,
 		expectedError: E,
@@ -113,9 +128,64 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 				requestLogger: logger).decoded
 		}.result
 
-		#expect(throws: expectedError, performing: {
+		#expect(
+			throws: expectedError,
+			performing: {
 			_ = try resultModel.get()
 		})
+	}
+
+	/// performs a `GET` request to `demoModelURL`
+	public func expect200OnlyGet200(
+		engine: Engine,
+		file: String = #fileID,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = demoModelURL
+		let request = url.downloadRequest.with {
+			$0.expectedResponseCodes = 200
+		}
+		_ = try await nh.transferMahDatas(
+			for: .download(request),
+			requestLogger: logger,
+			onError: { _,_,_  in .throw })
+	}
+
+	/// performs a `POST` request to `demoModelURL`
+	public func expect200OnlyGet201(
+		engine: Engine,
+		file: String = #fileID,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = demoModelURL
+		let request = url.downloadRequest.with {
+			$0.expectedResponseCodes = 200
+			$0.method = .post
+		}
+
+		await #expect(
+			performing: {
+				_ = try await nh.transferMahDatas(
+					for: .download(request),
+					requestLogger: logger,
+					onError: { _,_,_  in .throw })
+			},
+			throws: { error in
+				guard
+					let networkError = error as? NetworkError,
+					case .httpUnexpectedStatusCode(code: let code, originalRequest: _, data: _) = networkError,
+					code == 201
+				else { return false }
+				return true
+			})
 	}
 
 	private func getNetworkHandler(with engine: Engine) -> NetworkHandler<Engine> {

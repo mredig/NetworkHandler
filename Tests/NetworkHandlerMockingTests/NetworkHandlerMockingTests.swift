@@ -71,6 +71,26 @@ struct NetworkHandlerMockingTests {
 				data: MockingEngine.noMockCreated404ErrorText(for: .download(demo404URL.downloadRequest)).data(using: .utf8)))
 	}
 
+	@Test func expect200OnlyGet200() async throws {
+		let mockingEngine = generateEngine()
+
+		let demoModelURL = commonTests.demoModelURL
+
+		await mockingEngine.addMock(for: demoModelURL, method: .get, responseData: nil, responseCode: 200)
+
+		try await commonTests.expect200OnlyGet200(engine: mockingEngine)
+	}
+
+	@Test func expect200OnlyGet201() async throws {
+		let mockingEngine = generateEngine()
+
+		let demoModelURL = commonTests.demoModelURL
+
+		await mockingEngine.addMock(for: demoModelURL, method: .post, responseData: nil, responseCode: 201)
+
+		try await commonTests.expect200OnlyGet201(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine(passthroughEngine: nil)
 	}
