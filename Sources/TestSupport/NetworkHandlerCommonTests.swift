@@ -218,7 +218,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 			$0.expectedResponseCodes = 201
 		}
 
-		let testFileURL = URL.temporaryDirectory.appendingPathComponent(UUID().uuidString, conformingTo: .data)
+		let testFileURL = URL.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("bin")
 		let (actualTestFile, done) = try createDummyFile(at: testFileURL, megabytes: 5)
 		defer { try? done() }
 
@@ -238,7 +238,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 
 		let dlRequest = uploadURL.downloadRequest
 
-		let (dlHeader, dlResult) = try await nh.transferMahDatas(for: .download(dlRequest))
+		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
 
 		#expect(
 			SHA256.hash(data: dlResult) == hash,
@@ -258,7 +258,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 			while current.checkResourceIsAccessible() {
 				let fileName = current.deletingPathExtension().lastPathComponent
 				let newFilename = fileName + "_copy"
-				current = current.deletingLastPathComponent().appendingPathComponent(newFilename, conformingTo: .data)
+				current = current.deletingLastPathComponent().appending(component: newFilename).appendingPathExtension("bin")
 			}
 			return current
 		}()
@@ -279,7 +279,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 				quicker[index] = UInt64.random(in: 0...UInt64.max, using: &rng)
 			}
 
-			outputStream.write(buffer, maxLength: length)
+			_ = outputStream.write(buffer, maxLength: length)
 		}
 
 		let done = {
