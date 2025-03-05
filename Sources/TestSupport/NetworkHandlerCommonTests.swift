@@ -33,6 +33,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		engine: Engine,
 		imageExpectationData: Data,
 		file: String = #fileID,
+		filePath: String = #filePath,
 		line: Int = #line,
 		function: String = #function
 	) async throws {
@@ -67,22 +68,22 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		#expect(
 			cacheDuration < (rawDuration * 0.5),
 			"The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working",
-			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
 		let imageOneData = image1Result.data
 		let imageTwoData = image2Result.data
 		#expect(
 			imageOneData == imageTwoData,
 			"hashes: \(imageOneData.hashValue) and \(imageTwoData.hashValue)",
-			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 		#expect(
 			imageOneData == imageExpectationData,
-			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
 		#if canImport(AppKit) || canImport(UIKit)
 		_ = try #require(
 			TestImage(data: imageOneData),
-			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 		#endif
 	}
 
@@ -91,6 +92,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		modelURL: URL,
 		expectedModel: D,
 		file: String = #fileID,
+		filePath: String = #filePath,
 		line: Int = #line,
 		function: String = #function
 	) async throws {
@@ -104,7 +106,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 
 		#expect(
 			expectedModel == resultModel,
-			sourceLocation: SourceLocation(fileID: file, filePath: file, line: line, column: 0))
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
 	/// performs a `GET` request to `demo404URL`
@@ -112,6 +114,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		engine: Engine,
 		expectedError: E,
 		file: String = #fileID,
+		filePath: String = #filePath,
 		line: Int = #line,
 		function: String = #function
 	) async throws {
@@ -139,6 +142,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 	public func expect200OnlyGet200(
 		engine: Engine,
 		file: String = #fileID,
+		filePath: String = #filePath,
 		line: Int = #line,
 		function: String = #function
 	) async throws {
@@ -159,6 +163,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 	public func expect200OnlyGet201(
 		engine: Engine,
 		file: String = #fileID,
+		filePath: String = #filePath,
 		line: Int = #line,
 		function: String = #function
 	) async throws {
