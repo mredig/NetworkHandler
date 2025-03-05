@@ -9,6 +9,8 @@ public actor MockingEngine: NetworkEngine {
 
 	public private(set) var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
 
+	public var mockStorage: [String: Data] = [:]
+
 	public init(
 		passthroughEngine: (any NetworkEngine)?
 	) {
@@ -232,6 +234,10 @@ public actor MockingEngine: NetworkEngine {
 		}
 
 		return data
+	}
+
+	public func addStorage(_ blob: Data, forKey key: String) {
+		mockStorage[key] = blob
 	}
 
 	nonisolated

@@ -91,6 +91,42 @@ struct NetworkHandlerMockingTests {
 		try await commonTests.expect200OnlyGet201(engine: mockingEngine)
 	}
 
+	@Test func uploadFileURL() async throws {
+		let mockingEngine = generateEngine()
+
+		let url = commonTests.uploadURL
+		await mockingEngine.addMock(for: url, method: .put, smartBlock: { request, requestBody in
+			guard
+				request.method == .put,
+				request.headers["x-amz-content-sha256"] != nil,
+				request.headers["x-amz-date"] != nil,
+				request.headers[.authorization] != nil
+			else {
+				throw NetworkError.httpUnexpectedStatusCode(code: 400, originalRequest: request, data: Data("Missing amz headers".utf8))
+			}
+
+			guard
+				let requestBody
+			else {
+				throw NetworkError.httpUnexpectedStatusCode(code: 400, originalRequest: request, data: Data("No data provided".utf8))
+			}
+
+			await mockingEngine.addStorage(requestBody, forKey: request.url.path(percentEncoded: false))
+
+			return (nil, EngineResponseHeader(status: 201, url: request.url, headers: [:]))
+		})
+
+		await mockingEngine.addMock(for: url, method: .get) { request, requestBody in
+			guard
+				let blob = await mockingEngine.mockStorage[request.url.path(percentEncoded: false)]
+			else { throw NetworkError.httpUnexpectedStatusCode(code: 404, originalRequest: request, data: Data("Requested object not found".utf8)) }
+
+			return (blob, EngineResponseHeader(status: 200, url: request.url, headers: [.contentLength: "\(blob.count)"]))
+		}
+
+		try await commonTests.uploadFileURL(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine(passthroughEngine: nil)
 	}

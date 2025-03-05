@@ -93,14 +93,6 @@ open class NetworkHandlerBaseTest<Engine: NetworkEngine>: XCTestCase {
 
 		return hasher.finalize()
 	}
-
-	public struct SimpleTestError: Error {
-		public let message: String
-
-		public init(message: String) {
-			self.message = message
-		}
-	}
 }
 
 extension Mirror {

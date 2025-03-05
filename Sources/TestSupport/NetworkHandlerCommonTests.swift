@@ -4,6 +4,7 @@ import NetworkHandler
 import Logging
 import Foundation
 import PizzaMacros
+import Crypto
 #if canImport(AppKit)
 import AppKit
 #elseif canImport(UIKit)
@@ -20,6 +21,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 	public let imageURL = #URL("https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg")
 	public let demoModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/demoModel.json")
 	public let demo404URL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/akjsdhjklahgdjkahsfjkahskldf.json")
+	public let uploadURL = #URL("https://s3.wasabisys.com/network-handler-tests/uploader.bin")
 
 	public let logger: Logger
 
@@ -193,9 +195,121 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 			})
 	}
 
+	/// performs a `PUT` request to `uploadURL`
+	public func uploadFileURL(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			throw SimpleTestError(message: "Need s3 credentials")
+		}
+
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let upRequest = uploadURL.uploadRequest.with {
+			$0.method = .put
+			$0.expectedResponseCodes = 201
+		}
+
+		let testFileURL = URL.temporaryDirectory.appendingPathComponent(UUID().uuidString, conformingTo: .data)
+		let (actualTestFile, done) = try createDummyFile(at: testFileURL, megabytes: 5)
+		defer { try? done() }
+
+		let hash = try fileHash(actualTestFile)
+
+		let awsHeaderInfo = AWSV4Signature(
+			for: upRequest,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .fromShaHashDigest(hash))
+
+		let signedRequest = try awsHeaderInfo.processRequest(upRequest)
+
+		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(actualTestFile))
+
+		let dlRequest = uploadURL.downloadRequest
+
+		let (dlHeader, dlResult) = try await nh.transferMahDatas(for: .download(dlRequest))
+
+		#expect(
+			SHA256.hash(data: dlResult) == hash,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+	}
+
+	// MARK: - Utilities
 	private func getNetworkHandler(with engine: Engine) -> NetworkHandler<Engine> {
 		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self)", engine: engine)
 		nh.resetCache()
 		return nh
+	}
+
+	private func createDummyFile(at url: URL, megabytes: Int, using rng: any RandomNumberGenerator = SystemRandomNumberGenerator()) throws -> (file: URL, done: () throws -> Void) {
+		let outFile = {
+			var current = url
+			while current.checkResourceIsAccessible() {
+				let fileName = current.deletingPathExtension().lastPathComponent
+				let newFilename = fileName + "_copy"
+				current = current.deletingLastPathComponent().appendingPathComponent(newFilename, conformingTo: .data)
+			}
+			return current
+		}()
+		guard
+			let outputStream = OutputStream(url: outFile, append: false)
+		else { throw SimpleTestError(message: "no output stream") }
+		outputStream.open()
+		defer { outputStream.close() }
+		let length = 1024 * 1024
+		let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: length)
+		defer { buffer.deallocate() }
+		let raw = UnsafeMutableRawPointer(buffer)
+		let quicker = raw.bindMemory(to: UInt64.self, capacity: length / 8)
+
+		var rng = rng
+		(0..<megabytes).forEach { _ in
+			for index in 0..<(length / 8) {
+				quicker[index] = UInt64.random(in: 0...UInt64.max, using: &rng)
+			}
+
+			outputStream.write(buffer, maxLength: length)
+		}
+
+		let done = {
+			try FileManager.default.removeItem(at: outFile)
+		}
+		return (outFile, done)
+	}
+
+	private func fileHash(_ url: URL) throws -> SHA256Digest {
+		guard let input = InputStream(url: url) else { throw NSError(domain: "Error loading file for hashing", code: -1) }
+
+		return try streamHash(input)
+	}
+
+	private func streamHash(_ input: InputStream) throws -> SHA256Digest {
+		var hasher = SHA256()
+
+		let bufferSize = 1024 // KB
+		* 1024 // MB
+		* 10 // MB count
+		let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: bufferSize)
+		guard let pointer = buffer.baseAddress else { throw NSError(domain: "Error allocating buffer", code: -2) }
+		input.open()
+		while input.hasBytesAvailable {
+			let bytesRead = input.read(pointer, maxLength: bufferSize)
+			let bufferrr = UnsafeRawBufferPointer(start: pointer, count: bytesRead)
+			hasher.update(bufferPointer: bufferrr)
+		}
+		input.close()
+
+		return hasher.finalize()
 	}
 }
