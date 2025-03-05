@@ -239,9 +239,64 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine> {
 		let dlRequest = uploadURL.downloadRequest
 
 		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
-
 		#expect(
 			SHA256.hash(data: dlResult) == hash,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+	}
+
+	/// performs a `PUT` request to `uploadURL`
+	public func uploadMultipartFile(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			throw SimpleTestError(message: "Need s3 credentials")
+		}
+
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let upRequest = uploadURL.uploadRequest.with {
+			$0.method = .put
+			$0.expectedResponseCodes = 201
+		}
+
+		let testFileURL = URL.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("bin")
+		let (actualTestFile, done) = try createDummyFile(at: testFileURL, megabytes: 5)
+		defer { try? done() }
+
+		let boundary = "akjlsdghkajshdg"
+		let multipart = MultipartFormInputTempFile(boundary: boundary)
+		multipart.addPart(named: "file", fileURL: actualTestFile, contentType: "application/octet-stream")
+
+		let multipartFile = try await multipart.renderToFile()
+		defer { try? FileManager.default.removeItem(at: multipartFile )}
+
+		let multipartHash = try fileHash(multipartFile)
+
+		let awsHeaderInfo = AWSV4Signature(
+			for: upRequest,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .fromShaHashDigest(multipartHash))
+
+		let signedRequest = try awsHeaderInfo.processRequest(upRequest)
+
+		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(multipartFile))
+
+		let dlRequest = uploadURL.downloadRequest
+
+		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
+		#expect(
+			SHA256.hash(data: dlResult) == multipartHash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
