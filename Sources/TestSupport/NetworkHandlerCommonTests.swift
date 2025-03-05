@@ -20,6 +20,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 	public let imageURL = #URL("https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg")
 	public let demoModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/demoModel.json")
+	public let badDemoModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/badDemoModel.json")
 	public let demo404URL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/akjsdhjklahgdjkahsfjkahskldf.json")
 	public let uploadURL = #URL("https://s3.wasabisys.com/network-handler-tests/uploader.bin")
 
@@ -351,6 +352,34 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		#expect(
 			SHA256.hash(data: dlResult) == multipartHash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+	}
+
+	/// performs a `GET` request to `badDemoModelURL`. Provided must be corrupted in some way.
+	public func badCodableData(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		await #expect(
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0),
+			performing: {
+				let _: DemoModel = try await nh.transferMahCodableDatas(
+					for: .download(badDemoModelURL.downloadRequest),
+					delegate: nil,
+					requestLogger: logger).decoded
+			},
+			throws: {
+				guard
+					let networkError = $0 as? NetworkError,
+					case .dataCodingError(specifically: _, sourceData: _) = networkError
+				else { return false }
+				return true
+			})
 	}
 
 	// MARK: - Utilities

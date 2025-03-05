@@ -136,6 +136,20 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.uploadMultipartStream(engine: mockingEngine)
 	}
 
+	@Test func badCodingData() async throws {
+		let mockingEngine = generateEngine()
+
+		let modelStr = """
+			{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg","subtitle":"BarSub",title":"FooTitle"}
+			"""
+		// missing a " before title
+		let modelData = Data(modelStr.utf8)
+
+		let url = commonTests.badDemoModelURL
+		await mockingEngine.addMock(for: url, method: .get, responseData: modelData, responseCode: 200)
+
+		try await commonTests.badCodableData(engine: mockingEngine)
+	}
 
 	private func generateEngine() -> MockingEngine {
 		MockingEngine(passthroughEngine: nil)
