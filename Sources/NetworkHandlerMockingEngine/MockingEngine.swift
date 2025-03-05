@@ -228,6 +228,8 @@ public actor MockingEngine: NetworkEngine {
 				data = try await streamToData(inputStream)
 			case .streamProvider(let streamProvider):
 				data = try await streamToData(streamProvider)
+			case .inputStream(let stream):
+				data = try await streamToData(stream)
 			}
 		case .download(let downloadEngineRequest):
 			data = downloadEngineRequest.payload

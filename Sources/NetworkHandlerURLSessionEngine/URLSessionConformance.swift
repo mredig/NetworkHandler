@@ -84,6 +84,8 @@ extension URLSession: NetworkEngine {
 			payloadStream = stream
 		case .streamProvider(let stream):
 			payloadStream = stream
+		case .inputStream(let stream):
+			payloadStream = stream
 		}
 
 		let task = uploadTask(withStreamedRequest: urlRequest)

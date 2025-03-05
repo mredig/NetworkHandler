@@ -78,7 +78,6 @@ extension HTTPClient: NetworkEngine {
 			}
 			inputStream.close()
 			return lastSuccess ?? writer.write(.byteBuffer(ByteBuffer()))
-
 		}
 
 		switch payload {
@@ -92,9 +91,9 @@ extension HTTPClient: NetworkEngine {
 			})
 		case .data(let data):
 			httpClientRequest.body = .data(data)
-		case .streamProvider(let streamProvider):
-			httpClientRequest.body = .stream(contentLength: nil, { [streamProvider] writer in
-				streamWriter(inputStream: streamProvider, writer: writer)
+		case .inputStream(let stream), .streamProvider(let stream as InputStream):
+			httpClientRequest.body = .stream(contentLength: nil, { [stream] writer in
+				streamWriter(inputStream: stream, writer: writer)
 			})
 		}
 
