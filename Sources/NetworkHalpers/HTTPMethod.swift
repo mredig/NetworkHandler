@@ -1,13 +1,15 @@
 import Foundation
-#if canImport(FoundationNetworking)
-import FoundationNetworking
-#endif
+import SwiftPizzaSnips
+//#if canImport(FoundationNetworking)
+//import FoundationNetworking
+//#endif
 
 /// Pre-typed strings for use with NetworkRequest.httpMethod (or URLRequest.httpMethod)
 public struct HTTPMethod:
 	RawRepresentable,
 	Sendable,
 	Hashable,
+	Withable,
 	ExpressibleByStringLiteral,
 	ExpressibleByStringInterpolation {
 

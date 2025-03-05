@@ -1,9 +1,10 @@
 import NetworkHalpers
 import Foundation
+import SwiftPizzaSnips
 
 /// Carries common networking request data, such as the url the request is for. 
-public struct EngineRequestMetadata: Hashable, @unchecked Sendable {
-	public struct ResponseCodes: Hashable, Sendable, RawRepresentable, ExpressibleByIntegerLiteral, ExpressibleByArrayLiteral {
+public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
+	public struct ResponseCodes: Hashable, Sendable, Withable, RawRepresentable, ExpressibleByIntegerLiteral, ExpressibleByArrayLiteral {
 		public var rawValue: Set<Int>
 
 		public init(rawValue: Set<Int>) {

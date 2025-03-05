@@ -1,10 +1,11 @@
 import NetworkHalpers
 import Foundation
+import SwiftPizzaSnips
 
 /// A network request primarily intended for sending larger amounts of data. It might include a large blob or chunked
 /// stream for uploading. Progress is tracked for uploading AND downloading.
 @dynamicMemberLookup
-public struct UploadEngineRequest: Hashable, Sendable {
+public struct UploadEngineRequest: Hashable, Sendable, Withable {
 	package var metadata: EngineRequestMetadata
 
 	public subscript<T>(dynamicMember member: WritableKeyPath<EngineRequestMetadata, T>) -> T {

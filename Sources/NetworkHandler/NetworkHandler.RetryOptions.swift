@@ -2,13 +2,14 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+import SwiftPizzaSnips
 
 extension NetworkHandler {
 	/// (previousRequest, failedAttempts, mostRecentError)
 	/// Return whatever option you wish to proceed with.
 	public typealias RetryOptionBlock<T: Decodable> = @NHActor (NetworkRequest, Int, NetworkError) -> RetryOption<T>
 
-	public struct RetryConfiguration {
+	public struct RetryConfiguration: Hashable, Sendable, Withable {
 		public static var simple: Self { RetryConfiguration(delay: 0) }
 
 		public var delay: TimeInterval
@@ -23,17 +24,17 @@ extension NetworkHandler {
 		}
 	}
 
-	public struct DefaultReturnValueConfiguration<T: Decodable> {
+	public struct DefaultReturnValueConfiguration<T: Decodable>: Withable {
 		public var data: T
 		public var response: ResponseOption
 
-		public enum ResponseOption {
+		public enum ResponseOption: Hashable, Sendable, Withable {
 			case full(EngineResponseHeader)
 			case code(Int)
 		}
 	}
 
-	public enum RetryOption<T: Decodable> {
+	public enum RetryOption<T: Decodable>: Withable {
 		public static var retry: RetryOption { .retryWithConfiguration(config: .simple) }
 		case retryWithConfiguration(config: RetryConfiguration)
 		public static func retry(
@@ -59,3 +60,6 @@ extension NetworkHandler {
 		}
 	}
 }
+
+extension NetworkHandler.DefaultReturnValueConfiguration: Equatable where T: Equatable {}
+extension NetworkHandler.DefaultReturnValueConfiguration: Hashable where T: Hashable {}

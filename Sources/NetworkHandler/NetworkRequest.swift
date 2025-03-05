@@ -2,6 +2,7 @@ import Foundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
+import SwiftPizzaSnips
 
 @dynamicMemberLookup
 public enum NetworkRequest: Sendable {
@@ -40,4 +41,4 @@ public enum NetworkRequest: Sendable {
 	}
 }
 
-extension NetworkRequest: Hashable {}
+extension NetworkRequest: Hashable, Withable {}

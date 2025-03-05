@@ -1,8 +1,8 @@
 import Foundation
 import Crypto
+import SwiftPizzaSnips
 
-public struct AWSV4Signature {
-
+public struct AWSV4Signature: Hashable, Sendable, Withable {
 	public var requestMethod: HTTPMethod = .get
 	public var url: URL
 	public var date: Date
@@ -219,7 +219,7 @@ extension AWSV4Signature {
 }
 
 extension AWSV4Signature {
-	public struct AWSRegion: RawRepresentable, Sendable, ExpressibleByStringInterpolation {
+	public struct AWSRegion: RawRepresentable, Hashable, Withable, Sendable, ExpressibleByStringInterpolation {
 		public let rawValue: String
 
 		public init(rawValue: String) {
@@ -256,7 +256,7 @@ extension AWSV4Signature {
 		public static let saEast1: AWSRegion = "sa-east-1"
 	}
 
-	public struct AWSService: RawRepresentable, Sendable, ExpressibleByStringInterpolation {
+	public struct AWSService: RawRepresentable, Hashable, Withable, Sendable, ExpressibleByStringInterpolation {
 		public let rawValue: String
 
 		public init(rawValue: String) {
@@ -270,7 +270,7 @@ extension AWSV4Signature {
 		public static let s3: AWSService = "s3"
 	}
 
-	public struct AWSContentHash: RawRepresentable, Sendable, ExpressibleByStringInterpolation {
+	public struct AWSContentHash: RawRepresentable, Hashable, Withable, Sendable, ExpressibleByStringInterpolation {
 		public let rawValue: String
 
 		public init(rawValue: String) {

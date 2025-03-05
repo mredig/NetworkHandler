@@ -5,12 +5,12 @@ import SwiftPizzaSnips
 import Algorithms
 
 public actor MockingEngine: NetworkEngine {
-	public let passthroughEngine: NetworkEngine?
+	public let passthroughEngine: (any NetworkEngine)?
 
 	public private(set) var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
 
 	public init(
-		passthroughEngine: NetworkEngine?
+		passthroughEngine: (any NetworkEngine)?
 	) {
 		self.passthroughEngine = passthroughEngine
 	}

@@ -5,7 +5,7 @@ import SwiftPizzaSnips
 /// A network request primarily intended for retrieving data or sending small amounts of data.
 /// Upload progress is ignored, but download progress is tracked.
 @dynamicMemberLookup
-public struct DownloadEngineRequest: Hashable, Sendable {
+public struct DownloadEngineRequest: Hashable, Sendable, Withable {
 	package var metadata: EngineRequestMetadata
 
 	public subscript<T>(dynamicMember member: WritableKeyPath<EngineRequestMetadata, T>) -> T {

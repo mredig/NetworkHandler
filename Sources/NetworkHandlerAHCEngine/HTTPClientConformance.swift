@@ -7,6 +7,7 @@ import NIOHTTP1
 import Logging
 import NetworkHandler
 
+extension HTTPClient: @retroactive Withable {}
 extension HTTPClient: NetworkEngine {
 	public func fetchNetworkData(
 		from request: DownloadEngineRequest,
