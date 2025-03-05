@@ -18,6 +18,10 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 		public init(integerLiteral value: IntegerLiteralType) {
 			self.init(rawValue: [value])
 		}
+
+		public init(range: Range<Int>) {
+			self.init(rawValue: range.reduce(into: .init(), { $0.insert($1) } ))
+		}
 	}
 
 	public var expectedResponseCodes: ResponseCodes
@@ -85,7 +89,7 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 	}
 
 	public init(
-		expectedResponseCodes: ResponseCodes = [200],
+		expectedResponseCodes: ResponseCodes = .init(range: 200..<299),
 		headers: HTTPHeaders = [:],
 		method: HTTPMethod = .get,
 		url: URL
