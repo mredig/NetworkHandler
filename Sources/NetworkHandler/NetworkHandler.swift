@@ -155,6 +155,75 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			onError: onError)
 	}
 
+	@NHActor
+	@discardableResult public func downloadMahFile(
+		for request: NetworkRequest,
+		to outURL: URL,
+		withTemporaryFile tempoaryFileURL: URL? = nil,
+		delegate: NetworkHandlerTaskDelegate? = nil,
+		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
+		requestLogger: Logger? = nil,
+		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
+	) async throws -> EngineResponseHeader {
+		let tempFileURL = tempoaryFileURL ?? outURL
+
+		guard
+			tempFileURL.isFileURL,
+			outURL.isFileURL
+		else {
+			throw NetworkError.unspecifiedError(reason: "Both the temporary url and output url must be local file URLs.")
+		}
+
+		if let cacheKey = cacheOption.cacheKey(url: request.url) {
+			if let cachedData = cache[cacheKey] {
+				try cachedData.data.write(to: outURL)
+				return cachedData.response
+			}
+		}
+
+		let (header, _) = try await retryHandler(
+			originalRequest: request,
+			transferTask: { transferRequest, attempt in
+				let (streamHeader, stream) = try await streamMahDatas(for: transferRequest, requestLogger: requestLogger, delegate: delegate)
+				try? FileManager.default.removeItem(at: tempFileURL)
+
+				let fh = try FileHandle(forWritingTo: tempFileURL)
+
+				for try await chunk in stream {
+					try fh.write(contentsOf: chunk)
+				}
+				return (streamHeader, Data())
+			},
+			errorHandler: onError)
+		if outURL.checkResourceIsAccessible() {
+			var oldOut = outURL
+			while oldOut.checkResourceIsAccessible() {
+				let filename = oldOut.deletingPathExtension().lastPathComponent
+				let newFilename = "\(filename).old"
+				let ext = oldOut.pathExtension
+				oldOut = oldOut
+					.deletingLastPathComponent()
+					.appending(component: newFilename)
+					.appendingPathExtension(ext)
+			}
+			try FileManager.default.moveItem(at: outURL, to: oldOut)
+		}
+		try FileManager.default.moveItem(at: tempFileURL, to: outURL)
+
+		if
+			let cacheKey = cacheOption.cacheKey(url: request.url),
+			let responseSize = header.expectedContentLength,
+			responseSize < 1024 * 1024 * 100 {
+
+			Task {
+				let newlyCachedData = try Data(contentsOf: outURL)
+				self.cache[cacheKey] = NetworkCacheItem(response: header, data: newlyCachedData)
+			}
+		}
+
+		return header
+	}
+
 	/// Downloads data from a server. Also used to send smaller chunks of data, like REST requests, etc.
 	/// - Parameters:
 	///   - request: DownloadEngineRequest
