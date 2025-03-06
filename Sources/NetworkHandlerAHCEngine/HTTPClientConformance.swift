@@ -17,7 +17,7 @@ extension HTTPClient: NetworkEngine {
 
 		let httpClientResponse = try await execute(httpClientRequest, deadline: .distantFuture)
 
-		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream()
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
 
 		let bodyTask = _Concurrency.Task {
 			do {
@@ -97,7 +97,7 @@ extension HTTPClient: NetworkEngine {
 			})
 		}
 
-		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream()
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
 
 		let (upProgStream, upProgContinuation) = AsyncThrowingStream<Int64, Error>.makeStream()
 

@@ -20,7 +20,7 @@ extension URLSession: NetworkEngine {
 		let (dlBytes, response) = try await bytes(for: urlRequest)
 
 		let engResponse = EngineResponseHeader(from: response as! HTTPURLResponse)
-		let (stream, continuation) = ResponseBodyStream.makeStream()
+		let (stream, continuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
 
 		let byteGobbler = Task {
 			do {
@@ -69,7 +69,7 @@ extension URLSession: NetworkEngine {
 		let urlRequest = request.urlRequest
 
 		let (progStream, progContinuation) = AsyncThrowingStream<Int64, Error>.makeStream()
-		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream()
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
 
 		let delegate = delegate as! UploadDellowFelegate
 
