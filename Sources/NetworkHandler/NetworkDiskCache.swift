@@ -196,6 +196,10 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 
 	private func _subtractSize(_ value: UInt64, removingFile: Bool) {
 		if removingFile { count -= 1 }
+		guard value < size else {
+			size = 0
+			return
+		}
 		size -= value
 	}
 
