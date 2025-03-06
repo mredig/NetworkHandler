@@ -330,7 +330,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			} catch let error as NetworkError {
 				theError = error
 			} catch {
-				theError = .otherError(error: error)
+				theError = (error.convertToNetworkErrorIfCancellation() as? NetworkError) ?? .otherError(error: error)
 			}
 
 			retryOption = errorHandler(theRequest, attempt, theError)

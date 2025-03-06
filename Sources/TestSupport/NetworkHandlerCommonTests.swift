@@ -23,6 +23,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 	public let badDemoModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/badDemoModel.json")
 	public let demo404URL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/akjsdhjklahgdjkahsfjkahskldf.json")
 	public let uploadURL = #URL("https://s3.wasabisys.com/network-handler-tests/uploader.bin")
+	public let randomDataURL = #URL("https://s3.wasabisys.com/network-handler-tests/randomData.bin")
 
 	public let logger: Logger
 
@@ -382,6 +383,38 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			})
 	}
 
+	/// performs a `GET` request to `badDemoModelURL`. Provided must be corrupted in some way.
+	public func cancellationViaTask(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let request = randomDataURL.downloadRequest
+
+		let forCancel = Task {
+			let accumulated = AtomicValue(value: 0)
+			let delegate = await Delegate(onResponseBodyProgress: { [accumulated] delegate, request, bodyData in
+				accumulated.value += bodyData.count
+
+				guard accumulated.value > 40960 else { return }
+				withUnsafeCurrentTask { currentTask in
+					currentTask?.cancel()
+				}
+			})
+
+			return try await nh.transferMahDatas(for: .download(request), delegate: delegate)
+		}
+
+		await #expect(throws: NetworkError.requestCancelled, performing: {
+			_ = try await forCancel.value
+		})
+	}
+
 	// MARK: - Utilities
 	private func getNetworkHandler(with engine: Engine) -> NetworkHandler<Engine> {
 		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self)", engine: engine)
@@ -448,5 +481,60 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		input.close()
 
 		return hasher.finalize()
+	}
+}
+
+extension NetworkHandlerCommonTests {
+	class Delegate: NetworkHandlerTaskDelegate {
+		let onStart: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
+		let onSendData: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ byteCountSent: Int, _ totalExpected: Int?) -> Void
+		let onSendingFinish: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
+		let onResponseHeader: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ header: EngineResponseHeader) -> Void
+		let onResponseBodyProgress: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ bytes: Data) -> Void
+		let onRequestFinished: @Sendable (_ delegate: Delegate, Error?) -> Void
+
+		var stream: ResponseBodyStream?
+
+		init(
+			onStart: @escaping @Sendable (_ delegate: Delegate, NetworkRequest) -> Void = { _, _ in },
+			onSendData: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: Int, _: Int?) -> Void = { _, _, _, _ in },
+			onSendingFinish: @escaping @Sendable (_ delegate: Delegate, NetworkRequest) -> Void = { _, _ in },
+			onResponseHeader: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: EngineResponseHeader) -> Void = { _, _, _ in },
+			onResponseBodyProgress: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: Data) -> Void = { _, _, _ in },
+			onRequestFinished: @escaping @Sendable (_ delegate: Delegate, Error?) -> Void = { _, _ in }
+		) {
+			self.onStart = onStart
+			self.onSendData = onSendData
+			self.onSendingFinish = onSendingFinish
+			self.onResponseHeader = onResponseHeader
+			self.onResponseBodyProgress = onResponseBodyProgress
+			self.onRequestFinished = onRequestFinished
+		}
+
+		func transferDidStart(for request: NetworkRequest) {
+			onStart(self, request)
+		}
+		
+		func sentData(for request: NetworkRequest, byteCountSent: Int, totalExpectedToSend: Int?) {
+			onSendData(self, request, byteCountSent, totalExpectedToSend)
+		}
+		
+		func sendingDataDidFinish(for request: NetworkRequest) {
+			onSendingFinish(self, request)
+		}
+		
+		func responseHeaderRetrieved(for request: NetworkRequest, header: EngineResponseHeader) {
+			onResponseHeader(self, request, header)
+		}
+		
+		func responseBodyReceived(for request: NetworkRequest, bytes: Data) {
+			onResponseBodyProgress(self, request, bytes)
+		}
+		
+		func responseBodyReceived(for request: NetworkRequest, byteCount: Int, totalExpectedToReceive: Int?) {}
+		
+		func requestFinished(withError error: (any Error)?) {
+			onRequestFinished(self, error)
+		}
 	}
 }

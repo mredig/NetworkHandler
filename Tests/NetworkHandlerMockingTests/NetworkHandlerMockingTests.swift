@@ -4,6 +4,7 @@ import TestSupport
 import NetworkHandler
 import NetworkHandlerMockingEngine
 import Logging
+import SwiftPizzaSnips
 
 struct NetworkHandlerMockingTests: Sendable {
 	let commonTests = NetworkHandlerCommonTests<MockingEngine>(logger: Logger(label: #fileID))
@@ -149,6 +150,18 @@ struct NetworkHandlerMockingTests: Sendable {
 		await mockingEngine.addMock(for: url, method: .get, responseData: modelData, responseCode: 200)
 
 		try await commonTests.badCodableData(engine: mockingEngine)
+	}
+
+	@Test func cancellationViaTask() async throws {
+		let mockingEngine = generateEngine()
+
+		var rng: RandomNumberGenerator = SeedableRNG(seed: 394687)
+		let modelData = Data.random(count: 1024 * 1024 * 10, using: &rng)
+
+		let url = commonTests.randomDataURL
+		await mockingEngine.addMock(for: url, method: .get, responseData: modelData, responseCode: 200)
+
+		try await commonTests.cancellationViaTask(engine: mockingEngine)
 	}
 
 	private func generateEngine() -> MockingEngine {

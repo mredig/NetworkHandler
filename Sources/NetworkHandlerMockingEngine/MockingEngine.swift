@@ -143,7 +143,7 @@ public actor MockingEngine: NetworkEngine {
 		responseBody: ResponseBodyStream
 	) {
 		let (upProg, upProgCont) = AsyncThrowingStream<Int64, Error>.makeStream()
-		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream()
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
 
 		let everythingTask = Task {
 			let clientData = try await loadFromClient(
@@ -169,10 +169,16 @@ public actor MockingEngine: NetworkEngine {
 
 			let size = 1024 * 1024 // 1 MB
 
-			for chunk in responseBody.chunks(ofCount: size) {
-				try bodyContinuation.yield(Array(chunk))
+			do {
+				for chunk in responseBody.chunks(ofCount: size) {
+					try Task.checkCancellation()
+					try bodyContinuation.yield(Array(chunk))
+					try await Task.sleep(for: .milliseconds(20))
+				}
+				try bodyContinuation.finish()
+			} catch {
+				try bodyContinuation.finish(throwing: error)
 			}
-			try bodyContinuation.finish()
 		}
 
 		bodyContinuation.onTermination = { reason in
@@ -206,6 +212,7 @@ public actor MockingEngine: NetworkEngine {
 			defer { stream.close() }
 			var accumulator = Data()
 			while stream.hasBytesAvailable {
+				try Task.checkCancellation()
 				let bytesRead = stream.read(bufferPointer, maxLength: bufferSize)
 				accumulator.append(bufferPointer, count: bytesRead)
 				totalSent += Int64(bytesRead)
