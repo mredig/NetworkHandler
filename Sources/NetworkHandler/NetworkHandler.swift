@@ -262,7 +262,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 				let (header, bodyStream) = try await engine.fetchNetworkData(from: downloadRequest, requestLogger: requestLogger)
 				delegate?.responseHeaderRetrieved(for: request, header: header)
 				httpResponse = header
-				let interceptedStream = ResponseBodyStream(errorOnCancellation: bodyStream.errorOnCancellation) { continuation in
+				let interceptedStream = ResponseBodyStream(errorOnCancellation: NetworkError.requestCancelled) { continuation in
 					Task {
 						var accumulatedBytes = 0
 						do {

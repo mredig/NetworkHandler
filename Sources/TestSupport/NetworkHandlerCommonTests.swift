@@ -415,6 +415,35 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		})
 	}
 
+	/// performs a `GET` request to `badDemoModelURL`. Provided must be corrupted in some way.
+	public func cancellationViaStream(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let request = randomDataURL.downloadRequest
+
+		let stream = try await nh.streamMahDatas(for: .download(request)).stream
+
+		let forCancel = Task {
+			var accumulated = Data()
+			for try await chunk in stream {
+				accumulated.append(contentsOf: chunk)
+				guard accumulated.count > 40960 else { continue }
+				stream.cancel()
+			}
+		}
+
+		await #expect(throws: NetworkError.requestCancelled, performing: {
+			_ = try await forCancel.value
+		})
+	}
+
 	// MARK: - Utilities
 	private func getNetworkHandler(with engine: Engine) -> NetworkHandler<Engine> {
 		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self)", engine: engine)

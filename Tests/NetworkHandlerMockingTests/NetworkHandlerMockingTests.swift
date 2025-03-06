@@ -164,6 +164,18 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.cancellationViaTask(engine: mockingEngine)
 	}
 
+	@Test func cancellationViaStream() async throws {
+		let mockingEngine = generateEngine()
+
+		var rng: RandomNumberGenerator = SeedableRNG(seed: 394687)
+		let modelData = Data.random(count: 1024 * 1024 * 10, using: &rng)
+
+		let url = commonTests.randomDataURL
+		await mockingEngine.addMock(for: url, method: .get, responseData: modelData, responseCode: 200)
+
+		try await commonTests.cancellationViaStream(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine(passthroughEngine: nil)
 	}
