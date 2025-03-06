@@ -72,33 +72,17 @@ struct NetworkHandlerURLSessionTests: Sendable {
 
 	@Test func uploadMultipartStream() async throws {
 		let mockingEngine = generateEngine()
-
-		let url = commonTests.uploadURL
-
 		try await commonTests.uploadMultipartStream(engine: mockingEngine)
 	}
 
 	@Test func badCodingData() async throws {
 		let mockingEngine = generateEngine()
 
-		let modelStr = """
-			{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg","subtitle":"BarSub",title":"FooTitle"}
-			"""
-		// missing a " before title
-		let modelData = Data(modelStr.utf8)
-
-		let url = commonTests.badDemoModelURL
-
 		try await commonTests.badCodableData(engine: mockingEngine)
 	}
 
 	@Test func cancellationViaTask() async throws {
 		let mockingEngine = generateEngine()
-
-		var rng: RandomNumberGenerator = SeedableRNG(seed: 394687)
-		let modelData = Data.random(count: 1024 * 1024 * 10, using: &rng)
-
-		let url = commonTests.randomDataURL
 
 		try await commonTests.cancellationViaTask(engine: mockingEngine)
 	}
