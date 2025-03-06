@@ -260,8 +260,28 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 				bodyResponseStream = bodyStream
 			case .download(let downloadRequest):
 				let (header, bodyStream) = try await engine.fetchNetworkData(from: downloadRequest, requestLogger: requestLogger)
+				delegate?.responseHeaderRetrieved(for: request, header: header)
 				httpResponse = header
-				bodyResponseStream = bodyStream
+				let interceptedStream = ResponseBodyStream(errorOnCancellation: bodyStream.errorOnCancellation) { continuation in
+					Task {
+						var accumulatedBytes = 0
+						do {
+							for try await chunk in bodyStream {
+								try continuation.yield(chunk)
+								accumulatedBytes += chunk.count
+								delegate?.responseBodyReceived(for: request, byteCount: accumulatedBytes, totalExpectedToReceive: header.expectedContentLength.map(Int.init))
+								delegate?.responseBodyReceived(for: request, bytes: Data(chunk))
+							}
+							try continuation.finish()
+							delegate?.requestFinished(withError: nil)
+						} catch {
+							try continuation.finish(throwing: error)
+							delegate?.requestFinished(withError: error)
+						}
+					}
+					continuation.onTermination = { _ in bodyStream.cancel() }
+				}
+				bodyResponseStream = interceptedStream
 			}
 		} catch {
 			throw error.convertToNetworkErrorIfCancellation()
