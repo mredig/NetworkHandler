@@ -6,6 +6,7 @@ import NetworkHandlerMockingEngine
 import Logging
 import SwiftPizzaSnips
 
+@Suite(.serialized)
 struct NetworkHandlerMockingTests: Sendable {
 	let commonTests = NetworkHandlerCommonTests<MockingEngine>(logger: Logger(label: #fileID))
 
@@ -30,7 +31,7 @@ struct NetworkHandlerMockingTests: Sendable {
 
 		let modelURL = commonTests.demoModelURL
 		let modelStr = """
-			{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg","subtitle":"BarSub","title":"FooTitle"}
+			{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/lighthouse.jpg","subtitle":"BarSub","title":"FooTitle"}
 			"""
 		let modelData = Data(modelStr.utf8)
 
@@ -82,14 +83,14 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.expect200OnlyGet200(engine: mockingEngine)
 	}
 
-	@Test func expect200OnlyGet201() async throws {
+	@Test func expect201OnlyGet200() async throws {
 		let mockingEngine = generateEngine()
 
 		let demoModelURL = commonTests.demoModelURL
 
-		await mockingEngine.addMock(for: demoModelURL, method: .post, responseData: nil, responseCode: 201)
+		await mockingEngine.addMock(for: demoModelURL, method: .put, responseData: nil, responseCode: 200)
 
-		try await commonTests.expect200OnlyGet201(engine: mockingEngine)
+		try await commonTests.expect201OnlyGet200(engine: mockingEngine)
 	}
 
 	@Test func uploadFileURL() async throws {
@@ -198,7 +199,7 @@ extension NetworkHandlerMockingTests {
 
 		await mockingEngine.addStorage(requestBody, forKey: request.url.path(percentEncoded: false))
 
-		return (nil, EngineResponseHeader(status: 201, url: request.url, headers: [:]))
+		return (nil, EngineResponseHeader(status: 200, url: request.url, headers: [:]))
 	}
 
 	private func s3MockGetSimulator(request: NetworkRequest, mockingEngine: MockingEngine) async throws -> (data: Data?, response: EngineResponseHeader) {

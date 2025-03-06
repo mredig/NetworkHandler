@@ -113,6 +113,15 @@ let package = Package(
 				"NetworkHandlerMockingEngine",
 			]),
 		.testTarget(
+			name: "NetworkHandlerURLSessionTests",
+			dependencies: [
+				"NetworkHandler",
+				"TestSupport",
+				"PizzaMacros",
+				.product(name: "Logging", package: "swift-log"),
+				"NetworkHandlerURLSessionEngine",
+			]),
+		.testTarget(
 			name: "NetworkHalpersTests",
 			dependencies: [
 				"NetworkHalpers",

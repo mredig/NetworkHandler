@@ -18,7 +18,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 	public typealias TestImage = UIImage
 	#endif
 
-	public let imageURL = #URL("https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg")
+	public let imageURL = #URL("https://s3.wasabisys.com/network-handler-tests/images/lighthouse.jpg")
 	public let demoModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/demoModel.json")
 	public let badDemoModelURL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/badDemoModel.json")
 	public let demo404URL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/akjsdhjklahgdjkahsfjkahskldf.json")
@@ -135,10 +135,20 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		}.result
 
 		#expect(
-			throws: expectedError,
 			performing: {
-			_ = try resultModel.get()
-		})
+				_ = try resultModel.get()
+			},
+			throws: {
+				guard
+					let error = $0 as? NetworkError,
+					case .httpUnexpectedStatusCode(code: let code, originalRequest: _, data: _) = error
+				else { return false }
+				guard
+					code == 404
+				else { return false }
+
+				return true
+			})
 	}
 
 	/// performs a `GET` request to `demoModelURL`
@@ -163,26 +173,48 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 	}
 
 	/// performs a `POST` request to `demoModelURL`
-	public func expect200OnlyGet201(
+	public func expect201OnlyGet200(
 		engine: Engine,
 		file: String = #fileID,
 		filePath: String = #filePath,
 		line: Int = #line,
 		function: String = #function
 	) async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			throw SimpleTestError(message: "Need s3 credentials")
+		}
+
 		let nh = getNetworkHandler(with: engine)
 		defer { nh.resetCache() }
 
+		let payloadData = Data(##"{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg","subtitle":"BarSub","title":"FooTitle"}"##.utf8)
 		let url = demoModelURL
 		let request = url.downloadRequest.with {
-			$0.expectedResponseCodes = 200
-			$0.method = .post
+			$0.expectedResponseCodes = 201
+			$0.method = .put
+			$0.payload = payloadData
 		}
 
+		let hash = SHA256.hash(data: payloadData)
+
+		let awsHeaderInfo = AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .fromShaHashDigest(hash))
+
+		let signedRequest = try awsHeaderInfo.processRequest(request)
+
 		await #expect(
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0),
 			performing: {
 				_ = try await nh.transferMahDatas(
-					for: .download(request),
+					for: .download(signedRequest),
 					requestLogger: logger,
 					onError: { _,_,_  in .throw })
 			},
@@ -190,7 +222,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 				guard
 					let networkError = error as? NetworkError,
 					case .httpUnexpectedStatusCode(code: let code, originalRequest: _, data: _) = networkError,
-					code == 201
+					code == 200
 				else { return false }
 				return true
 			})
@@ -216,7 +248,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let upRequest = uploadURL.uploadRequest.with {
 			$0.method = .put
-			$0.expectedResponseCodes = 201
+			$0.expectedResponseCodes = 200
 		}
 
 		let testFileURL = URL.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("bin")
@@ -265,7 +297,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let upRequest = uploadURL.uploadRequest.with {
 			$0.method = .put
-			$0.expectedResponseCodes = 201
+			$0.expectedResponseCodes = 200
 		}
 
 		let testFileURL = URL.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("bin")
@@ -321,7 +353,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let upRequest = uploadURL.uploadRequest.with {
 			$0.method = .put
-			$0.expectedResponseCodes = 201
+			$0.expectedResponseCodes = 200
 		}
 
 		let testFileURL = URL.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("bin")
@@ -382,7 +414,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			})
 	}
 
-	/// performs a `GET` request to `badDemoModelURL`. Provided must be corrupted in some way.
+	/// performs a `GET` request to `randomDataURL`. Provided must be corrupted in some way.
 	public func cancellationViaTask(
 		engine: Engine,
 		file: String = #fileID,
@@ -414,7 +446,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		})
 	}
 
-	/// performs a `GET` request to `badDemoModelURL`. Provided must be corrupted in some way.
+	/// performs a `GET` request to `randomDataURL`. Provided must be corrupted in some way.
 	public func cancellationViaStream(
 		engine: Engine,
 		file: String = #fileID,
