@@ -1,10 +1,10 @@
 import Foundation
 
-final class AtomicValue<T>: @unchecked Sendable {
+final public class AtomicValue<T>: @unchecked Sendable {
 	private let lock = NSLock()
 
 	private var _value: T
-	var value: T {
+	public var value: T {
 		get {
 			lock.lock()
 			defer { lock.unlock() }
@@ -18,7 +18,7 @@ final class AtomicValue<T>: @unchecked Sendable {
 		}
 	}
 
-	init(value: T) {
+	public init(value: T) {
 		lock.lock()
 		defer { lock.unlock() }
 		self._value = value
@@ -26,11 +26,11 @@ final class AtomicValue<T>: @unchecked Sendable {
 }
 
 extension AtomicValue: CustomStringConvertible, CustomDebugStringConvertible {
-	var description: String {
+	public var description: String {
 		"\(value)"
 	}
 
-	var debugDescription: String {
+	public var debugDescription: String {
 		"AtomicValue: \(value)"
 	}
 }
