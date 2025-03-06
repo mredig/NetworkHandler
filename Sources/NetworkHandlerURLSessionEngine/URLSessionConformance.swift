@@ -88,20 +88,20 @@ extension URLSession: NetworkEngine {
 			payloadStream = stream
 		}
 
-		let task = uploadTask(withStreamedRequest: urlRequest)
+		let urlTask = uploadTask(withStreamedRequest: urlRequest)
 		delegate.addTask(
-			task,
+			urlTask,
 			withStream: payloadStream,
 			progressContinuation: progContinuation,
 			bodyContinuation: bodyContinuation)
-		task.delegate = delegate
+		urlTask.delegate = delegate
 
 		let responseTask = Task {
 			do {
-				while task.response == nil {
+				while urlTask.response == nil {
 					try await Task.sleep(for: .milliseconds(100))
 				}
-				guard let response = task.response else { fatalError() }
+				guard let response = urlTask.response else { fatalError() }
 				
 				return EngineResponseHeader(from: response)
 			} catch {
@@ -111,7 +111,7 @@ extension URLSession: NetworkEngine {
 
 		bodyContinuation.onTermination = { reason in
 			func performCancellation() {
-				task.cancel()
+				urlTask.cancel()
 				responseTask.cancel()
 			}
 			switch reason {
@@ -124,7 +124,7 @@ extension URLSession: NetworkEngine {
 			}
 		}
 
-		task.resume()
+		urlTask.resume()
 
 		return (progStream, responseTask, bodyStream)
 	}
