@@ -82,7 +82,7 @@ public class DemoModelController: @unchecked Sendable {
 		let nh = NetworkHandler(name: "Default", engine: HTTPClient())
 
 		do {
-			let stuff: [DemoModel] = try await nh.transferMahCodableDatas(for: .download(request)).decoded//.transferMahCodableDatas(for: .download(request)).decoded
+			let stuff: [DemoModel] = try await nh.downloadMahCodableDatas(for: request).decoded//.transferMahCodableDatas(for: .download(request)).decoded
 			self.demoModels = stuff
 		} catch {
 			throw error
@@ -100,7 +100,7 @@ public class DemoModelController: @unchecked Sendable {
 
 		try request.encodeData(model)
 
-		return try await nh.transferMahCodableDatas(for: .download(request)).decoded
+		return try await nh.downloadMahCodableDatas(for: request).decoded
 	}
 
 	public func deleteFromServer(model: DemoModel) async throws {

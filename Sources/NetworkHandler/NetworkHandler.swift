@@ -113,15 +113,15 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the decoded body of the response.
 	@NHActor
-	@discardableResult public func transferMahCodableDatas<DecodableType: Decodable>(
-		for request: NetworkRequest,
+	@discardableResult public func downloadMahCodableDatas<DecodableType: Decodable>(
+		for request: DownloadEngineRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		decoder: NHDecoder = DownloadEngineRequest.defaultDecoder,
 		requestLogger: Logger? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, decoded: DecodableType) {
-		let (header, rawData) = try await transferMahDatas(
+		let (header, rawData) = try await downloadMahDatas(
 			for: request,
 			delegate: delegate,
 			usingCache: cacheOption,

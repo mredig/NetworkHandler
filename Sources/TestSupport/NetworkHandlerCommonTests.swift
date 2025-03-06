@@ -45,15 +45,15 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		defer { nh.resetCache() }
 
 		let rawStart = Date()
-		let image1Result = try await nh.transferMahDatas(
-			for: .download(imageURL.downloadRequest),
+		let image1Result = try await nh.downloadMahDatas(
+			for: imageURL.downloadRequest,
 			usingCache: .key("kitten"),
 			requestLogger: logger)
 		let rawFinish = Date()
 
 		let cacheStart = Date()
-		let image2Result = try await nh.transferMahDatas(
-			for: .download(imageURL.downloadRequest),
+		let image2Result = try await nh.downloadMahDatas(
+			for: imageURL.downloadRequest,
 			usingCache: .key("kitten"),
 			requestLogger: logger)
 		let cacheFinish = Date()
@@ -103,8 +103,8 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let nh = getNetworkHandler(with: engine)
 		defer { nh.resetCache() }
 
-		let resultModel: D = try await nh.transferMahCodableDatas(
-			for: .download(modelURL.downloadRequest),
+		let resultModel: D = try await nh.downloadMahCodableDatas(
+			for: modelURL.downloadRequest,
 			delegate: nil,
 			requestLogger: logger).decoded
 
@@ -126,11 +126,10 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		defer { nh.resetCache() }
 
 		let url = demo404URL
-		let originalRequest = NetworkRequest.download(url.downloadRequest)
 
 		let resultModel: Result<String, Error> = await Task { [logger] in
-			try await nh.transferMahCodableDatas(
-				for: originalRequest,
+			try await nh.downloadMahCodableDatas(
+				for: url.downloadRequest,
 				delegate: nil,
 				requestLogger: logger).decoded
 		}.result
@@ -369,8 +368,8 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		await #expect(
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0),
 			performing: {
-				let _: DemoModel = try await nh.transferMahCodableDatas(
-					for: .download(badDemoModelURL.downloadRequest),
+				let _: DemoModel = try await nh.downloadMahCodableDatas(
+					for: badDemoModelURL.downloadRequest,
 					delegate: nil,
 					requestLogger: logger).decoded
 			},
