@@ -145,6 +145,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		payload: UploadFile,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		requestLogger: Logger? = nil,
+		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
 		try await transferMahDatas(
@@ -152,6 +153,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			delegate: delegate,
 			usingCache: .dontUseCache,
 			requestLogger: requestLogger,
+			cancellationToken: cancellationToken,
 			onError: onError)
 	}
 
@@ -264,6 +266,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		requestLogger: Logger? = nil,
+		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
 		if let cacheKey = cacheOption.cacheKey(url: request.url) {
@@ -275,7 +278,11 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		let (header, data) = try await retryHandler(
 			originalRequest: request,
 			transferTask: { transferRequest, attempt in
+				try cancellationToken?.checkIsCancelled()
 				let (streamHeader, stream) = try await streamMahDatas(for: transferRequest, requestLogger: requestLogger, delegate: delegate)
+				try cancellationToken?.checkIsCancelled()
+				cancellationToken?.onCancel = { stream.cancel() }
+				defer { cancellationToken?.onCancel = {} }
 
 				var accumulator = Data()
 				for try await chunk in stream {
@@ -311,6 +318,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					request: uploadRequest,
 					with: payload,
 					requestLogger: requestLogger)
+
 				async let progressBlock: Void = { @NHActor [delegate] in
 					var signaledStart = false
 					for try await count in sendProgress {
@@ -318,6 +326,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 							signaledStart = true
 							delegate?.transferDidStart(for: request)
 						}
+						try Task.checkCancellation()
 						delegate?.sentData(for: request, totalByteCountSent: Int(count), totalExpectedToSend: nil)
 					}
 				}()
@@ -395,7 +404,11 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 			let theError: NetworkError
 			do {
-				return try await transferTask(theRequest, attempt)
+				return try await withTaskCancellationHandler(operation: {
+					return try await transferTask(theRequest, attempt)
+				}, onCancel: {
+					print("Cancelling here")
+				})
 			} catch let error as NetworkError {
 				theError = error
 			} catch {

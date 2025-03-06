@@ -475,6 +475,64 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		})
 	}
 
+	/// performs a `PUT` request to `badDemoModelURL`. Provided must be corrupted in some way.
+	public func uploadCancellationViaToken(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			throw SimpleTestError(message: "Need s3 credentials")
+		}
+
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let request = uploadURL.uploadRequest.with {
+			$0.method = .put
+		}
+
+		var rng: RandomNumberGenerator = SeedableRNG(seed: 9345867)
+		let randomData = Data.random(count: 1024 * 1024 * 10, using: &rng)
+
+		let hash = SHA256.hash(data: randomData)
+
+		let awsHeaderInfo = AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .fromShaHashDigest(hash))
+
+		let signedRequest = try awsHeaderInfo.processRequest(request)
+		let token = NetworkCancellationToken()
+
+		let task = Task {
+			let delegate = await Delegate(onSendData: { delegate, request, bytesSent, totalExpected in
+				guard bytesSent > (1024 * 1024 * 2) else { return }
+				token.cancel()
+			})
+
+			return try await nh.uploadMahDatas(
+				for: signedRequest,
+				payload: .data(randomData),
+				delegate: delegate,
+				cancellationToken: token)
+		}
+
+		await #expect(
+			throws: NetworkError.requestCancelled,
+			performing: {
+				_ = try await task.value
+			})
+	}
+
 	// MARK: - Utilities
 	private func getNetworkHandler(with engine: Engine) -> NetworkHandler<Engine> {
 		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self)", engine: engine)

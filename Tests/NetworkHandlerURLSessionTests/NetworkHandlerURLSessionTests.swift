@@ -114,6 +114,11 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		try await commonTests.cancellationViaStream(engine: mockingEngine)
 	}
 
+	@Test func uploadCancellationViaTask() async throws {
+		let mockingEngine = generateEngine()
+		try await commonTests.uploadCancellationViaToken(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> URLSession {
 		URLSession.asEngine(withConfiguration: .networkHandlerDefault)
 	}
