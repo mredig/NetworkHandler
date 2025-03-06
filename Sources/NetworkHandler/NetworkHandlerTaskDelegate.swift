@@ -5,7 +5,7 @@ public protocol NetworkHandlerTaskDelegate: Sendable {
 	/// Only called on uploads
 	func transferDidStart(for request: NetworkRequest)
 	/// Only called on uploads
-	func sentData(for request: NetworkRequest, byteCountSent: Int, totalExpectedToSend: Int?)
+	func sentData(for request: NetworkRequest, totalByteCountSent: Int, totalExpectedToSend: Int?)
 	/// Only called on uploads
 	func sendingDataDidFinish(for request: NetworkRequest)
 	func responseHeaderRetrieved(for request: NetworkRequest, header: EngineResponseHeader)

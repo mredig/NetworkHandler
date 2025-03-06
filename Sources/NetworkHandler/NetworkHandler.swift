@@ -318,7 +318,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 							signaledStart = true
 							delegate?.transferDidStart(for: request)
 						}
-						delegate?.sentData(for: request, byteCountSent: Int(count), totalExpectedToSend: nil)
+						delegate?.sentData(for: request, totalByteCountSent: Int(count), totalExpectedToSend: nil)
 					}
 				}()
 				async let responseHeader = responseTask.value

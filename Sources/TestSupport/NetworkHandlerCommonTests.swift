@@ -515,13 +515,11 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 extension NetworkHandlerCommonTests {
 	class Delegate: NetworkHandlerTaskDelegate {
 		let onStart: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
-		let onSendData: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ byteCountSent: Int, _ totalExpected: Int?) -> Void
+		let onSendData: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ totalByteCountSent: Int, _ totalExpected: Int?) -> Void
 		let onSendingFinish: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
 		let onResponseHeader: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ header: EngineResponseHeader) -> Void
 		let onResponseBodyProgress: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ bytes: Data) -> Void
 		let onRequestFinished: @Sendable (_ delegate: Delegate, Error?) -> Void
-
-		var stream: ResponseBodyStream?
 
 		init(
 			onStart: @escaping @Sendable (_ delegate: Delegate, NetworkRequest) -> Void = { _, _ in },
@@ -543,8 +541,8 @@ extension NetworkHandlerCommonTests {
 			onStart(self, request)
 		}
 		
-		func sentData(for request: NetworkRequest, byteCountSent: Int, totalExpectedToSend: Int?) {
-			onSendData(self, request, byteCountSent, totalExpectedToSend)
+		func sentData(for request: NetworkRequest, totalByteCountSent: Int, totalExpectedToSend: Int?) {
+			onSendData(self, request, totalByteCountSent, totalExpectedToSend)
 		}
 		
 		func sendingDataDidFinish(for request: NetworkRequest) {
