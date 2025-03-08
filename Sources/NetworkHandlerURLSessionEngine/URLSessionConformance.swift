@@ -42,7 +42,7 @@ extension URLSession: NetworkEngine {
 			}
 		}
 
-		continuation.onTermination = { reason in
+		continuation.onFinish { reason in
 			let proceed: Bool
 			switch reason {
 			case .cancelled: proceed = true
@@ -109,7 +109,7 @@ extension URLSession: NetworkEngine {
 			}
 		}
 
-		bodyContinuation.onTermination = { reason in
+		bodyContinuation.onFinish { reason in
 			func performCancellation() {
 				urlTask.cancel()
 				responseTask.cancel()

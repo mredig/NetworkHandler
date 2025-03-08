@@ -6,7 +6,7 @@ import NetworkHandlerMockingEngine
 import Logging
 import SwiftPizzaSnips
 
-@Suite(.serialized)
+//@Suite(.serialized)
 struct NetworkHandlerMockingTests: Sendable {
 	let commonTests = NetworkHandlerCommonTests<MockingEngine>(logger: Logger(label: #fileID))
 
@@ -175,6 +175,15 @@ struct NetworkHandlerMockingTests: Sendable {
 		await mockingEngine.addMock(for: url, method: .get, responseData: modelData, responseCode: 200)
 
 		try await commonTests.cancellationViaStream(engine: mockingEngine)
+	}
+
+	@Test func uploadCancellationViaTask() async throws {
+		let mockingEngine = generateEngine()
+
+		let url = commonTests.uploadURL
+		await mockingEngine.addMock(for: url, method: .put, responseData: nil, responseCode: 201)
+
+		try await commonTests.uploadCancellationViaToken(engine: mockingEngine)
 	}
 
 	private func generateEngine() -> MockingEngine {

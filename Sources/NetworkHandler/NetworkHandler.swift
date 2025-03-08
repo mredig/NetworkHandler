@@ -278,11 +278,11 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		let (header, data) = try await retryHandler(
 			originalRequest: request,
 			transferTask: { transferRequest, attempt in
-				try cancellationToken?.checkIsCancelled()
-				let (streamHeader, stream) = try await streamMahDatas(for: transferRequest, requestLogger: requestLogger, delegate: delegate)
-				try cancellationToken?.checkIsCancelled()
-				cancellationToken?.onCancel = { stream.cancel() }
-				defer { cancellationToken?.onCancel = {} }
+				let (streamHeader, stream) = try await streamMahDatas(
+					for: transferRequest,
+					requestLogger: requestLogger,
+					delegate: delegate,
+					cancellationToken: cancellationToken)
 
 				var accumulator = Data()
 				for try await chunk in stream {
@@ -308,16 +308,25 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	@discardableResult public func streamMahDatas(
 		for request: NetworkRequest,
 		requestLogger: Logger? = nil,
-		delegate: NetworkHandlerTaskDelegate? = nil
-	) async throws -> (responseHeader: EngineResponseHeader, stream: ResponseBodyStream) {
+		delegate: NetworkHandlerTaskDelegate? = nil,
+		cancellationToken: NetworkCancellationToken? = nil
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, stream: ResponseBodyStream) {
 		let (httpResponse, bodyResponseStream): (EngineResponseHeader, ResponseBodyStream)
 		do {
 			switch request {
 			case .upload(let uploadRequest, let payload):
+				try cancellationToken?.checkIsCancelled()
 				let (sendProgress, responseTask, bodyStream) = try await engine.uploadNetworkData(
 					request: uploadRequest,
 					with: payload,
 					requestLogger: requestLogger)
+				cancellationToken?.onCancel = { bodyStream.cancel() }
+				try cancellationToken?.checkIsCancelled()
+				bodyStream.onFinish { reason in
+					Task { // placed in another task to avoid lock-deadlock
+						cancellationToken?.onCancel = {}
+					}
+				}
 
 				async let progressBlock: Void = { @NHActor [delegate] in
 					var signaledStart = false
@@ -357,7 +366,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 							delegate?.requestFinished(withError: error)
 						}
 					}
-					continuation.onTermination = { _ in bodyStream.cancel() }
+					continuation.onFinish { _ in bodyStream.cancel() }
 				}
 				bodyResponseStream = interceptedStream
 			}
@@ -394,7 +403,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		originalRequest: NetworkRequest,
 		transferTask: @NHActor (_ request: NetworkRequest, _ attempt: Int) async throws -> (EngineResponseHeader, T),
 		errorHandler: RetryOptionBlock<T>
-	) async throws -> (EngineResponseHeader, T) {
+	) async throws(NetworkError) -> (EngineResponseHeader, T) {
 		var retryOption = RetryOption<T>.retry
 		var theRequest = originalRequest
 		var attempt = 1

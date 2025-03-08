@@ -181,7 +181,7 @@ public actor MockingEngine: NetworkEngine {
 			}
 		}
 
-		bodyContinuation.onTermination = { reason in
+		bodyContinuation.onFinish { reason in
 			switch reason {
 			case .cancelled:
 				everythingTask.cancel()
@@ -202,7 +202,8 @@ public actor MockingEngine: NetworkEngine {
 		logger?.debug("Loading request from client", metadata: ["URL": "\(request.url)"])
 
 		func streamToData(_ stream: InputStream) async throws -> Data {
-			let bufferSize = 1024 * 1024 * 4 // 4 MB
+			defer { sendProgContinuation.finish() }
+			let bufferSize = 1024 * 1024 * 1 // 4 MB
 			let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 1024 * 1024 * 4)
 			defer { buffer.deallocate() }
 			guard let bufferPointer = buffer.baseAddress else { throw SimpleError(message: "Failure to create buffer") }
@@ -212,6 +213,7 @@ public actor MockingEngine: NetworkEngine {
 			defer { stream.close() }
 			var accumulator = Data()
 			while stream.hasBytesAvailable {
+				try await Task.sleep(for: .milliseconds(200))
 				try Task.checkCancellation()
 				let bytesRead = stream.read(bufferPointer, maxLength: bufferSize)
 				accumulator.append(bufferPointer, count: bytesRead)

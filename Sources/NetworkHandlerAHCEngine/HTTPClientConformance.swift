@@ -31,7 +31,7 @@ extension HTTPClient: NetworkEngine {
 			try bodyContinuation.finish()
 		}
 
-		bodyContinuation.onTermination = { reason in
+		bodyContinuation.onFinish { reason in
 			switch reason {
 			case .cancelled:
 				bodyTask.cancel()
