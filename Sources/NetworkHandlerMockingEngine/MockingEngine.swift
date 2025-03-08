@@ -254,7 +254,7 @@ public actor MockingEngine: NetworkEngine {
 	nonisolated
 	public func shutdown() {}
 
-	public typealias SmartResponseMockBlock = (
+	public typealias SmartResponseMockBlock = @Sendable (
 		_ request: NetworkRequest,
 		_ requestBody: Data?
 	) async throws -> (data: Data?, response: EngineResponseHeader)
