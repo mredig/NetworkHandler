@@ -29,9 +29,9 @@ class NetworkErrorTests: XCTestCase {
 		encoder.outputFormatting = [.sortedKeys]
 		let testData = try? encoder.encode(testDummy)
 
-		var error = NetworkError.badData(sourceData: testData)
+		var error = NetworkError.unspecifiedError(reason: "Foo bar")
 		let testString = String(data: testData!, encoding: .utf8)!
-		let error1Str = "NetworkError: BadData (\(testString))"
+		let error1Str = "NetworkError: Unspecified Error: Foo bar"
 
 		XCTAssertEqual(error1Str, error.debugDescription)
 
@@ -39,8 +39,8 @@ class NetworkErrorTests: XCTestCase {
 		let error2Str = "NetworkError: Bad Response Code (401) for request: (GET): http://he@ho.hum with data: \(testString)"
 		XCTAssertEqual(error2Str, error.debugDescription)
 
-		error = .badData(sourceData: nil)
-		let error3Str = "NetworkError: BadData (nil value)"
+		error = NetworkError.unspecifiedError(reason: nil)
+		let error3Str = "NetworkError: Unspecified Error: nil value"
 		XCTAssertEqual(error3Str, error.debugDescription)
 	}
 }
@@ -50,18 +50,13 @@ extension NetworkError {
 	static func allErrorCases() -> [NetworkError] {
 		let dummyError = NSError(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil)
 		let allErrorCases: [NetworkError] = [
-			.badData(sourceData: nil),
-			.databaseFailure(specifically: dummyError),
 			.dataCodingError(specifically: dummyError, sourceData: nil),
 			.httpUnexpectedStatusCode(code: 404, originalRequest: .download(NetworkErrorTests.simpleURL.downloadRequest), data: nil),
-			.imageDecodeError,
-			.noStatusCodeResponse,
-			.otherError(error: dummyError),
-			.urlInvalid(urlString: "he.ho.hum"),
-			.urlInvalid(urlString: nil),
 			.unspecifiedError(reason: "Who knows what the error might be?!"),
 			.unspecifiedError(reason: nil),
-			// missing at least one
+			.requestTimedOut,
+			.otherError(error: dummyError),
+			.requestCancelled,
 		]
 		return allErrorCases
 	}
