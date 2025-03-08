@@ -62,7 +62,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		decoder: NHDecoder = DownloadEngineRequest.defaultDecoder,
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
-		until: @escaping @NHActor (NetworkRequest, PollResult<T>) async throws -> PollContinuation<T>
+		until: @escaping @NHActor (NetworkRequest, PollResult<T>) async throws(NetworkError) -> PollContinuation<T>
 	) async throws -> (responseHeader: EngineResponseHeader, result: T) {
 		func doPoll(request: NetworkRequest) async -> PollResult<T> {
 			let polledResult: PollResult<T>
@@ -123,7 +123,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
-	) async throws -> (responseHeader: EngineResponseHeader, decoded: DecodableType) {
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, decoded: DecodableType) {
 		let (header, rawData) = try await downloadMahDatas(
 			for: request,
 			delegate: delegate,
@@ -171,7 +171,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
-	) async throws -> EngineResponseHeader {
+	) async throws(NetworkError) -> EngineResponseHeader {
 		let tempFileURL = tempoaryFileURL ?? outURL
 
 		guard
@@ -183,7 +183,9 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 		if let cacheKey = cacheOption.cacheKey(url: request.url) {
 			if let cachedData = cache[cacheKey] {
-				try cachedData.data.write(to: outURL)
+				try NetworkError.captureAndConvert {
+					try cachedData.data.write(to: outURL)
+				}
 				return cachedData.response
 			}
 		}
@@ -217,9 +219,9 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					.appending(component: newFilename)
 					.appendingPathExtension(ext)
 			}
-			try FileManager.default.moveItem(at: outURL, to: oldOut)
+			try NetworkError.captureAndConvert { try FileManager.default.moveItem(at: outURL, to: oldOut) }
 		}
-		try FileManager.default.moveItem(at: tempFileURL, to: outURL)
+		try NetworkError.captureAndConvert { try FileManager.default.moveItem(at: tempFileURL, to: outURL) }
 
 		if
 			let cacheKey = cacheOption.cacheKey(url: request.url),
@@ -252,7 +254,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
-	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, data: Data) {
 		try await transferMahDatas(
 			for: .download(request),
 			delegate: delegate,
@@ -279,7 +281,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
-	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, data: Data) {
 		if let cacheKey = cacheOption.cacheKey(url: request.url) {
 			if let cachedData = cache[cacheKey] {
 				return (cachedData.response, cachedData.data)
@@ -468,7 +470,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		throw NetworkError.unspecifiedError(reason: "Escaped while loop")
 	}
 
-	private func decodeData<DecodableType: Decodable>(data: Data, using decoder: NHDecoder) throws -> DecodableType {
+	private func decodeData<DecodableType: Decodable>(data: Data, using decoder: NHDecoder) throws(NetworkError) -> DecodableType {
 		guard DecodableType.self != Data.self else {
 			return data as! DecodableType // swiftlint:disable:this force_cast
 		}
