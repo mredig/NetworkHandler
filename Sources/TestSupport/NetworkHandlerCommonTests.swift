@@ -533,8 +533,8 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 	}
 
 	// MARK: - Utilities
-	private func getNetworkHandler(with engine: Engine) -> NetworkHandler<Engine> {
-		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self)", engine: engine)
+	private func getNetworkHandler(with engine: Engine, function: String = #function) -> NetworkHandler<Engine> {
+		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self) (\(function))", engine: engine)
 		nh.resetCache()
 		return nh
 	}
