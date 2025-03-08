@@ -130,15 +130,22 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 		Self.lockCache()
 		defer { Self.unlockCache() }
 
+		guard cacheLocation.checkResourceIsAccessible() else { return }
 		do {
-			let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [], options: [])
-
-			for file in contents {
-				_deleteFile(at: file)
-			}
+			try fileManager.removeItem(at: cacheLocation)
 			logger.info("Reset disk cache", metadata: ["Name": "\(cacheName)"])
 		} catch {
-			logger.error("Error resetting cache:", metadata: ["Error": "\(error)"])
+			logger.error("Error resetting disk cache by clearing folder. Trying individual files.", metadata: ["Error": "\(error)"])
+			do {
+				let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [], options: [])
+
+				for file in contents {
+					_deleteFile(at: file)
+				}
+				logger.info("Reset disk cache", metadata: ["Name": "\(cacheName)"])
+			} catch {
+				logger.error("Error resetting cache:", metadata: ["Error": "\(error)"])
+			}
 		}
 	}
 
@@ -150,8 +157,8 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 			let cacheDir = try fileManager.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
 			let cacheResource = cacheDir.appendingPathComponent(cacheName)
 
-			if !fileManager.fileExists(atPath: cacheResource.path) {
-				try fileManager.createDirectory(at: cacheResource, withIntermediateDirectories: true, attributes: nil)
+			if cacheResource.checkResourceIsAccessible() == false {
+				try fileManager.createDirectory(at: cacheResource, withIntermediateDirectories: true)
 			}
 			return cacheResource
 		} catch {
@@ -161,6 +168,9 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 
 	private func path(for key: String) -> URL {
 		let sha1 = Insecure.SHA1.hash(data: Data(key.utf8)).toHexString()
+		if cacheLocation.checkResourceIsAccessible() == false {
+			try? fileManager.createDirectory(at: cacheLocation, withIntermediateDirectories: true)
+		}
 		return cacheLocation.appendingPathComponent(sha1)
 	}
 
