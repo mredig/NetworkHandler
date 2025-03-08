@@ -153,7 +153,7 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.badCodableData(engine: mockingEngine)
 	}
 
-	@Test func cancellationViaTask() async throws {
+	@Test func cancellationViaToken() async throws {
 		let mockingEngine = generateEngine()
 
 		var rng: RandomNumberGenerator = SeedableRNG(seed: 394687)
@@ -162,7 +162,7 @@ struct NetworkHandlerMockingTests: Sendable {
 		let url = commonTests.randomDataURL
 		await mockingEngine.addMock(for: url, method: .get, responseData: modelData, responseCode: 200)
 
-		try await commonTests.cancellationViaTask(engine: mockingEngine)
+		try await commonTests.cancellationViaToken(engine: mockingEngine)
 	}
 
 	@Test func cancellationViaStream() async throws {
@@ -177,7 +177,7 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.cancellationViaStream(engine: mockingEngine)
 	}
 
-	@Test func uploadCancellationViaTask() async throws {
+	@Test func uploadCancellationViaToken() async throws {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.uploadURL

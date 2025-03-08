@@ -81,10 +81,10 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		try await commonTests.badCodableData(engine: mockingEngine)
 	}
 
-	@Test func cancellationViaTask() async throws {
+	@Test func cancellationViaToken() async throws {
 		let mockingEngine = generateEngine()
 
-		try await commonTests.cancellationViaTask(engine: mockingEngine)
+		try await commonTests.cancellationViaToken(engine: mockingEngine)
 	}
 
 	@Test func cancellationViaStream() async throws {
@@ -98,7 +98,7 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		try await commonTests.cancellationViaStream(engine: mockingEngine)
 	}
 
-	@Test func uploadCancellationViaTask() async throws {
+	@Test func uploadCancellationViaToken() async throws {
 		let mockingEngine = generateEngine()
 		try await commonTests.uploadCancellationViaToken(engine: mockingEngine)
 	}

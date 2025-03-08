@@ -415,7 +415,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 	}
 
 	/// performs a `GET` request to `randomDataURL`. Provided must be corrupted in some way.
-	public func cancellationViaTask(
+	public func cancellationViaToken(
 		engine: Engine,
 		file: String = #fileID,
 		filePath: String = #filePath,
@@ -427,18 +427,17 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let request = randomDataURL.downloadRequest
 
+		let cancelToken = NetworkCancellationToken()
 		let forCancel = Task {
 			let accumulated = AtomicValue(value: 0)
 			let delegate = await Delegate(onResponseBodyProgress: { [accumulated] delegate, request, bodyData in
 				accumulated.value += bodyData.count
 
 				guard accumulated.value > 40960 else { return }
-				withUnsafeCurrentTask { currentTask in
-					currentTask?.cancel()
-				}
+				cancelToken.cancel()
 			})
 
-			return try await nh.transferMahDatas(for: .download(request), delegate: delegate)
+			return try await nh.transferMahDatas(for: .download(request), delegate: delegate, cancellationToken: cancelToken)
 		}
 
 		await #expect(throws: NetworkError.requestCancelled, performing: {

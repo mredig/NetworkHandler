@@ -61,6 +61,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		decoder: NHDecoder = DownloadEngineRequest.defaultDecoder,
 		requestLogger: Logger? = nil,
+		cancellationToken: NetworkCancellationToken? = nil,
 		until: @escaping @NHActor (NetworkRequest, PollResult<T>) async throws -> PollContinuation<T>
 	) async throws -> (responseHeader: EngineResponseHeader, result: T) {
 		func doPoll(request: NetworkRequest) async -> PollResult<T> {
@@ -70,7 +71,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					for: request,
 					delegate: delegate,
 					usingCache: cacheOption,
-					requestLogger: requestLogger)
+					requestLogger: requestLogger,
+					cancellationToken: cancellationToken)
 				let decoded: T = try decodeData(data: data, using: decoder)
 				polledResult = .success((header, decoded))
 			} catch {
@@ -119,6 +121,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		decoder: NHDecoder = DownloadEngineRequest.defaultDecoder,
 		requestLogger: Logger? = nil,
+		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, decoded: DecodableType) {
 		let (header, rawData) = try await downloadMahDatas(
@@ -126,6 +129,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			delegate: delegate,
 			usingCache: cacheOption,
 			requestLogger: requestLogger,
+			cancellationToken: cancellationToken,
 			onError: onError)
 
 		return try (header, decodeData(data: rawData, using: decoder))
@@ -165,6 +169,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		requestLogger: Logger? = nil,
+		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> EngineResponseHeader {
 		let tempFileURL = tempoaryFileURL ?? outURL
@@ -186,7 +191,11 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		let (header, _) = try await retryHandler(
 			originalRequest: request,
 			transferTask: { transferRequest, attempt in
-				let (streamHeader, stream) = try await streamMahDatas(for: transferRequest, requestLogger: requestLogger, delegate: delegate)
+				let (streamHeader, stream) = try await streamMahDatas(
+					for: transferRequest,
+					requestLogger: requestLogger,
+					delegate: delegate,
+					cancellationToken: cancellationToken)
 				try? FileManager.default.removeItem(at: tempFileURL)
 
 				let fh = try FileHandle(forWritingTo: tempFileURL)
@@ -241,6 +250,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		requestLogger: Logger? = nil,
+		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
 		try await transferMahDatas(
@@ -248,6 +258,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			delegate: delegate,
 			usingCache: cacheOption,
 			requestLogger: requestLogger,
+			cancellationToken: cancellationToken,
 			onError: onError)
 	}
 
@@ -346,7 +357,16 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 				delegate?.responseHeaderRetrieved(for: request, header: httpResponse)
 				bodyResponseStream = bodyStream
 			case .download(let downloadRequest):
+				try cancellationToken?.checkIsCancelled()
 				let (header, bodyStream) = try await engine.fetchNetworkData(from: downloadRequest, requestLogger: requestLogger)
+				cancellationToken?.onCancel = { bodyStream.cancel() }
+				try cancellationToken?.checkIsCancelled()
+				bodyStream.onFinish { reason in
+					Task { // placed in another task to avoid lock-deadlock
+						cancellationToken?.onCancel = {}
+					}
+				}
+
 				delegate?.responseHeaderRetrieved(for: request, header: header)
 				httpResponse = header
 				let interceptedStream = ResponseBodyStream(errorOnCancellation: NetworkError.requestCancelled) { continuation in
