@@ -433,11 +433,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 			let theError: NetworkError
 			do {
-				return try await withTaskCancellationHandler(operation: {
-					return try await transferTask(theRequest, attempt)
-				}, onCancel: {
-					print("Cancelling here")
-				})
+				return try await transferTask(theRequest, attempt)
 			} catch let error as NetworkError {
 				theError = error
 			} catch {
