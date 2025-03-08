@@ -190,7 +190,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let nh = getNetworkHandler(with: engine)
 		defer { nh.resetCache() }
 
-		let payloadData = Data(##"{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/IMG_2932.jpg","subtitle":"BarSub","title":"FooTitle"}"##.utf8)
+		let payloadData = Data(##"{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/lighthouse.jpg","subtitle":"BarSub","title":"FooTitle"}"##.utf8)
 		let url = demoModelURL
 		let request = url.downloadRequest.with {
 			$0.expectedResponseCodes = 201
