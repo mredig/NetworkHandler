@@ -32,6 +32,9 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		self.logger = logger
 
 		self.engine = engine
+
+		NetworkError.registerTimeoutErrorHandling(Engine.isTimeoutError, forEngine: "\(Engine.self)")
+		NetworkError.registerCancellationErrorHandling(Engine.isTimeoutError, forEngine: "\(Engine.self)")
 	}
 
 	deinit {

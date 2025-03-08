@@ -12,10 +12,22 @@ extension HTTPClient: NetworkEngine {
 	public func fetchNetworkData(
 		from request: DownloadEngineRequest,
 		requestLogger: Logger?
-	) async throws -> (EngineResponseHeader, ResponseBodyStream) {
+	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
 		let httpClientRequest = request.httpClientRequest
 
-		let httpClientResponse = try await execute(httpClientRequest, deadline: .distantFuture)
+		let httpClientResponse = try await NetworkError.captureAndConvert {
+			do {
+				return try await execute(httpClientRequest, deadline: .distantFuture)
+			} catch let error as HTTPClientError {
+				switch error {
+				case .readTimeout, .writeTimeout, .connectTimeout:
+					throw NetworkError.requestTimedOut
+				case .cancelled, .requestStreamCancelled:
+					throw NetworkError.requestCancelled
+				default: throw error
+				}
+			}
+		}
 
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
 
@@ -50,12 +62,12 @@ extension HTTPClient: NetworkEngine {
 		request: UploadEngineRequest,
 		with payload: UploadFile,
 		requestLogger: Logger?
-	) async throws -> (
+	) async throws(NetworkError) -> (
 		uploadProgress: UploadProgressStream,
-		responseTask: _Concurrency.Task<EngineResponseHeader, any Error>,
+		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream
 	) {
-		var httpClientRequest = try request.httpClientFutureRequest
+		var httpClientRequest = try NetworkError.captureAndConvert { try request.httpClientFutureRequest }
 
 		@Sendable func streamWriter(
 			inputStream: InputStream,
@@ -85,7 +97,7 @@ extension HTTPClient: NetworkEngine {
 			guard
 				let fileSize = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
 				let fileStream = InputStream(url: url)
-			else { throw UploadError.createStreamFromLocalFileFailed }
+			else { throw .otherError(error: UploadError.createStreamFromLocalFileFailed) }
 			httpClientRequest.body = .stream(contentLength: Int64(fileSize), { [fileStream] writer in
 				streamWriter(inputStream: fileStream, writer: writer)
 			})
@@ -105,9 +117,11 @@ extension HTTPClient: NetworkEngine {
 			progressContinuation: upProgContinuation,
 			bodyChunkContinuation: bodyContinuation)
 
-		let responseTask = _Concurrency.Task {
-			let head = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HTTPResponseHead, Error>) in
-				delegate.setUploadContinuation(continuation)
+		let responseTask = ETask { () async throws(NetworkError) in
+			let head = try await NetworkError.captureAndConvert {
+				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HTTPResponseHead, Error>) in
+					delegate.setUploadContinuation(continuation)
+				}
 			}
 
 			return EngineResponseHeader(from: HTTPClientResponse(from: head), with: request.url)
@@ -212,6 +226,24 @@ extension HTTPClient: NetworkEngine {
 			uploadContinuation = nil
 			progressContinuation = nil
 			bodyChunkContinuation = nil
+		}
+	}
+
+	public static func isCancellationError(_ error: any Error) -> Bool {
+		guard let httpError = error as? HTTPClientError else { return false }
+		switch httpError {
+		case .cancelled, .requestStreamCancelled:
+			return true
+		default: return false
+		}
+	}
+
+	public static func isTimeoutError(_ error: any Error) -> Bool {
+		guard let httpError = error as? HTTPClientError else { return false }
+		switch httpError {
+		case .readTimeout, .writeTimeout, .connectTimeout:
+			return true
+		default: return false
 		}
 	}
 }

@@ -46,7 +46,7 @@ public actor MockingEngine: NetworkEngine {
 	public func fetchNetworkData(
 		from request: DownloadEngineRequest,
 		requestLogger: Logger?
-	) async throws -> (EngineResponseHeader, ResponseBodyStream) {
+	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
 		let key = Key(url: request.url, method: request.method)
 
 		if let interceptor = acceptedIntercepts[key] {
@@ -88,9 +88,9 @@ public actor MockingEngine: NetworkEngine {
 		request: UploadEngineRequest,
 		with payload: UploadFile,
 		requestLogger: Logger?
-	) async throws -> (
+	) async throws(NetworkError) -> (
 		uploadProgress: UploadProgressStream,
-		responseTask: Task<EngineResponseHeader, any Error>,
+		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream
 	) {
 		let key = Key(url: request.url, method: request.method)
@@ -137,25 +137,27 @@ public actor MockingEngine: NetworkEngine {
 		_ request: NetworkRequest,
 		interceptor: @escaping @Sendable SmartResponseMockBlock,
 		logger: Logger?
-	) async throws -> (
+	) async throws(NetworkError) -> (
 		uploadProgress: UploadProgressStream,
-		responseTask: Task<EngineResponseHeader, any Error>,
+		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream
 	) {
 		let (upProg, upProgCont) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
-		let everythingTask = Task {
-			let clientData = try await loadFromClient(
-				request,
-				sendProgContinuation: upProgCont,
-				logger: logger)
-			try upProgCont.finish()
+		let everythingTask = ETask { () async throws(NetworkError) in
+			try await NetworkError.captureAndConvert {
+				let clientData = try await loadFromClient(
+					request,
+					sendProgContinuation: upProgCont,
+					logger: logger)
+				try upProgCont.finish()
 
-			return try await interceptor(request, clientData)
+				return try await interceptor(request, clientData)
+			}
 		}
 
-		let responseTask = Task {
+		let responseTask = ETask { () async throws(NetworkError) in
 			try await everythingTask.value.response
 		}
 
@@ -198,29 +200,33 @@ public actor MockingEngine: NetworkEngine {
 		_ request: NetworkRequest,
 		sendProgContinuation: UploadProgressStream.Continuation,
 		logger: Logger?
-	) async throws -> Data? {
+	) async throws(NetworkError) -> Data? {
 		logger?.debug("Loading request from client", metadata: ["URL": "\(request.url)"])
 
-		func streamToData(_ stream: InputStream) async throws -> Data {
-			defer { try? sendProgContinuation.finish() }
-			let bufferSize = 1024 * 1024 * 1 // 1 MB
-			let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 1024 * 1024 * 4)
-			defer { buffer.deallocate() }
-			guard let bufferPointer = buffer.baseAddress else { throw SimpleError(message: "Failure to create buffer") }
+		func streamToData(_ stream: InputStream) async throws(NetworkError) -> Data {
+			try await NetworkError.captureAndConvert {
+				defer { try? sendProgContinuation.finish() }
+				let bufferSize = 1024 * 1024 * 1 // 1 MB
+				let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 1024 * 1024 * 4)
+				defer { buffer.deallocate() }
+				guard let bufferPointer = buffer.baseAddress else {
+					throw NetworkError.unspecifiedError(reason: "Failure to create buffer")
+				}
 
-			var totalSent: Int64 = 0
-			stream.open()
-			defer { stream.close() }
-			var accumulator = Data()
-			while stream.hasBytesAvailable {
-				try await Task.sleep(for: .milliseconds(200))
-				try Task.checkCancellation()
-				let bytesRead = stream.read(bufferPointer, maxLength: bufferSize)
-				accumulator.append(bufferPointer, count: bytesRead)
-				totalSent += Int64(bytesRead)
-				try sendProgContinuation.yield(totalSent)
+				var totalSent: Int64 = 0
+				stream.open()
+				defer { stream.close() }
+				var accumulator = Data()
+				while stream.hasBytesAvailable {
+					try await Task.sleep(for: .milliseconds(200))
+					try Task.checkCancellation()
+					let bytesRead = stream.read(bufferPointer, maxLength: bufferSize)
+					accumulator.append(bufferPointer, count: bytesRead)
+					totalSent += Int64(bytesRead)
+					try sendProgContinuation.yield(totalSent)
+				}
+				return accumulator
 			}
-			return accumulator
 		}
 
 		var data: Data?
@@ -230,7 +236,7 @@ public actor MockingEngine: NetworkEngine {
 			case .localFile(let url):
 				guard
 					let inputStream = InputStream(url: url)
-				else { throw SimpleError(message: "Error opening file for mock upload") }
+				else { throw .unspecifiedError(reason: "Error opening file for mock upload") }
 				data = try await streamToData(inputStream)
 			case .data(let inData):
 				let inputStream = InputStream(data: inData)
@@ -253,6 +259,9 @@ public actor MockingEngine: NetworkEngine {
 
 	nonisolated
 	public func shutdown() {}
+
+	public static func isCancellationError(_ error: any Error) -> Bool { false }
+	public static func isTimeoutError(_ error: any Error) -> Bool { false }
 
 	public typealias SmartResponseMockBlock = @Sendable (
 		_ request: NetworkRequest,

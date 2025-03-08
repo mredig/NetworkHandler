@@ -15,9 +15,9 @@ extension URLSession: NetworkEngine {
 	public func fetchNetworkData(
 		from request: DownloadEngineRequest,
 		requestLogger: Logger?
-	) async throws -> (EngineResponseHeader, ResponseBodyStream) {
+	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
 		let urlRequest = request.urlRequest
-		let (dlBytes, response) = try await bytes(for: urlRequest)
+		let (dlBytes, response) = try await NetworkError.captureAndConvert { try await bytes(for: urlRequest) }
 
 		let engResponse = EngineResponseHeader(from: response as! HTTPURLResponse)
 		let (stream, continuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
@@ -61,9 +61,9 @@ extension URLSession: NetworkEngine {
 		request: UploadEngineRequest,
 		with payload: UploadFile,
 		requestLogger: Logger?
-	) async throws -> (
+	) async throws(NetworkError) -> (
 		uploadProgress: UploadProgressStream,
-		responseTask: Task<EngineResponseHeader, any Error>,
+		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream
 	) {
 		let urlRequest = request.urlRequest
@@ -80,7 +80,7 @@ extension URLSession: NetworkEngine {
 		case .localFile(let localFile):
 			guard
 				let stream = InputStream(url: localFile)
-			else { throw UploadError.createStreamFromLocalFileFailed }
+			else { throw .otherError(error: UploadError.createStreamFromLocalFileFailed) }
 			payloadStream = stream
 		case .streamProvider(let stream):
 			payloadStream = stream
@@ -96,16 +96,14 @@ extension URLSession: NetworkEngine {
 			bodyContinuation: bodyContinuation)
 		urlTask.delegate = delegate
 
-		let responseTask = Task {
-			do {
+		let responseTask = ETask { () async throws(NetworkError) in
+			try await NetworkError.captureAndConvert {
 				while urlTask.response == nil {
 					try await Task.sleep(for: .milliseconds(100))
 				}
 				guard let response = urlTask.response else { fatalError() }
-				
+
 				return EngineResponseHeader(from: response)
-			} catch {
-				throw error
 			}
 		}
 
@@ -132,4 +130,10 @@ extension URLSession: NetworkEngine {
 	public func shutdown() {
 		finishTasksAndInvalidate()
 	}
+
+	// hard coded into NetworkError - no need to implement here
+	public static func isCancellationError(_ error: any Error) -> Bool { false }
+
+	// hard coded into NetworkError - no need to implement here
+	public static func isTimeoutError(_ error: any Error) -> Bool { false }
 }
