@@ -187,6 +187,22 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 	public var helpAnchor: String? { debugDescription }
 
 	public var recoverySuggestion: String? { debugDescription }
+
+	public static func captureAndConvert<T, E>(_ block: () throws(E) -> T) throws(NetworkError) -> T {
+		do {
+			return try block()
+		} catch {
+			throw error.convertToNetworkErrorIfCancellation()
+		}
+	}
+
+	public static func captureAndConvert<T: Sendable, E>(_ block:/* @isolated(any)*/ @Sendable () async throws(E) -> T) async throws(NetworkError) -> T {
+		do {
+			return try await block()
+		} catch {
+			throw error.convertToNetworkErrorIfCancellation()
+		}
+	}
 }
 
 public extension Error {
@@ -209,9 +225,9 @@ public extension Error {
 
 	/// Checks for cancellation errors (via `checkForCancellation()`) and, if it is cancellation, returns
 	/// `NetworkError.requestCancelled`
-	func convertToNetworkErrorIfCancellation() -> Error {
+	func convertToNetworkErrorIfCancellation() -> NetworkError {
 		if self is NetworkError {
-			return self
+			return self as! NetworkError
 		} else {
 			guard isCancellation() else { return NetworkError.otherError(error: self) }
 			return NetworkError.requestCancelled

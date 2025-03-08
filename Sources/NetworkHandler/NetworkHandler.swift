@@ -412,7 +412,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			} catch let error as NetworkError {
 				theError = error
 			} catch {
-				theError = (error.convertToNetworkErrorIfCancellation() as? NetworkError) ?? .otherError(error: error)
+				theError = error.convertToNetworkErrorIfCancellation()
 			}
 
 			retryOption = errorHandler(theRequest, attempt, theError)
@@ -420,10 +420,14 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			case .retryWithConfiguration(config: let config):
 				theRequest = config.updatedRequest ?? theRequest
 				if config.delay > 0 {
-					try await Task.sleep(nanoseconds: UInt64(TimeInterval(1_000_000_000) * config .delay))
+					try await NetworkError.captureAndConvert {
+						try await Task.sleep(nanoseconds: UInt64(TimeInterval(1_000_000_000) * config.delay))
+					}
 				}
 			case .throw(updatedError: let updatedError):
-				throw updatedError ?? theError
+				try NetworkError.captureAndConvert {
+					throw updatedError ?? theError
+				}
 			case .defaultReturnValue(config: let returnConfig):
 				let response: EngineResponseHeader
 				switch returnConfig.response {
