@@ -398,8 +398,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 		guard request.expectedResponseCodes.rawValue.contains(httpResponse.status) else {
 			logger.error("""
-				Error: Server replied with expected status code: Got \(httpResponse.status) \
-				expected \(request.expectedResponseCodes)
+				Error: Server replied with unexpected status code: Got \(httpResponse.status) \
+				expected \(request.expectedResponseCodes.rawValue)
 				""")
 			let data: Data? = await {
 				var accumulator = Data()
