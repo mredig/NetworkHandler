@@ -133,6 +133,7 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 		guard cacheLocation.checkResourceIsAccessible() else { return }
 		do {
 			try fileManager.removeItem(at: cacheLocation)
+			refreshSize()
 			logger.info("Reset disk cache", metadata: ["Name": "\(cacheName)"])
 		} catch {
 			logger.error("Error resetting disk cache by clearing folder. Trying individual files.", metadata: ["Error": "\(error)"])
@@ -254,6 +255,11 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 	}
 
 	private func refreshSize() {
+		guard cacheLocation.checkResourceIsAccessible() else {
+			size = 0
+			count = 0
+			return
+		}
 		do {
 			let contents = try fileManager
 				.contentsOfDirectory(

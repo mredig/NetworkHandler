@@ -19,7 +19,7 @@ open class NetworkHandlerBaseTest<Engine: NetworkEngine>: XCTestCase {
 	}
 
 	public func generateNetworkHandlerInstance(engine: Engine) -> NetworkHandler<Engine> {
-		let networkHandler = NetworkHandler(name: "NH", engine: engine)
+		let networkHandler = NetworkHandler(name: "Test Network Handler", engine: engine)
 		addTeardownBlock {
 			networkHandler.resetCache()
 		}
