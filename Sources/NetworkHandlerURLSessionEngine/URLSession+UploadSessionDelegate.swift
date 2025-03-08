@@ -10,7 +10,7 @@ extension URLSession {
 		/// Tracks the state of a single task. Stored in a dictionary in the delegate.
 		private struct State {
 			/// Relays the total number of bytes sent for a given task in a stream.
-			let progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation
+			let progressContinuation: UploadProgressStream.Continuation
 			/// Relays the data body chunk blobs received from the response.
 			let bodyContinuation: ResponseBodyStream.Continuation
 
@@ -36,7 +36,7 @@ extension URLSession {
 			var dataSendCompletion: Completion = .inProgress
 
 			init(
-				progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation,
+				progressContinuation: UploadProgressStream.Continuation,
 				bodyContinuation: ResponseBodyStream.Continuation,
 				task: URLSessionUploadTask,
 				stream: InputStream,
@@ -60,7 +60,7 @@ extension URLSession {
 		func addTask(
 			_ task: URLSessionUploadTask,
 			withStream stream: InputStream,
-			progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation,
+			progressContinuation: UploadProgressStream.Continuation,
 			bodyContinuation: ResponseBodyStream.Continuation
 		) {
 			let state = State(progressContinuation: progressContinuation, bodyContinuation: bodyContinuation, task: task, stream: stream, parent: self)
@@ -137,13 +137,13 @@ extension URLSession {
 					states[task]?.lastUpdate = now
 				}
 			}
-			state.progressContinuation.yield(totalBytesSent)
+			_ = try? state.progressContinuation.yield(totalBytesSent)
 
 			guard
 				totalBytesExpectedToSend != NSURLSessionTransferSizeUnknown,
 				totalBytesSent == totalBytesExpectedToSend
 			else { return }
-			state.progressContinuation.finish()
+			try? state.progressContinuation.finish()
 		}
 
 		func urlSession(
@@ -159,7 +159,7 @@ extension URLSession {
 			states[task] = nil
 			lock.unlock()
 
-			state.progressContinuation.finish()
+			try? state.progressContinuation.finish(throwing: error)
 			try? state.bodyContinuation.finish(throwing: error)
 		}
 	}

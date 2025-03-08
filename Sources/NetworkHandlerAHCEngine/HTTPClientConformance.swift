@@ -51,7 +51,7 @@ extension HTTPClient: NetworkEngine {
 		with payload: UploadFile,
 		requestLogger: Logger?
 	) async throws -> (
-		uploadProgress: AsyncThrowingStream<Int64, any Error>,
+		uploadProgress: UploadProgressStream,
 		responseTask: _Concurrency.Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream
 	) {
@@ -97,9 +97,9 @@ extension HTTPClient: NetworkEngine {
 			})
 		}
 
-		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
-		let (upProgStream, upProgContinuation) = AsyncThrowingStream<Int64, Error>.makeStream()
+		let (upProgStream, upProgContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
 		let delegate = HTTPDellowFelegate(
 			progressContinuation: upProgContinuation,
@@ -130,13 +130,13 @@ extension HTTPClient: NetworkEngine {
 		private let lock = MutexLock()
 
 		private var bytesSent: Int64 = 0
-		var progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation?
+		var progressContinuation: UploadProgressStream.Continuation?
 		private var alreadyUploaded: HTTPResponseHead?
 		var bodyChunkContinuation: ResponseBodyStream.Continuation?
 		var uploadContinuation: CheckedContinuation<HTTPResponseHead, Error>?
 
 		init(
-			progressContinuation: AsyncThrowingStream<Int64, Error>.Continuation? = nil,
+			progressContinuation: UploadProgressStream.Continuation? = nil,
 			bodyChunkContinuation: ResponseBodyStream.Continuation? = nil
 		) {
 			self.progressContinuation = progressContinuation
@@ -164,7 +164,7 @@ extension HTTPClient: NetworkEngine {
 		func didSendRequestPart(task: HTTPClient.Task<()>, _ part: IOData) {
 			lock.withLock {
 				bytesSent += Int64(part.readableBytes)
-				progressContinuation?.yield(bytesSent)
+				_ = try? progressContinuation?.yield(bytesSent)
 			}
 		}
 
@@ -189,7 +189,7 @@ extension HTTPClient: NetworkEngine {
 
 		func didFinishRequest(task: AsyncHTTPClient.HTTPClient.Task<Void>) throws {
 			lock.withLock {
-				progressContinuation?.finish()
+				try? progressContinuation?.finish()
 				try? bodyChunkContinuation?.finish()
 
 				uploadContinuation = nil
@@ -205,7 +205,7 @@ extension HTTPClient: NetworkEngine {
 		}
 
 		private func _finish(throwing error: Error) {
-			progressContinuation?.finish(throwing: error)
+			try? progressContinuation?.finish(throwing: error)
 			try? bodyChunkContinuation?.finish(throwing: error)
 			uploadContinuation?.resume(throwing: error)
 

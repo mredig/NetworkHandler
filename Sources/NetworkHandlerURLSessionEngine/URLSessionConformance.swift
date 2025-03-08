@@ -62,14 +62,14 @@ extension URLSession: NetworkEngine {
 		with payload: UploadFile,
 		requestLogger: Logger?
 	) async throws -> (
-		uploadProgress: AsyncThrowingStream<Int64, any Error>,
+		uploadProgress: UploadProgressStream,
 		responseTask: Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream
 	) {
 		let urlRequest = request.urlRequest
 
-		let (progStream, progContinuation) = AsyncThrowingStream<Int64, Error>.makeStream()
-		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
+		let (progStream, progContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
 		let delegate = delegate as! UploadDellowFelegate
 

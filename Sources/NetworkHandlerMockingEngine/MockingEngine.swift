@@ -89,7 +89,7 @@ public actor MockingEngine: NetworkEngine {
 		with payload: UploadFile,
 		requestLogger: Logger?
 	) async throws -> (
-		uploadProgress: AsyncThrowingStream<Int64, any Error>,
+		uploadProgress: UploadProgressStream,
 		responseTask: Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream
 	) {
@@ -138,19 +138,19 @@ public actor MockingEngine: NetworkEngine {
 		interceptor: @escaping @Sendable SmartResponseMockBlock,
 		logger: Logger?
 	) async throws -> (
-		uploadProgress: AsyncThrowingStream<Int64, any Error>,
+		uploadProgress: UploadProgressStream,
 		responseTask: Task<EngineResponseHeader, any Error>,
 		responseBody: ResponseBodyStream
 	) {
-		let (upProg, upProgCont) = AsyncThrowingStream<Int64, Error>.makeStream()
-		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
+		let (upProg, upProgCont) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
 		let everythingTask = Task {
 			let clientData = try await loadFromClient(
 				request,
 				sendProgContinuation: upProgCont,
 				logger: logger)
-			upProgCont.finish()
+			try upProgCont.finish()
 
 			return try await interceptor(request, clientData)
 		}
@@ -196,14 +196,14 @@ public actor MockingEngine: NetworkEngine {
 
 	private func loadFromClient(
 		_ request: NetworkRequest,
-		sendProgContinuation: AsyncThrowingStream<Int64, Error>.Continuation,
+		sendProgContinuation: UploadProgressStream.Continuation,
 		logger: Logger?
 	) async throws -> Data? {
 		logger?.debug("Loading request from client", metadata: ["URL": "\(request.url)"])
 
 		func streamToData(_ stream: InputStream) async throws -> Data {
-			defer { sendProgContinuation.finish() }
-			let bufferSize = 1024 * 1024 * 1 // 4 MB
+			defer { try? sendProgContinuation.finish() }
+			let bufferSize = 1024 * 1024 * 1 // 1 MB
 			let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 1024 * 1024 * 4)
 			defer { buffer.deallocate() }
 			guard let bufferPointer = buffer.baseAddress else { throw SimpleError(message: "Failure to create buffer") }
@@ -218,7 +218,7 @@ public actor MockingEngine: NetworkEngine {
 				let bytesRead = stream.read(bufferPointer, maxLength: bufferSize)
 				accumulator.append(bufferPointer, count: bytesRead)
 				totalSent += Int64(bytesRead)
-				sendProgContinuation.yield(totalSent)
+				try sendProgContinuation.yield(totalSent)
 			}
 			return accumulator
 		}
