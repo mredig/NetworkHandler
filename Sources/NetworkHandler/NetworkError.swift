@@ -188,19 +188,31 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 
 	public var recoverySuggestion: String? { debugDescription }
 
+	public static func convert<E: Error>(_ error: E) -> NetworkError {
+		guard (error is NetworkError) == false else {
+			return error as! NetworkError
+		}
+		guard error.isCancellation() == false else {
+			return .requestCancelled
+		}
+		return .otherError(error: error)
+	}
+
 	public static func captureAndConvert<T, E>(_ block: () throws(E) -> T) throws(NetworkError) -> T {
 		do {
 			return try block()
 		} catch {
-			throw error.convertToNetworkErrorIfCancellation()
+			throw convert(error)
 		}
 	}
 
-	public static func captureAndConvert<T: Sendable, E>(_ block:/* @isolated(any)*/ @Sendable () async throws(E) -> T) async throws(NetworkError) -> T {
+	public static func captureAndConvert<T: Sendable, E>(
+		_ block: sending @isolated(any) () async throws(E) -> T
+	) async throws(NetworkError) -> T {
 		do {
 			return try await block()
 		} catch {
-			throw error.convertToNetworkErrorIfCancellation()
+			throw convert(error)
 		}
 	}
 }
@@ -220,17 +232,6 @@ public extension Error {
 			return true
 		} else {
 			return false
-		}
-	}
-
-	/// Checks for cancellation errors (via `checkForCancellation()`) and, if it is cancellation, returns
-	/// `NetworkError.requestCancelled`
-	func convertToNetworkErrorIfCancellation() -> NetworkError {
-		if self is NetworkError {
-			return self as! NetworkError
-		} else {
-			guard isCancellation() else { return NetworkError.otherError(error: self) }
-			return NetworkError.requestCancelled
 		}
 	}
 }

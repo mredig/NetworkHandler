@@ -391,7 +391,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 				bodyResponseStream = interceptedStream
 			}
 		} catch {
-			throw error.convertToNetworkErrorIfCancellation()
+			throw NetworkError.convert(error)
 		}
 
 		guard request.expectedResponseCodes.rawValue.contains(httpResponse.status) else {
@@ -419,7 +419,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 	/// Internal retry loop. Evaluates conditions and output from `errorHandler` to determine what to try next.
 	@NHActor
-	private func retryHandler<T>(
+	private func retryHandler<T: Sendable>(
 		originalRequest: NetworkRequest,
 		transferTask: @NHActor (_ request: NetworkRequest, _ attempt: Int) async throws -> (EngineResponseHeader, T),
 		errorHandler: RetryOptionBlock<T>
@@ -433,11 +433,11 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 			let theError: NetworkError
 			do {
-				return try await transferTask(theRequest, attempt)
-			} catch let error as NetworkError {
-				theError = error
+				return try await NetworkError.captureAndConvert {
+					try await transferTask(theRequest, attempt)
+				}
 			} catch {
-				theError = error.convertToNetworkErrorIfCancellation()
+				theError = error
 			}
 
 			retryOption = errorHandler(theRequest, attempt, theError)
