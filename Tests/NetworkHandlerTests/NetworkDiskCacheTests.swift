@@ -14,11 +14,11 @@ class NetworkDiskCacheTests: NetworkCacheTest {
 
 	// swiftlint:disable:next large_tuple
 	static func fileAssortment() -> (
-		(key: String, data: Data),
-		(key: String, data: Data),
-		(key: String, data: Data),
-		(key: String, data: Data),
-		(key: String, data: Data)
+		file1: (key: String, data: Data),
+		file2: (key: String, data: Data),
+		file3: (key: String, data: Data),
+		file4: (key: String, data: Data),
+		file5: (key: String, data: Data)
 	) {
 		let file1 = (key: "file1", data: Self.dummy1KFile)
 		let file2 = (key: "file2", data: Self.dummy2KFile)
@@ -80,7 +80,7 @@ class NetworkDiskCacheTests: NetworkCacheTest {
 	func testReset() {
 		let cache = generateDiskCache()
 
-		let (file1, _, _, _, _) = Self.fileAssortment()
+		let file1 = Self.fileAssortment().file1
 
 		cache.setData(file1.data, key: file1.key)
 
