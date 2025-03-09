@@ -186,6 +186,18 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.uploadCancellationViaToken(engine: mockingEngine)
 	}
 
+	@Test func timeoutTriggersRetry() async throws {
+		let mockingEngine = generateEngine()
+
+		let url = commonTests.randomDataURL
+		await mockingEngine.addMock(for: url, method: .put) { _, request, requestBody in
+			try await Task.sleep(for: .seconds(5))
+			return (nil, EngineResponseHeader(status: 201, url: request.url, headers: [:]))
+		}
+
+		try await commonTests.timeoutTriggersRetry(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine()
 	}

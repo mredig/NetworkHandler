@@ -93,15 +93,21 @@ public actor MockingEngine: NetworkEngine {
 		uploadProgStream.onFinish { reason in
 			guard let error = reason.finishedOrCancelledError else { return }
 			headerTrackDelegate.setValue(.failure(error))
-			responseStream.cancel()
+			responseStream.cancel(throwing: error)
 			transferTask.cancel()
 		}
 
 		responseStream.onFinish {  reason in
 			guard let error = reason.finishedOrCancelledError else { return }
 			headerTrackDelegate.setValue(.failure(error))
-			uploadProgStream.cancel()
+			uploadProgStream.cancel(throwing: error)
 			transferTask.cancel()
+		}
+
+		Task {
+			try await Task.sleep(for: .seconds(request.timeoutInterval))
+			responseStream.cancel(throwing: NetworkError.requestTimedOut)
+			uploadProgStream.cancel(throwing: NetworkError.requestTimedOut)
 		}
 
 		return (uploadProgStream, responseHeaderTask, responseStream)

@@ -527,10 +527,82 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		await #expect(
 			throws: NetworkError.requestCancelled,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0),
 			performing: {
 				_ = try await task.value
 			})
 	}
+
+	/// performs a `PUT` request to `randomDataURL`. Provided must be corrupted in some way.
+	public func timeoutTriggersRetry(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			throw SimpleTestError(message: "Need s3 credentials")
+		}
+
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = randomDataURL
+		let request = url.uploadRequest.with {
+			$0.method = .put
+			$0.timeoutInterval = 1
+		}
+
+		let testFileURL = URL.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("bin")
+		let (actualTestFile, done) = try createDummyFile(at: testFileURL, megabytes: 5)
+		defer { try? done() }
+
+		let hash = try fileHash(actualTestFile)
+
+		let awsHeaderInfo = AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .fromShaHashDigest(hash))
+
+		let signedRequest = try awsHeaderInfo.processRequest(request)
+
+		let atomicFailCount = AtomicValue(value: 0)
+		let expectedFailCount = 3
+
+		await #expect(
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0),
+			performing: {
+				_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(actualTestFile), onError: { req, failCount, error in
+					#expect(error.isCancellation() == false)
+					print(error)
+					atomicFailCount.value = failCount
+					guard failCount < expectedFailCount else { return .throw }
+	//				print("❤️ retrying \(req.url)")
+					return .retry
+				})
+			},
+			throws: {
+				guard let error = $0 as? NetworkError else { return false }
+
+				switch error {
+				case .httpUnexpectedStatusCode:
+					return false
+				default:
+					return true
+				}
+
+			})
+		#expect(atomicFailCount.value == expectedFailCount)
+	}
+
+	// test progress tracking on upload and download
 
 	// MARK: - Utilities
 	private func getNetworkHandler(with engine: Engine, function: String = #function) -> NetworkHandler<Engine> {

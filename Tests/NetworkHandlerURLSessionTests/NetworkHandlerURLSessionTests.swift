@@ -103,6 +103,11 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		try await commonTests.uploadCancellationViaToken(engine: mockingEngine)
 	}
 
+	@Test func timeoutTriggersRetry() async throws {
+		let mockingEngine = generateEngine()
+		try await commonTests.timeoutTriggersRetry(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> URLSession {
 		URLSession.asEngine(withConfiguration: .networkHandlerDefault)
 	}
