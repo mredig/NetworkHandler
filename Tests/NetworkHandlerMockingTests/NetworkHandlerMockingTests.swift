@@ -187,7 +187,7 @@ struct NetworkHandlerMockingTests: Sendable {
 	}
 
 	private func generateEngine() -> MockingEngine {
-		MockingEngine(passthroughEngine: nil)
+		MockingEngine()
 	}
 }
 

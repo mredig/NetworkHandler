@@ -5,19 +5,13 @@ import SwiftPizzaSnips
 import Algorithms
 
 public actor MockingEngine: NetworkEngine {
-	public let passthroughEngine: (any NetworkEngine)?
-
 	public var acceptedIntercepts: [Key: SmartResponseMockBlock] { get async { await server.acceptedIntercepts } }
 
 	public var mockStorage: [String: Data]  { get async { await server.mockStorage } }
 
 	let server = MockingServer()
 
-	public init(
-		passthroughEngine: (any NetworkEngine)?
-	) {
-		self.passthroughEngine = passthroughEngine
-	}
+	public init() {}
 
 	public func addMock(for url: URL, method: HTTPMethod, responseData: Data?, responseCode: Int, delay: TimeInterval = 0) async {
 		await addMock(for: url, method: method) { server, request, _ in
@@ -51,41 +45,11 @@ public actor MockingEngine: NetworkEngine {
 		from request: DownloadEngineRequest,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
-		let key = Key(url: request.url, method: request.method)
 
-		if let interceptor = await acceptedIntercepts[key] {
-			requestLogger?.debug(
-				"Mocking network fetch.",
-				metadata: [
-					"URL": "\(request.url.path(percentEncoded: false))",
-					"Method": "\(request.method.rawValue)"
-				])
-			let mock = try await server.processMock(
-				.download(request),
-				interceptor: interceptor,
-				logger: requestLogger)
-			return try await (mock.responseTask.value, mock.responseBody)
-		} else if let passthroughEngine {
-			requestLogger?.debug(
-				"Requested fetch URL/Method combo not mocked. Passing through to passthrough engine.",
-				metadata: [
-					"URL": "\(request.url.path(percentEncoded: false))",
-					"Method": "\(request.method.rawValue)"
-				])
-			return try await passthroughEngine.fetchNetworkData(from: request, requestLogger: requestLogger)
-		} else {
-			requestLogger?.debug(
-				"Requested fetch URL/Method combo not mocked, nor is any passthrough engine provided.",
-				metadata: [
-					"URL": "\(request.url.path(percentEncoded: false))",
-					"Method": "\(request.method.rawValue)"
-				])
+		let (_, headerTask, responseStream) = try await performServerInteraction(for: .download(request))
 
-			throw NetworkError.httpUnexpectedStatusCode(
-				code: 404,
-				originalRequest: NetworkRequest.download(request),
-				data: Self.noMockCreated404ErrorText(for: .download(request)).data(using: .utf8))
-		}
+		let header = try await headerTask.value
+		return (header, responseStream)
 	}
 
 	public func uploadNetworkData(
@@ -97,39 +61,184 @@ public actor MockingEngine: NetworkEngine {
 		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream
 	) {
-		let key = Key(url: request.url, method: request.method)
+		try await performServerInteraction(for: .upload(request, payload: payload))
+	}
 
-		if let interceptor = await acceptedIntercepts[key] {
-			requestLogger?.debug(
-				"Mocking network upload.",
-				metadata: [
-					"URL": "\(request.url.path(percentEncoded: false))",
-					"Method": "\(request.method.rawValue)"
-				])
-			return try await server.processMock(
-				.upload(request, payload: payload),
-				interceptor: interceptor,
-				logger: requestLogger)
-		} else if let passthroughEngine {
-			requestLogger?.debug(
-				"Requested upload URL/Method combo not mocked. Passing through to passthrough engine.",
-				metadata: [
-					"URL": "\(request.url.path(percentEncoded: false))",
-					"Method": "\(request.method.rawValue)"
-				])
-			return try await passthroughEngine.uploadNetworkData(request: request, with: payload, requestLogger: requestLogger)
-		} else {
-			requestLogger?.debug(
-				"Requested upload URL/Method combo not mocked, nor is any passthrough engine provided.",
-				metadata: [
-					"URL": "\(request.url.path(percentEncoded: false))",
-					"Method": "\(request.method.rawValue)"
-				])
+	private func performServerInteraction(for request: NetworkRequest) async throws(NetworkError) -> (
+		uploadProgress: UploadProgressStream,
+		responseTask: ETask<EngineResponseHeader, NetworkError>,
+		responseBody: ResponseBodyStream
+	) {
+		let (uploadProgStream, uploadProgCont) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+		let (responseStream, responseContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
-			throw NetworkError.httpUnexpectedStatusCode(
-				code: 404,
-				originalRequest: NetworkRequest.upload(request, payload: payload),
-				data: Self.noMockCreated404ErrorText(for: .upload(request, payload: payload)).data(using: .utf8))
+		let headerTrackDelegate = HeaderTrackingDelegate()
+
+		let responseHeaderTask = ETask { () async throws(NetworkError) -> EngineResponseHeader in
+			try await NetworkError.captureAndConvert {
+				try await withCheckedThrowingContinuation { continuation in
+					headerTrackDelegate.setContinuation(continuation)
+				}
+			}
+		}
+
+		let transferTask = Task {
+			try await serverTransfer(
+				request: request,
+				uploadProgressContinuation: uploadProgCont,
+				responseContinuation: responseContinuation,
+				headerDelegate: headerTrackDelegate)
+		}
+
+		uploadProgStream.onFinish { reason in
+			guard let error = reason.finishedOrCancelledError else { return }
+			headerTrackDelegate.setValue(.failure(error))
+			responseStream.cancel()
+			transferTask.cancel()
+		}
+
+		responseStream.onFinish {  reason in
+			guard let error = reason.finishedOrCancelledError else { return }
+			headerTrackDelegate.setValue(.failure(error))
+			uploadProgStream.cancel()
+			transferTask.cancel()
+		}
+
+		return (uploadProgStream, responseHeaderTask, responseStream)
+	}
+
+	private class HeaderTrackingDelegate: @unchecked Sendable {
+		private let lock = MutexLock()
+
+		private var continuation: CheckedContinuation<EngineResponseHeader, Error>?
+		private var bufferedValue: Result<EngineResponseHeader, Error>?
+		private var isFinished = false
+
+		func setContinuation(_ continuation: CheckedContinuation<EngineResponseHeader, Error>) {
+			lock.withLock {
+				guard isFinished == false else { return }
+				if let existing = bufferedValue {
+					continuation.resume(with: existing)
+					bufferedValue = nil
+					isFinished = true
+				} else {
+					self.continuation = continuation
+				}
+			}
+		}
+
+		func setValue(_ value: Result<EngineResponseHeader, Error>) {
+			lock.withLock {
+				guard isFinished == false else { return }
+				if let existing = continuation {
+					existing.resume(with: value)
+					continuation = nil
+					isFinished = true
+				} else {
+					bufferedValue = value
+				}
+			}
+		}
+	}
+
+	private func serverTransfer(
+		request: NetworkRequest,
+		uploadProgressContinuation: UploadProgressStream.Continuation,
+		responseContinuation: ResponseBodyStream.Continuation,
+		headerDelegate: HeaderTrackingDelegate
+	) async throws(NetworkError) {
+		let (sendStream, sendContinuation) = MockingServer.ServerStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+		let (serverStream, serverContinuation) = MockingServer.ServerStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+
+		defer { headerDelegate.setValue(.failure(NetworkError.requestCancelled)) }
+
+		Task {
+			try await server.openConnection(sendStream: sendStream, responseStreamContinuation: serverContinuation)
+		}
+
+		return try await NetworkError.captureAndConvert {
+			try await Task.sleep(for: .milliseconds(20))
+			try sendContinuation.yield(.requestHeader(request))
+
+			func sendStream(_ stream: InputStream) async throws(NetworkError) {
+				try await NetworkError.captureAndConvert { [stream] in
+					defer { try? uploadProgressContinuation.finish() }
+					let bufferSize = 1024 * 1024 * 1 // 1 MB
+					let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 1024 * 1024 * 4)
+					defer { buffer.deallocate() }
+					guard let bufferPointer = buffer.baseAddress else {
+						throw NetworkError.unspecifiedError(reason: "Failure to create buffer")
+					}
+
+					var totalSent: Int64 = 0
+					stream.open()
+					defer { stream.close() }
+					while stream.hasBytesAvailable {
+						try await Task.sleep(for: .milliseconds(200))
+						try Task.checkCancellation()
+						let bytesRead = stream.read(bufferPointer, maxLength: bufferSize)
+						let data = Data(bytes: bufferPointer, count: bytesRead)
+						try sendContinuation.yield(.bodyStreamChunk(Array(data)))
+						totalSent += Int64(bytesRead)
+						try uploadProgressContinuation.yield(totalSent)
+					}
+				}
+			}
+
+			defer { try? sendContinuation.finish() }
+			switch request {
+			case .download(let downloadRequest):
+				if let sendBody = downloadRequest.payload {
+					for chunk in sendBody.chunks(ofCount: 1024) {
+						try await Task.sleep(for: .milliseconds(20))
+						try sendContinuation.yield(.bodyStreamChunk(Array(chunk)))
+					}
+				}
+			case .upload(_, payload: let payload):
+				switch payload {
+				case .data(let data):
+					let stream = InputStream(data: data)
+					try await sendStream(stream)
+				case .localFile(let localFile):
+					guard
+						let stream = InputStream(url: localFile)
+					else { throw NetworkError.unspecifiedError(reason: "Error opening file for mock upload") }
+					try await sendStream(stream)
+				case .inputStream(let inputStream), .streamProvider(let inputStream as InputStream):
+					try await sendStream(inputStream)
+				}
+			}
+			try sendContinuation.finish()
+
+			var serverIterator = serverStream.makeAsyncIterator()
+
+			guard let headerChunk = try await serverIterator.next() else {
+				throw NetworkError.unspecifiedError(reason: "No response header")
+			}
+			guard case .responseHeader(let responseHeader) = headerChunk else {
+				throw NetworkError.unspecifiedError(reason: "Got response without header")
+			}
+
+			headerDelegate.setValue(.success(responseHeader))
+
+			try await withTaskCancellationHandler(
+				operation: {
+					do {
+						while let chunkEnum = try await serverIterator.next() {
+							guard case .bodyStreamChunk(let chunk) = chunkEnum else {
+								continue
+							}
+
+							try responseContinuation.yield(chunk)
+						}
+						try responseContinuation.finish()
+					} catch {
+						try responseContinuation.finish(throwing: error)
+					}
+				},
+				onCancel: {
+					try? responseContinuation.finish(throwing: NetworkError.requestCancelled)
+				})
 		}
 	}
 
@@ -155,6 +264,47 @@ extension MockingEngine {
 
 		func modifyProperties<E: Error>(_ block: @Sendable (isolated MockingServer) throws(E) -> Void) throws(E) {
 			try block(self)
+		}
+
+		func openConnection(
+			sendStream: ServerStream,
+			responseStreamContinuation: ServerStream.Continuation
+		) async throws {
+			var header: NetworkRequest?
+			var responseBlock: SmartResponseMockBlock?
+			var bodyAccumulator: Data?
+			for try await chunk in sendStream {
+				try await Task.sleep(for: .milliseconds(20))
+				switch chunk {
+				case .requestHeader(let netrequest):
+					let key = Key(url: netrequest.url, method: netrequest.method)
+					responseBlock = acceptedIntercepts[key]
+					header = netrequest
+				case .bodyStreamChunk(let clientBodyChunk):
+					if bodyAccumulator == nil { bodyAccumulator = Data() }
+					bodyAccumulator?.append(contentsOf: clientBodyChunk)
+				case .responseHeader:
+					fatalError("client sent server response")
+				}
+			}
+
+			guard let responseBlock, let header else {
+				try responseStreamContinuation.yield(.responseHeader(EngineResponseHeader(status: 404, url: header?.url, headers: [:])))
+				try responseStreamContinuation.finish()
+				return
+			}
+
+			let processedResponse = try await responseBlock(self, header, bodyAccumulator)
+			defer { try? responseStreamContinuation.finish() }
+			try await Task.sleep(for: .milliseconds(20))
+
+			try responseStreamContinuation.yield(.responseHeader(processedResponse.response))
+
+			guard let responseData = processedResponse.data else { return }
+			for chunk in responseData.chunks(ofCount: 1024 * 1024 * 1) {
+				try await Task.sleep(for: .milliseconds(20))
+				try responseStreamContinuation.yield(.bodyStreamChunk(Array(chunk)))
+			}
 		}
 
 		func processMock(
@@ -309,6 +459,15 @@ extension MockingEngine {
 
 			return data
 		}
+
+
+		enum TransferChunk {
+			case requestHeader(NetworkRequest)
+			case bodyStreamChunk([UInt8])
+			case responseHeader(EngineResponseHeader)
+		}
+
+		typealias ServerStream = AsyncCancellableThrowingStream<TransferChunk, Error>
 
 		public func addStorage(_ blob: Data, forKey key: String) {
 			mockStorage[key] = blob

@@ -4,7 +4,7 @@ import PizzaMacros
 import NetworkHandlerMockingEngine
 
 class NetworkCacheTests: NetworkCacheTest {
-	private let mockingEngine = MockingEngine(passthroughEngine: nil)
+	private let mockingEngine = MockingEngine()
 
 	func testCacheCountLimit() {
 		let cache = generateNetworkHandlerInstance(engine: mockingEngine).cache
