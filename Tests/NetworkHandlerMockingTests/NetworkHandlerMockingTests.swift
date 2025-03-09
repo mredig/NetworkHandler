@@ -198,6 +198,16 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.timeoutTriggersRetry(engine: mockingEngine)
 	}
 
+	@Test func downloadProgressTracking() async throws {
+		let mockingEngine = generateEngine()
+
+		let url = commonTests.randomDataURL
+		var seedableRNG: RandomNumberGenerator = SeedableRNG(seed: 23785)
+		await mockingEngine.addMock(for: url, method: .get, responseData: Data.random(count: 1024 * 1024 * 5, using: &seedableRNG), responseCode: 200)
+
+		try await commonTests.downloadProgressTracking(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine()
 	}

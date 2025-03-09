@@ -604,6 +604,40 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 	// test progress tracking on upload and download
 
+	/// performs a `GET` request to `randomDataURL`. Provided must be corrupted in some way.
+	public func downloadProgressTracking(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = randomDataURL
+		let request = url.downloadRequest
+
+		let accumulator = AtomicValue(value: [Int]())
+		let expectedTotalAtomic = AtomicValue(value: 0)
+		let delegate = await Delegate(onResponseBodyProgressCount: { del, request, count, expectedTotal in
+			accumulator.value.append(count)
+			if let expectedTotal {
+				expectedTotalAtomic.value = expectedTotal
+			}
+			print("\(count) of \(expectedTotal ?? -1)")
+		})
+
+		let header = try await nh.downloadMahDatas(
+			for: request,
+			delegate: delegate).responseHeader
+
+		#expect(header.expectedContentLength != nil)
+		#expect(header.expectedContentLength.map(Int.init) == expectedTotalAtomic.value)
+		#expect(accumulator.value.isOccupied)
+		#expect(accumulator.value.sorted() == accumulator.value)
+	}
+
 	// MARK: - Utilities
 	private func getNetworkHandler(with engine: Engine, function: String = #function) -> NetworkHandler<Engine> {
 		let nh = NetworkHandler(name: "\(#fileID) - \(Engine.self) (\(function))", engine: engine)
@@ -680,6 +714,7 @@ extension NetworkHandlerCommonTests {
 		let onSendingFinish: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
 		let onResponseHeader: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ header: EngineResponseHeader) -> Void
 		let onResponseBodyProgress: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ bytes: Data) -> Void
+		let onResponseBodyProgressCount: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ byteCount: Int, _ expectedTotal: Int?) -> Void
 		let onRequestFinished: @Sendable (_ delegate: Delegate, Error?) -> Void
 
 		init(
@@ -688,6 +723,7 @@ extension NetworkHandlerCommonTests {
 			onSendingFinish: @escaping @Sendable (_ delegate: Delegate, NetworkRequest) -> Void = { _, _ in },
 			onResponseHeader: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: EngineResponseHeader) -> Void = { _, _, _ in },
 			onResponseBodyProgress: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: Data) -> Void = { _, _, _ in },
+			onResponseBodyProgressCount: @escaping @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ byteCount: Int, _ expectedTotal: Int?) -> Void = { _, _, _, _ in},
 			onRequestFinished: @escaping @Sendable (_ delegate: Delegate, Error?) -> Void = { _, _ in }
 		) {
 			self.onStart = onStart
@@ -695,6 +731,7 @@ extension NetworkHandlerCommonTests {
 			self.onSendingFinish = onSendingFinish
 			self.onResponseHeader = onResponseHeader
 			self.onResponseBodyProgress = onResponseBodyProgress
+			self.onResponseBodyProgressCount = onResponseBodyProgressCount
 			self.onRequestFinished = onRequestFinished
 		}
 
@@ -718,7 +755,9 @@ extension NetworkHandlerCommonTests {
 			onResponseBodyProgress(self, request, bytes)
 		}
 		
-		func responseBodyReceived(for request: NetworkRequest, byteCount: Int, totalExpectedToReceive: Int?) {}
+		func responseBodyReceived(for request: NetworkRequest, byteCount: Int, totalExpectedToReceive: Int?) {
+			onResponseBodyProgressCount(self, request, byteCount, totalExpectedToReceive)
+		}
 		
 		func requestFinished(withError error: (any Error)?) {
 			onRequestFinished(self, error)
