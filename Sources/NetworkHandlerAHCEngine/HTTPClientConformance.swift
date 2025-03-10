@@ -1,4 +1,4 @@
-import AsyncHTTPClient
+@_exported import AsyncHTTPClient
 import SwiftPizzaSnips
 @preconcurrency import Foundation
 import Swift

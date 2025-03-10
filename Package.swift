@@ -122,6 +122,15 @@ let package = Package(
 				"NetworkHandlerURLSessionEngine",
 			]),
 		.testTarget(
+			name: "NetworkHandlerAHCTests",
+			dependencies: [
+				"NetworkHandler",
+				"TestSupport",
+				"PizzaMacros",
+				.product(name: "Logging", package: "swift-log"),
+				"NetworkHandlerAHCEngine",
+			]),
+		.testTarget(
 			name: "NetworkHalpersTests",
 			dependencies: [
 				"NetworkHalpers",
