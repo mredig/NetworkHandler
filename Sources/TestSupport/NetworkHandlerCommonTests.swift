@@ -268,7 +268,14 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let signedRequest = try awsHeaderInfo.processRequest(upRequest)
 
-		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(actualTestFile))
+		let atomicRequest = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .localFile(actualTestFile)))
+		let delegate = await Delegate(onRequestModified: { del, orig, new in
+			atomicRequest.value = new
+		})
+		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(actualTestFile), delegate: delegate)
+		#expect(
+			atomicRequest.value.expectedContentLength != nil,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
 		let dlRequest = url.downloadRequest
 
@@ -324,7 +331,14 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let signedRequest = try awsHeaderInfo.processRequest(upRequest)
 
-		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(multipartFile))
+		let atomicRequest = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .localFile(multipartFile)))
+		let delegate = await Delegate(onRequestModified: { del, orig, new in
+			atomicRequest.value = new
+		})
+		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(multipartFile), delegate: delegate)
+		#expect(
+			atomicRequest.value.expectedContentLength != nil,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
 		let dlRequest = uploadURL.downloadRequest
 
@@ -377,7 +391,14 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let signedRequest = try awsHeaderInfo.processRequest(upRequest)
 
-		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .inputStream(multipart))
+		let atomicRequest = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .inputStream(multipart)))
+		let delegate = await Delegate(onRequestModified: { del, orig, new in
+			atomicRequest.value = new
+		})
+		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .inputStream(multipart), delegate: delegate)
+		#expect(
+			atomicRequest.value.expectedContentLength == nil,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
 		let dlRequest = uploadURL.downloadRequest
 
