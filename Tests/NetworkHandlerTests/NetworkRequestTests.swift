@@ -1,19 +1,24 @@
+import Testing
+import NetworkHandler
+import TestSupport
+import PizzaMacros
 
+struct NetworkRequestTests {
+	@Test func genericEncoding() async throws {
+		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
 
-//		guard
-//			case .data(let data) = request.payload,
-//			data != nil
-//		else {
-//			XCTFail("Data was nil")
-//			return
-//		}
-//
-//		let bodyData = try XCTUnwrap(data)
-//
-//		XCTAssertNoThrow(try request.decoder.decode(DummyType.self, from: bodyData))
-//		XCTAssertEqual(testDummy, try request.decoder.decode(DummyType.self, from: bodyData))
-//	}
-//
+		let dummyURL = #URL("https://redeggproductions.com")
+		let request = try dummyURL.downloadRequest.with {
+			try $0.encodeData(testDummy)
+		}
+
+		let data = try #require(request.payload)
+
+		let decoded = try DownloadEngineRequest.defaultDecoder.decode(DummyType.self, from: data)
+		#expect(decoded == testDummy)
+	}
+}
+
 //	/// Tests adding, setting, and getting header values
 //	func testRequestHeaders() {
 //		let dummyURL = URL(string: "https://redeggproductions.com")!
