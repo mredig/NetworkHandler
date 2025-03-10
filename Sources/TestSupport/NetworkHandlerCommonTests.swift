@@ -775,7 +775,6 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 					print(error)
 					atomicFailCount.value = failCount
 					guard failCount < expectedFailCount else { return .throw }
-	//				print("❤️ retrying \(req.url)")
 					return .retry
 				})
 			},
@@ -790,7 +789,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 				}
 
 			})
-		#expect(atomicFailCount.value == expectedFailCount)
+		#expect(atomicFailCount.value == expectedFailCount, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
 	/// performs a `GET` request to `randomDataURL`. Provided must be corrupted in some way.

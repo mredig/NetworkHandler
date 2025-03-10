@@ -110,12 +110,17 @@ extension HTTPClient: NetworkEngine {
 		}
 
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
-
 		let (upProgStream, upProgContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+
+		let timeoutDebouncer = TimeoutDebouncer(timeoutDuration: request.timeoutInterval) {
+			bodyStream.cancel(throwing: NetworkError.requestTimedOut)
+			upProgStream.cancel(throwing: NetworkError.requestTimedOut)
+		}
 
 		let delegate = HTTPDellowFelegate(
 			progressContinuation: upProgContinuation,
-			bodyChunkContinuation: bodyContinuation)
+			bodyChunkContinuation: bodyContinuation,
+			timeoutDebouncer: timeoutDebouncer)
 
 		let requestURL = request.url
 		let responseTask = ETask { () async throws(NetworkError) in
@@ -124,6 +129,7 @@ extension HTTPClient: NetworkEngine {
 					delegate.setUploadContinuation(continuation)
 				}
 			}
+			timeoutDebouncer.checkIn()
 
 			return EngineResponseHeader(from: HTTPClientResponse(from: head), with: requestURL)
 		}
@@ -149,19 +155,23 @@ extension HTTPClient: NetworkEngine {
 		private var alreadyUploaded: HTTPResponseHead?
 		var bodyChunkContinuation: ResponseBodyStream.Continuation?
 		var uploadContinuation: CheckedContinuation<HTTPResponseHead, Error>?
+		let timeoutDebouncer: TimeoutDebouncer
 
 		init(
 			progressContinuation: UploadProgressStream.Continuation? = nil,
-			bodyChunkContinuation: ResponseBodyStream.Continuation? = nil
+			bodyChunkContinuation: ResponseBodyStream.Continuation? = nil,
+			timeoutDebouncer: TimeoutDebouncer
 		) {
 			self.progressContinuation = progressContinuation
 			self.bodyChunkContinuation = bodyChunkContinuation
+			self.timeoutDebouncer = timeoutDebouncer
 		}
 
 		func setUploadContinuation(_ continuation: CheckedContinuation<HTTPResponseHead, Error>) {
 			lock.withLock {
 				if let head = alreadyUploaded {
 					continuation.resume(returning: head)
+					timeoutDebouncer.cancelTimeout()
 				} else {
 					self.uploadContinuation = continuation
 				}
@@ -177,6 +187,7 @@ extension HTTPClient: NetworkEngine {
 //		}
 
 		func didSendRequestPart(task: HTTPClient.Task<()>, _ part: IOData) {
+			timeoutDebouncer.checkIn()
 			lock.withLock {
 				bytesSent += Int64(part.readableBytes)
 				_ = try? progressContinuation?.yield(bytesSent)
@@ -184,6 +195,7 @@ extension HTTPClient: NetworkEngine {
 		}
 
 		func didReceiveHead(task: HTTPClient.Task<()>, _ head: HTTPResponseHead) -> EventLoopFuture<Void> {
+			timeoutDebouncer.checkIn()
 			lock.withLock {
 				uploadContinuation?.resume(returning: head)
 				uploadContinuation = nil
@@ -192,6 +204,7 @@ extension HTTPClient: NetworkEngine {
 		}
 
 		func didReceiveBodyPart(task: HTTPClient.Task<()>, _ buffer: ByteBuffer) -> EventLoopFuture<Void> {
+			timeoutDebouncer.checkIn()
 			lock.withLock {
 				do {
 					try bodyChunkContinuation?.yield(Array(buffer.readableBytesView))
@@ -202,7 +215,8 @@ extension HTTPClient: NetworkEngine {
 			return task.eventLoop.makeSucceededVoidFuture()
 		}
 
-		func didFinishRequest(task: AsyncHTTPClient.HTTPClient.Task<Void>) throws {
+		func didFinishRequest(task: HTTPClient.Task<Void>) throws {
+			timeoutDebouncer.checkIn()
 			lock.withLock {
 				try? progressContinuation?.finish()
 				try? bodyChunkContinuation?.finish()
@@ -214,12 +228,14 @@ extension HTTPClient: NetworkEngine {
 		}
 
 		func didReceiveError(task: HTTPClient.Task<Void>, _ error: any Error) {
+			timeoutDebouncer.cancelTimeout()
 			lock.withLock {
 				_finish(throwing: error)
 			}
 		}
 
 		private func _finish(throwing error: Error) {
+			timeoutDebouncer.cancelTimeout()
 			try? progressContinuation?.finish(throwing: error)
 			try? bodyChunkContinuation?.finish(throwing: error)
 			uploadContinuation?.resume(throwing: error)
