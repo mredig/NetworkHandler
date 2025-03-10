@@ -119,6 +119,17 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		try await commonTests.uploadProgressTracking(engine: mockingEngine)
 	}
 
+	@Test func backgroundSessionUpload() async throws {
+		let config = URLSessionConfiguration.background(withIdentifier: "backgroundID").with {
+			$0.requestCachePolicy = .reloadIgnoringLocalCacheData
+			$0.urlCache = nil
+		}
+
+		let engine = URLSession.asEngine(withConfiguration: config)
+
+		try await commonTests.uploadFileURL(engine: engine)
+	}
+
 	private func generateEngine() -> URLSession {
 		URLSession.asEngine(withConfiguration: .networkHandlerDefault)
 	}

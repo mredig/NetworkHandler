@@ -95,7 +95,9 @@ extension URLSession: NetworkEngine {
 			withStream: payloadStream,
 			progressContinuation: progContinuation,
 			bodyContinuation: bodyContinuation)
-		urlTask.delegate = delegate
+		if configuration.identifier == nil {
+			urlTask.delegate = delegate
+		}
 
 		let responseTask = ETask { () async throws(NetworkError) in
 			try await NetworkError.captureAndConvert {
