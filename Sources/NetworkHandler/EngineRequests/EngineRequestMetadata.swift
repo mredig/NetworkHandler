@@ -26,6 +26,17 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 
 	public var expectedResponseCodes: ResponseCodes
 
+	public var expectedContentLength: Int? {
+		get { headers[.contentLength].flatMap { Int($0.rawValue) } }
+		set {
+			guard let newValue else {
+				headers[.contentLength] = nil
+				return
+			}
+			headers[.contentLength] = "\(newValue)"
+		}
+	}
+
 	public var headers: HTTPHeaders = []
 
 	public var method: HTTPMethod = .get
