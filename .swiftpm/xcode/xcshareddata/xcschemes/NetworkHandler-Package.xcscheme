@@ -156,6 +156,27 @@
             BlueprintName = "NetworkHandler"
             ReferencedContainer = "container:">
          </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "NetworkHandlerAHCEngine"
+            BuildableName = "NetworkHandlerAHCEngine"
+            BlueprintName = "NetworkHandlerAHCEngine"
+            ReferencedContainer = "container:">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "NetworkHandlerMockingEngine"
+            BuildableName = "NetworkHandlerMockingEngine"
+            BlueprintName = "NetworkHandlerMockingEngine"
+            ReferencedContainer = "container:">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "NetworkHandlerURLSessionEngine"
+            BuildableName = "NetworkHandlerURLSessionEngine"
+            BlueprintName = "NetworkHandlerURLSessionEngine"
+            ReferencedContainer = "container:">
+         </BuildableReference>
       </CodeCoverageTargets>
       <Testables>
          <TestableReference
