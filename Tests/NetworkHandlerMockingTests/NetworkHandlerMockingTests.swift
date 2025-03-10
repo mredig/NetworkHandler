@@ -249,6 +249,26 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.uploadProgressTracking(engine: mockingEngine)
 	}
 
+	@Test func polling() async throws {
+		let mockingEngine = generateEngine()
+
+		let encoder = JSONEncoder()
+		for i in 0..<4 {
+			let url = commonTests.echoURL.with {
+				guard i != 0 else { return }
+				$0.append(component: "\(i)")
+			}
+
+			await mockingEngine.addMock(for: url, method: .get) { server, request, requestBody in
+				let echo = NetworkHandlerCommonTests<MockingEngine>.BeeEchoModel(path: url.path(percentEncoded: false))
+				let echoData = try encoder.encode(echo)
+				return (echoData, EngineResponseHeader(status: 200, url: url, headers: [.contentLength: "\(echoData.count)"]))
+			}
+		}
+
+		try await commonTests.polling(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine()
 	}

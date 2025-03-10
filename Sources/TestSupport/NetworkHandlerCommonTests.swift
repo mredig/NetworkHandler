@@ -24,6 +24,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 	public let demo404URL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/akjsdhjklahgdjkahsfjkahskldf.json")
 	public let uploadURL = #URL("https://s3.wasabisys.com/network-handler-tests/uploader.bin")
 	public let randomDataURL = #URL("https://s3.wasabisys.com/network-handler-tests/randomData.bin")
+	public let echoURL = #URL("https://echo.free.beeceptor.com/")
 
 	public let logger: Logger
 
@@ -829,6 +830,60 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		#expect(updatedRequestAtomic.value.headers[.contentLength].flatMap { Int($0.rawValue) } == expectedTotalAtomic.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 		#expect(accumulator.value.isOccupied, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 		#expect(accumulator.value.sorted() == accumulator.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+	}
+
+	/// performs a `GET` request to `echoURL`. Provided must be corrupted in some way.
+	public func polling(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = echoURL
+		let request = url.downloadRequest
+
+		let echo: BeeEchoModel = try await nh.poll(
+			request: .download(request),
+			requestLogger: logger,
+			until: { pollRequest, pollResult in
+				do {
+					let (header, beeEcho) = try pollResult.get()
+					guard beeEcho.pathValue == 3 else {
+						let nextIteration = (beeEcho.pathValue ?? 0) + 1
+						let newRequest = pollRequest.with {
+							var newURL = $0.url
+							if newURL.path(percentEncoded: false).count > 1 {
+								newURL.deleteLastPathComponent()
+							}
+							newURL.append(component: "\(nextIteration)")
+							$0.url = newURL
+						}
+						return .continue(newRequest, 0.016)
+					}
+					return .finish(.success((header, beeEcho)))
+				} catch {
+					return .finish(.failure(error))
+				}
+			}).result
+
+		#expect(echo.pathValue == 3)
+	}
+
+	public struct BeeEchoModel: Codable, Sendable {
+		public let path: String
+
+		public var pathValue: Int? {
+			let num = path.drop(while: { $0.isNumber == false })
+			return Int(num)
+		}
+
+		public init(path: String) {
+			self.path = path
+		}
 	}
 
 	// MARK: - Utilities
