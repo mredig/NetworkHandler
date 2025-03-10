@@ -58,7 +58,7 @@ extension URLSession: NetworkEngine {
 	}
 
 	public func uploadNetworkData(
-		request: UploadEngineRequest,
+		request: inout UploadEngineRequest,
 		with payload: UploadFile,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (
@@ -66,29 +66,36 @@ extension URLSession: NetworkEngine {
 		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream
 	) {
-		let urlRequest = request.urlRequest
 
 		let (progStream, progContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
 		let delegate = delegate as! UploadDellowFelegate
 
+		let uploadSize: Int?
 		let payloadStream: InputStream
 		switch payload {
 		case .data(let data):
 			payloadStream = InputStream(data: data)
+			uploadSize = data.count
 		case .localFile(let localFile):
 			guard
 				let stream = InputStream(url: localFile)
 			else { throw .otherError(error: UploadError.createStreamFromLocalFileFailed) }
+			uploadSize = try? localFile.resourceValues(forKeys: [.fileSizeKey]).fileSize
 			payloadStream = stream
 		case .streamProvider(let stream):
 			payloadStream = stream
+			uploadSize = stream.totalStreamBytes
 		case .inputStream(let stream):
 			payloadStream = stream
+			uploadSize = nil
 		}
+		request.expectedContentLength = uploadSize
+		let urlRequest = request.urlRequest
 
 		let urlTask = uploadTask(withStreamedRequest: urlRequest)
+
 		delegate.addTask(
 			urlTask,
 			withStream: payloadStream,

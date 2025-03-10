@@ -59,7 +59,7 @@ extension HTTPClient: NetworkEngine {
 	}
 
 	public func uploadNetworkData(
-		request: UploadEngineRequest,
+		request: inout UploadEngineRequest,
 		with payload: UploadFile,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (
@@ -117,6 +117,7 @@ extension HTTPClient: NetworkEngine {
 			progressContinuation: upProgContinuation,
 			bodyChunkContinuation: bodyContinuation)
 
+		let requestURL = request.url
 		let responseTask = ETask { () async throws(NetworkError) in
 			let head = try await NetworkError.captureAndConvert {
 				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HTTPResponseHead, Error>) in
@@ -124,7 +125,7 @@ extension HTTPClient: NetworkEngine {
 				}
 			}
 
-			return EngineResponseHeader(from: HTTPClientResponse(from: head), with: request.url)
+			return EngineResponseHeader(from: HTTPClientResponse(from: head), with: requestURL)
 		}
 
 		_ = execute(request: httpClientRequest, delegate: delegate)

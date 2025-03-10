@@ -709,6 +709,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 extension NetworkHandlerCommonTests {
 	class Delegate: NetworkHandlerTaskDelegate {
+		let onRequestModified: @Sendable (_ delegate: Delegate, _ original: NetworkRequest, _ modified: NetworkRequest) -> Void
 		let onStart: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
 		let onSendData: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ totalByteCountSent: Int, _ totalExpected: Int?) -> Void
 		let onSendingFinish: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
@@ -718,6 +719,7 @@ extension NetworkHandlerCommonTests {
 		let onRequestFinished: @Sendable (_ delegate: Delegate, Error?) -> Void
 
 		init(
+			onRequestModified: @escaping @Sendable (_ delegate: Delegate, _ original: NetworkRequest, _ modified: NetworkRequest) -> Void = { _, _, _ in },
 			onStart: @escaping @Sendable (_ delegate: Delegate, NetworkRequest) -> Void = { _, _ in },
 			onSendData: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: Int, _: Int?) -> Void = { _, _, _, _ in },
 			onSendingFinish: @escaping @Sendable (_ delegate: Delegate, NetworkRequest) -> Void = { _, _ in },
@@ -726,6 +728,7 @@ extension NetworkHandlerCommonTests {
 			onResponseBodyProgressCount: @escaping @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ byteCount: Int, _ expectedTotal: Int?) -> Void = { _, _, _, _ in},
 			onRequestFinished: @escaping @Sendable (_ delegate: Delegate, Error?) -> Void = { _, _ in }
 		) {
+			self.onRequestModified = onRequestModified
 			self.onStart = onStart
 			self.onSendData = onSendData
 			self.onSendingFinish = onSendingFinish
@@ -733,6 +736,10 @@ extension NetworkHandlerCommonTests {
 			self.onResponseBodyProgress = onResponseBodyProgress
 			self.onResponseBodyProgressCount = onResponseBodyProgressCount
 			self.onRequestFinished = onRequestFinished
+		}
+
+		func requestModified(from oldVersion: NetworkRequest, to newVersion: NetworkRequest) {
+			onRequestModified(self, oldVersion, newVersion)
 		}
 
 		func transferDidStart(for request: NetworkRequest) {

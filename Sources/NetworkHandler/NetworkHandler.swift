@@ -330,10 +330,11 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		let (httpResponse, bodyResponseStream): (EngineResponseHeader, ResponseBodyStream)
 		do {
 			switch request {
-			case .upload(let uploadRequest, let payload):
+			case .upload(var uploadRequest, let payload):
 				try cancellationToken?.checkIsCancelled()
+				let originalRequest = uploadRequest
 				let (sendProgress, responseTask, bodyStream) = try await engine.uploadNetworkData(
-					request: uploadRequest,
+					request: &uploadRequest,
 					with: payload,
 					requestLogger: requestLogger)
 				cancellationToken?.onCancel = { bodyStream.cancel() }
@@ -342,6 +343,9 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					Task { // placed in another task to avoid lock-deadlock
 						cancellationToken?.onCancel = {}
 					}
+				}
+				if originalRequest != uploadRequest {
+					delegate?.requestModified(from: .upload(originalRequest, payload: payload), to: .upload(uploadRequest, payload: payload))
 				}
 
 				async let progressBlock: Void = { @NHActor [delegate] in
@@ -352,7 +356,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 							delegate?.transferDidStart(for: request)
 						}
 						try Task.checkCancellation()
-						delegate?.sentData(for: request, totalByteCountSent: Int(count), totalExpectedToSend: nil)
+						delegate?.sentData(for: request, totalByteCountSent: Int(count), totalExpectedToSend: uploadRequest.expectedContentLength)
 					}
 				}()
 				async let responseHeader = responseTask.value
