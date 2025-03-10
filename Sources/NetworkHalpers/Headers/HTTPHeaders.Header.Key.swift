@@ -70,6 +70,14 @@ extension HTTPHeaders.Header {
 		public static func == (lhs: String?, rhs: HTTPHeaderKey) -> Bool {
 			rhs == lhs
 		}
+
+		public static func != (lhs: HTTPHeaderKey, rhs: String?) -> Bool {
+			!(lhs == rhs)
+		}
+
+		public static func != (lhs: String?, rhs: HTTPHeaderKey) -> Bool {
+			rhs != lhs
+		}
 	}
 }
 

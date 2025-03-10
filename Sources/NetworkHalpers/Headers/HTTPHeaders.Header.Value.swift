@@ -65,6 +65,14 @@ extension HTTPHeaders.Header {
 		public static func == (lhs: String?, rhs: HTTPHeaderValue) -> Bool {
 			rhs == lhs
 		}
+
+		public static func != (lhs: HTTPHeaderValue, rhs: String?) -> Bool {
+			!(lhs == rhs)
+		}
+
+		public static func != (lhs: String?, rhs: HTTPHeaderValue) -> Bool {
+			rhs != lhs
+		}
 	}
 }
 

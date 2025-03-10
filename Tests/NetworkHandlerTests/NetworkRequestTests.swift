@@ -93,28 +93,28 @@ struct NetworkRequestTests {
 		#expect(request1.headers.count == 2)
 		#expect(request2.headers.count == 2)
 	}
+
+	@Test func headerKeysAndValuesEquatableWithString() {
+		let contentKey = HTTPHeaderKey.contentType
+
+		let nilString: String? = nil
+
+		#expect("Content-Type" == contentKey)
+		#expect(contentKey == "Content-Type")
+		#expect("Content-Typo" != contentKey)
+		#expect(contentKey != "Content-Typo")
+		#expect(contentKey != nilString)
+
+		let gif = HTTPHeaderValue.gif
+
+		#expect("image/gif" == gif)
+		#expect(gif == "image/gif")
+		#expect("image/jif" != gif)
+		#expect(gif != "image/jif")
+		#expect(gif != nilString)
+	}
 }
-//
-//	func testHeaderEquals() {
-//		let contentKey = HTTPHeaderKey.contentType
-//
-//		let nilString: String? = nil
-//
-//		XCTAssertTrue("Content-Type" == contentKey)
-//		XCTAssertTrue(contentKey == "Content-Type")
-//		XCTAssertTrue("Content-Typo" != contentKey)
-//		XCTAssertTrue(contentKey != "Content-Typo")
-//		XCTAssertFalse(contentKey == nilString)
-//
-//		let gif = HTTPHeaderValue.gif
-//
-//		XCTAssertTrue("image/gif" == gif)
-//		XCTAssertTrue(gif == "image/gif")
-//		XCTAssertTrue("image/jif" != gif)
-//		XCTAssertTrue(gif != "image/jif")
-//		XCTAssertFalse(gif == nilString)
-//	}
-//
+
 //	func testURLRequestMirroredProperties() {
 //		let dummyURL = URL(string: "https://redeggproductions.com")!
 //		var request = dummyURL.request
