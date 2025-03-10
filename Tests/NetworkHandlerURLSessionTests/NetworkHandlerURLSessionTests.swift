@@ -58,6 +58,27 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		try await commonTests.expect201OnlyGet200(engine: mockingEngine)
 	}
 
+	@Test func backgroundSessionUpload() async throws {
+		let config = URLSessionConfiguration.background(withIdentifier: "backgroundID").with {
+			$0.requestCachePolicy = .reloadIgnoringLocalCacheData
+			$0.urlCache = nil
+		}
+
+		let engine = URLSession.asEngine(withConfiguration: config)
+
+		try await commonTests.uploadFileURL(engine: engine)
+	}
+
+	@Test func uploadStreamProvider() async throws {
+		let mockingEngine = generateEngine()
+		try await commonTests.uploadStreamProvider(engine: mockingEngine)
+	}
+
+	@Test func uploadData() async throws {
+		let mockingEngine = generateEngine()
+		try await commonTests.uploadData(engine: mockingEngine)
+	}
+
 	@Test func uploadFileURL() async throws {
 		let mockingEngine = generateEngine()
 
@@ -112,22 +133,6 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		try await commonTests.uploadProgressTracking(engine: mockingEngine)
-	}
-
-	@Test func backgroundSessionUpload() async throws {
-		let config = URLSessionConfiguration.background(withIdentifier: "backgroundID").with {
-			$0.requestCachePolicy = .reloadIgnoringLocalCacheData
-			$0.urlCache = nil
-		}
-
-		let engine = URLSession.asEngine(withConfiguration: config)
-
-		try await commonTests.uploadFileURL(engine: engine)
-	}
-
-	@Test func uploadStreamProvider() async throws {
-		let mockingEngine = generateEngine()
-		try await commonTests.uploadStreamProvider(engine: mockingEngine)
 	}
 
 	private func generateEngine() -> URLSession {
