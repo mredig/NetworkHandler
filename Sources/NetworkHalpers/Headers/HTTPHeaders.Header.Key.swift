@@ -47,6 +47,7 @@ extension HTTPHeaders.Header {
 		public static let range: HTTPHeaderKey = "Range"
 		public static let referer: HTTPHeaderKey = "Referer"
 		public static let server: HTTPHeaderKey = "Server"
+		public static let setCookie: HTTPHeaderKey = "Set-Cookie"
 		public static let TE: HTTPHeaderKey = "TE"
 		public static let upgrade: HTTPHeaderKey = "Upgrade"
 		public static let userAgent: HTTPHeaderKey = "User-Agent"
@@ -76,5 +77,11 @@ extension HTTPHeaders.Header.Key: CustomStringConvertible, CustomDebugStringConv
 	public var description: String { canonical }
 	public var debugDescription: String {
 		"HeaderKey: \(description)"
+	}
+}
+
+extension HTTPHeaders.Header.Key: Comparable {
+	public static func < (lhs: HTTPHeaders.Header.Key, rhs: HTTPHeaders.Header.Key) -> Bool {
+		lhs.rawValue < rhs.rawValue
 	}
 }

@@ -1,6 +1,6 @@
 import SwiftPizzaSnips
 
-public struct HTTPHeaders: Hashable, Sendable, Codable, MutableCollection, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
+public struct HTTPHeaders: Sendable, Codable, MutableCollection, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
 	public var startIndex: [Header].Index { headers.startIndex }
 	public var endIndex: [Header].Index { headers.endIndex }
 
@@ -97,7 +97,7 @@ public extension HTTPHeaders {
 	}
 
 	/// Replaces the first instance of the given key, if it already exists. Otherwise appends.
-	mutating func setValue(_ value: Header.Value, forKey key: Header.Key) {
+	mutating func setValue(_ value: Header.Value?, forKey key: Header.Key) {
 		self[key] = value
 	}
 
@@ -144,5 +144,32 @@ extension HTTPHeaders: CustomStringConvertible, CustomDebugStringConvertible {
 
 	public var debugDescription: String {
 		"\(Self.self):\n\(description.prefixingLines(with: "\t"))"
+	}
+}
+
+extension HTTPHeaders: Equatable {
+	private var canonicalVersion: HTTPHeaders {
+		var copy = self
+		copy.headers.sort {
+			if $0.key != $1.key {
+				$0.key < $1.key
+			} else {
+				$0.value < $1.value
+			}
+		}
+		return copy
+	}
+
+	public static func == (lhs: HTTPHeaders, rhs: HTTPHeaders) -> Bool {
+		lhs.canonicalVersion.headers == rhs.canonicalVersion.headers
+	}
+}
+
+extension HTTPHeaders: Hashable {
+	public func hash(into hasher: inout Hasher) {
+		let canonicalVersion = canonicalVersion
+		hasher.combine(canonicalVersion.headers)
+		hasher.combine(canonicalVersion.startIndex)
+		hasher.combine(canonicalVersion.endIndex)
 	}
 }

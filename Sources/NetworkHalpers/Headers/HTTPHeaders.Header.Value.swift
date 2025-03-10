@@ -74,3 +74,9 @@ extension HTTPHeaders.Header.Value: CustomStringConvertible, CustomDebugStringCo
 		"HeaderValue: \(description)"
 	}
 }
+
+extension HTTPHeaders.Header.Value: Comparable {
+	public static func < (lhs: HTTPHeaders.Header.Value, rhs: HTTPHeaders.Header.Value) -> Bool {
+		lhs.rawValue < rhs.rawValue
+	}
+}
