@@ -24,6 +24,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 	public let demo404URL = #URL("https://s3.wasabisys.com/network-handler-tests/coding/akjsdhjklahgdjkahsfjkahskldf.json")
 	public let uploadURL = #URL("https://s3.wasabisys.com/network-handler-tests/uploader.bin")
 	public let randomDataURL = #URL("https://s3.wasabisys.com/network-handler-tests/randomData.bin")
+	public let chonkURL = #URL("https://s3.wasabisys.com/network-handler-tests/chonk.bin")
 	public let echoURL = #URL("https://echo.free.beeceptor.com/")
 
 	public let logger: Logger
@@ -112,6 +113,55 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		#expect(
 			expectedModel == resultModel,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+	}
+
+	/// performs a `GET` request to `chonkURL`
+	public func downloadFile(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = chonkURL
+		let request = url.downloadRequest
+
+		let outputFileURL = URL.temporaryDirectory.appending(component: "downloadfile").appendingPathExtension("test")
+		let tempFileURL = URL.temporaryDirectory.appending(components: UUID().uuidString)
+
+		#expect(outputFileURL.checkResourceIsAccessible() == false)
+		#expect(tempFileURL.checkResourceIsAccessible() == false)
+
+		defer {
+			try? FileManager.default.removeItem(at: outputFileURL)
+			try? FileManager.default.removeItem(at: tempFileURL)
+		}
+
+		try await confirmation { tempFileExisted in
+			Task {
+				var seen = false
+				while seen == false {
+					try await Task.sleep(for: .milliseconds(20))
+					guard tempFileURL.checkResourceIsAccessible() else { continue }
+					seen = true
+					tempFileExisted()
+				}
+			}
+
+			_ = try await nh.downloadMahFile(
+				for: request,
+				savingToLocalFileURL: outputFileURL,
+				withTemporaryFile: tempFileURL,
+				requestLogger: logger)
+		}
+
+		let fileHash = try fileHash(outputFileURL)
+		#expect(fileHash.toHexString() == "92b640d348a4627b4185f5378d8949b542055bd37fe513e6add9a1e010a3a83d")
+		#expect(outputFileURL.checkResourceIsAccessible())
+		#expect(tempFileURL.checkResourceIsAccessible() == false)
 	}
 
 	/// performs a `GET` request to `demo404URL`

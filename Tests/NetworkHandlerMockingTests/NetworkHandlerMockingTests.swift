@@ -269,6 +269,22 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.polling(engine: mockingEngine)
 	}
 
+	@Test func downloadFile() async throws {
+		let mockingEngine = generateEngine()
+
+		let url = commonTests.chonkURL
+
+		let sizeOfUploadMB: UInt8 = 5
+		let fileSize = Int(sizeOfUploadMB) * 1024 * 1024
+
+		var rng: any RandomNumberGenerator = SeedableRNG(seed: 349687)
+		let randomData = Data.random(count: fileSize, using: &rng)
+
+		await mockingEngine.addMock(for: url, method: .get, responseData: randomData, responseCode: 200)
+
+		try await commonTests.downloadFile(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine()
 	}

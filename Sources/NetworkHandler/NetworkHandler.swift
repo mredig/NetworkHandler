@@ -166,8 +166,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 	@NHActor
 	@discardableResult public func downloadMahFile(
-		for request: NetworkRequest,
-		to outURL: URL,
+		for request: DownloadEngineRequest,
+		savingToLocalFileURL outFileURL: URL,
 		withTemporaryFile tempoaryFileURL: URL? = nil,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
@@ -175,11 +175,11 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		cancellationToken: NetworkCancellationToken? = nil,
 		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
 	) async throws(NetworkError) -> EngineResponseHeader {
-		let tempFileURL = tempoaryFileURL ?? outURL
+		let tempFileURL = tempoaryFileURL ?? outFileURL
 
 		guard
 			tempFileURL.isFileURL,
-			outURL.isFileURL
+			outFileURL.isFileURL
 		else {
 			throw NetworkError.unspecifiedError(reason: "Both the temporary url and output url must be local file URLs.")
 		}
@@ -187,14 +187,14 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		if let cacheKey = cacheOption.cacheKey(url: request.url) {
 			if let cachedData = cache[cacheKey] {
 				try NetworkError.captureAndConvert {
-					try cachedData.data.write(to: outURL)
+					try cachedData.data.write(to: outFileURL)
 				}
 				return cachedData.response
 			}
 		}
 
 		let (header, _) = try await retryHandler(
-			originalRequest: request,
+			originalRequest: .download(request),
 			transferTask: { transferRequest, attempt in
 				let (streamHeader, stream) = try await streamMahDatas(
 					for: transferRequest,
@@ -203,6 +203,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					cancellationToken: cancellationToken)
 				try? FileManager.default.removeItem(at: tempFileURL)
 
+				try Data().write(to: tempFileURL)
 				let fh = try FileHandle(forWritingTo: tempFileURL)
 
 				for try await chunk in stream {
@@ -211,8 +212,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 				return (streamHeader, Data())
 			},
 			errorHandler: onError)
-		if outURL.checkResourceIsAccessible() {
-			var oldOut = outURL
+		if outFileURL.checkResourceIsAccessible() {
+			var oldOut = outFileURL
 			while oldOut.checkResourceIsAccessible() {
 				let filename = oldOut.deletingPathExtension().lastPathComponent
 				let newFilename = "\(filename).old"
@@ -222,9 +223,9 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					.appending(component: newFilename)
 					.appendingPathExtension(ext)
 			}
-			try NetworkError.captureAndConvert { try FileManager.default.moveItem(at: outURL, to: oldOut) }
+			try NetworkError.captureAndConvert { try FileManager.default.moveItem(at: outFileURL, to: oldOut) }
 		}
-		try NetworkError.captureAndConvert { try FileManager.default.moveItem(at: tempFileURL, to: outURL) }
+		try NetworkError.captureAndConvert { try FileManager.default.moveItem(at: tempFileURL, to: outFileURL) }
 
 		if
 			let cacheKey = cacheOption.cacheKey(url: request.url),
@@ -232,7 +233,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			responseSize < 1024 * 1024 * 100 {
 
 			Task {
-				let newlyCachedData = try Data(contentsOf: outURL)
+				let newlyCachedData = try Data(contentsOf: outFileURL)
 				self.cache[cacheKey] = NetworkCacheItem(response: header, data: newlyCachedData)
 			}
 		}
