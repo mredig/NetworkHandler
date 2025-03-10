@@ -602,8 +602,6 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		#expect(atomicFailCount.value == expectedFailCount)
 	}
 
-	// test progress tracking on upload and download
-
 	/// performs a `GET` request to `randomDataURL`. Provided must be corrupted in some way.
 	public func downloadProgressTracking(
 		engine: Engine,
@@ -632,10 +630,65 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			for: request,
 			delegate: delegate).responseHeader
 
-		#expect(header.expectedContentLength != nil)
-		#expect(header.expectedContentLength.map(Int.init) == expectedTotalAtomic.value)
-		#expect(accumulator.value.isOccupied)
-		#expect(accumulator.value.sorted() == accumulator.value)
+		#expect(header.expectedContentLength != nil, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(header.expectedContentLength.map(Int.init) == expectedTotalAtomic.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(accumulator.value.isOccupied, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(accumulator.value.sorted() == accumulator.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+	}
+
+	/// performs a `PUT` request to `randomDataURL`. Provided must be corrupted in some way.
+	public func uploadProgressTracking(
+		engine: Engine,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = randomDataURL
+		let request = url.uploadRequest.with {
+			$0.method = .put
+		}
+
+		let testFileURL = URL.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("bin")
+		let (actualTestFile, done) = try createDummyFile(at: testFileURL, megabytes: 5)
+		defer { try? done() }
+
+		let hash = try fileHash(actualTestFile)
+
+		let awsHeaderInfo = AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .fromShaHashDigest(hash))
+
+		let signedRequest = try awsHeaderInfo.processRequest(request)
+
+		let accumulator = AtomicValue(value: [Int]())
+		let expectedTotalAtomic = AtomicValue(value: -1)
+		let updatedRequestAtomic = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .localFile(testFileURL)))
+		let delegate = await Delegate(
+			onRequestModified: { delegate, originalReq, modReq in
+				updatedRequestAtomic.value = modReq
+			},
+			onSendData: { del, request, count, expectedTotal in
+				accumulator.value.append(count)
+				if let expectedTotal {
+					expectedTotalAtomic.value = expectedTotal
+				}
+				print("\(count) of \(expectedTotalAtomic.value)")
+			})
+
+		let _ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(testFileURL), delegate: delegate)
+
+		#expect(updatedRequestAtomic.value.headers[.contentLength] != nil, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(updatedRequestAtomic.value.headers[.contentLength].flatMap { Int($0.rawValue) } == expectedTotalAtomic.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(accumulator.value.isOccupied, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(accumulator.value.sorted() == accumulator.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
 	// MARK: - Utilities
