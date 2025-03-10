@@ -17,7 +17,6 @@ public struct DownloadEngineRequest: Hashable, Sendable, Withable {
 		metadata[keyPath: member]
 	}
 
-
 	nonisolated(unsafe)
 	private static var _defaultEncoder: NHEncoder = JSONEncoder()
 	nonisolated(unsafe)
@@ -50,14 +49,16 @@ public struct DownloadEngineRequest: Hashable, Sendable, Withable {
 		headers: HTTPHeaders = [:],
 		method: HTTPMethod = .get,
 		url: URL,
-		payload: Data? = nil
+		payload: Data? = nil,
+		autogenerateRequestID: Bool = true
 	) {
 		self.payload = payload
 		self.metadata = EngineRequestMetadata(
 			expectedResponseCodes: expectedResponseCodes,
 			headers: headers,
 			method: method,
-			url: url)
+			url: url,
+			autogenerateRequestID: autogenerateRequestID)
 	}
 	public typealias ResponseCodes = EngineRequestMetadata.ResponseCodes
 

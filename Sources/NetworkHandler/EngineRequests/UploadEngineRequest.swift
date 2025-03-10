@@ -21,13 +21,15 @@ public struct UploadEngineRequest: Hashable, Sendable, Withable {
 		expectedResponseCodes: ResponseCodes = [200],
 		headers: HTTPHeaders = [:],
 		method: HTTPMethod = .get,
-		url: URL
+		url: URL,
+		autogenerateRequestID: Bool = true
 	) {
 		self.metadata = EngineRequestMetadata(
 			expectedResponseCodes: expectedResponseCodes,
 			headers: headers,
 			method: method,
-			url: url)
+			url: url,
+			autogenerateRequestID: autogenerateRequestID)
 	}
 	
 	public typealias ResponseCodes = EngineRequestMetadata.ResponseCodes

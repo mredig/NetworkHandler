@@ -92,11 +92,14 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 		expectedResponseCodes: ResponseCodes = .init(range: 200..<299),
 		headers: HTTPHeaders = [:],
 		method: HTTPMethod = .get,
-		url: URL
+		url: URL,
+		autogenerateRequestID: Bool
 	) {
 		self.expectedResponseCodes = expectedResponseCodes
 		self.headers = headers
 		self.method = method
 		self.url = url
+		guard autogenerateRequestID else { return }
+		self.requestID = UUID().uuidString
 	}
 }
