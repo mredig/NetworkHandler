@@ -2,6 +2,7 @@ import Testing
 import NetworkHandler
 import TestSupport
 import PizzaMacros
+import Foundation
 
 struct NetworkRequestTests {
 	@Test func genericEncoding() async throws {
@@ -17,45 +18,82 @@ struct NetworkRequestTests {
 		let decoded = try DownloadEngineRequest.defaultDecoder.decode(DummyType.self, from: data)
 		#expect(decoded == testDummy)
 	}
-}
 
-//	/// Tests adding, setting, and getting header values
-//	func testRequestHeaders() {
-//		let dummyURL = URL(string: "https://redeggproductions.com")!
-//		var request = dummyURL.request
-//
-//		request.addValue(.json, forHTTPHeaderField: .contentType)
-//		XCTAssertEqual("application/json", request.value(forHTTPHeaderField: .contentType))
-//		request.setValue(.xml, forHTTPHeaderField: .contentType)
-//		XCTAssertEqual("application/xml", request.value(forHTTPHeaderField: .contentType))
-//		request.setValue("Bearer: 12345", forHTTPHeaderField: .authorization)
-//		XCTAssertEqual(["Content-Type": "application/xml", "Authorization": "Bearer: 12345"], request.allHeaderFields)
-//
-//		request.setValue(nil, forHTTPHeaderField: .authorization)
-//		XCTAssertEqual(["Content-Type": "application/xml"], request.allHeaderFields)
-//		XCTAssertNil(request.value(forHTTPHeaderField: .authorization))
-//
-//		request.setValue("Arbitrary Value", forHTTPHeaderField: "Arbitrary Key")
-//		XCTAssertEqual(["Content-Type": "application/xml", "arbitrary key": "Arbitrary Value"], request.allHeaderFields)
-//
-//		let allFields = [
-//			"Content-Type": "application/xml",
-//			"Authorization": "Bearer: 12345",
-//			"Arbitrary Key": "Arbitrary Value",
-//		]
-//		request.allHeaderFields = allFields
-//		XCTAssertEqual(allFields, request.allHeaderFields)
-//
-//		var request2 = dummyURL.request
-//		request2.setValue(.audioMp4, forHTTPHeaderField: .contentType)
-//		XCTAssertEqual("audio/mp4", request2.value(forHTTPHeaderField: .contentType))
-//
-//		request2.setContentType(.bmp)
-//		XCTAssertEqual("image/bmp", request2.value(forHTTPHeaderField: .contentType))
-//
-//		request2.setAuthorization("Bearer asdlkqf")
-//		XCTAssertEqual("Bearer asdlkqf", request2.value(forHTTPHeaderField: .authorization))
-//	}
+	/// Tests adding, setting, and getting header values
+	@Test func requestHeaders() {
+		let dummyURL = #URL("https://redeggproductions.com")
+		let origRequest = dummyURL.downloadRequest.with {
+			$0.requestID = nil
+		}
+		var request = NetworkRequest.download(origRequest)
+
+		request.headers.addValue(.json, forKey: .contentType)
+		#expect("application/json" == request.headers[.contentType])
+		request.headers.setValue(.xml, forKey: .contentType)
+		#expect("application/xml" == request.headers[.contentType])
+		request.headers.setValue("Bearer: 12345", forKey: .authorization)
+		#expect(["Content-Type": "application/xml", "Authorization": "Bearer: 12345"] == request.headers)
+
+		request.headers.setValue(nil, forKey: .authorization)
+		#expect(["Content-Type": "application/xml"] == request.headers)
+		#expect(request.headers[.authorization] == nil)
+
+		request.headers.setValue("Arbitrary Value", forKey: "Arbitrary Key")
+		#expect(["Content-Type": "application/xml", "arbitrary key": "Arbitrary Value"] == request.headers)
+
+		let allFields: HTTPHeaders = [
+			"Content-Type": "application/xml",
+			"Authorization": "Bearer: 12345",
+			"Arbitrary Key": "Arbitrary Value",
+		]
+		request.headers = allFields
+		#expect(allFields == request.headers)
+
+		var request2 = dummyURL.downloadRequest.with {
+			$0.requestID = nil
+		}
+		request2.headers.setValue(.audioMp4, forKey: .contentType)
+		#expect("audio/mp4" == request2.headers.value(for: .contentType))
+
+		request2.headers.setContentType(.bmp)
+		#expect("image/bmp" == request2.headers.value(for: .contentType))
+
+		request2.headers.setAuthorization("Bearer asdlkqf")
+		#expect("Bearer asdlkqf" == request2.headers.value(for: .authorization))
+	}
+
+	@Test func requestHeadersWithDuplicates() async throws {
+		let dummyURL = #URL("https://redeggproductions.com")
+		var requestWithNoDup = dummyURL.downloadRequest.with {
+			$0.requestID = nil
+		}
+		requestWithNoDup.headers.addValue("sessionId=abc123", forKey: .cookie)
+
+		var requestWithDup = requestWithNoDup
+		requestWithDup.headers.addValue("foo=bar", forKey: .cookie)
+
+		#expect(requestWithDup != requestWithNoDup)
+		#expect(requestWithDup.headers.count == 2)
+		#expect(requestWithNoDup.headers.count == 1)
+	}
+
+	@Test func requestHeadersWithDuplicatesAddedInDifferentOrder() async throws {
+		let dummyURL = #URL("https://redeggproductions.com")
+		var request1 = dummyURL.downloadRequest.with {
+			$0.requestID = nil
+		}
+		var request2 = request1
+
+		request1.headers.addValue("sessionId=abc123", forKey: .cookie)
+		request1.headers.addValue("foo=bar", forKey: .cookie)
+		request2.headers.addValue("foo=bar", forKey: .cookie)
+		request2.headers.addValue("sessionId=abc123", forKey: .cookie)
+
+		#expect(request1 == request2)
+		#expect(request1.headers.count == 2)
+		#expect(request2.headers.count == 2)
+	}
+}
 //
 //	func testHeaderEquals() {
 //		let contentKey = HTTPHeaderKey.contentType
