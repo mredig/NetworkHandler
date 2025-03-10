@@ -331,8 +331,25 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		do {
 			switch request {
 			case .upload(var uploadRequest, let payload):
+				let inputReq = uploadRequest
+				uploadRequest = uploadRequest.with {
+					switch payload {
+					case .data(let data):
+						$0.expectedContentLength = data.count
+					case .localFile(let fileURL):
+						$0.expectedContentLength = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize
+					case .streamProvider(let stream):
+						$0.expectedContentLength = stream.totalStreamBytes
+					case .inputStream:
+						$0.expectedContentLength = nil
+					}
+				}
+				if inputReq != uploadRequest {
+					delegate?.requestModified(from: .upload(inputReq, payload: payload), to: .upload(uploadRequest, payload: payload))
+				}
+
 				try cancellationToken?.checkIsCancelled()
-				let originalRequest = uploadRequest
+				let preEngineRequest = uploadRequest
 				let (sendProgress, responseTask, bodyStream) = try await engine.uploadNetworkData(
 					request: &uploadRequest,
 					with: payload,
@@ -344,8 +361,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 						cancellationToken?.onCancel = {}
 					}
 				}
-				if originalRequest != uploadRequest {
-					delegate?.requestModified(from: .upload(originalRequest, payload: payload), to: .upload(uploadRequest, payload: payload))
+				if preEngineRequest != uploadRequest {
+					delegate?.requestModified(from: .upload(preEngineRequest, payload: payload), to: .upload(uploadRequest, payload: payload))
 				}
 
 				async let progressBlock: Void = { @NHActor [delegate] in

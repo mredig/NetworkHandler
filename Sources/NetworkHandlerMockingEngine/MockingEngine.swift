@@ -61,22 +61,7 @@ public actor MockingEngine: NetworkEngine {
 		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream
 	) {
-		let uploadSize: Int? = {
-			switch payload {
-			case .data(let data):
-				return data.count
-			case .localFile(let fileURL):
-				return try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize
-			case .streamProvider(let streamProvider):
-				return streamProvider.totalStreamBytes
-			case .inputStream:
-				return nil
-			}
-		}()
-
-		request.expectedContentLength = uploadSize
-
-		return try await performServerInteraction(for: .upload(request, payload: payload))
+		try await performServerInteraction(for: .upload(request, payload: payload))
 	}
 
 	private func performServerInteraction(for request: NetworkRequest) async throws(NetworkError) -> (
