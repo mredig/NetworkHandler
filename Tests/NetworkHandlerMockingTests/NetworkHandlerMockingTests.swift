@@ -219,6 +219,21 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.uploadProgressTracking(engine: mockingEngine)
 	}
 
+	@Test func uploadStreamProvider() async throws {
+		let mockingEngine = generateEngine()
+
+		let url = commonTests.randomDataURL
+		await mockingEngine.addMock(for: url, method: .put) { server, request, requestBody in
+			try await s3MockPutSimlulator(server: server, request: request, requestBody: requestBody, mockingEngine: mockingEngine)
+		}
+
+		await mockingEngine.addMock(for: url, method: .get) { server, request, requestBody in
+			try await s3MockGetSimulator(request: request, mockingEngine: mockingEngine)
+		}
+
+		try await commonTests.uploadStreamProvider(engine: mockingEngine)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine()
 	}

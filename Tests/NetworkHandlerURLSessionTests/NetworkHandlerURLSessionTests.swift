@@ -90,11 +90,6 @@ struct NetworkHandlerURLSessionTests: Sendable {
 	@Test func cancellationViaStream() async throws {
 		let mockingEngine = generateEngine()
 
-		var rng: RandomNumberGenerator = SeedableRNG(seed: 394687)
-		let modelData = Data.random(count: 1024 * 1024 * 10, using: &rng)
-
-		let url = commonTests.randomDataURL
-
 		try await commonTests.cancellationViaStream(engine: mockingEngine)
 	}
 
@@ -128,6 +123,11 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		let engine = URLSession.asEngine(withConfiguration: config)
 
 		try await commonTests.uploadFileURL(engine: engine)
+	}
+
+	@Test func uploadStreamProvider() async throws {
+		let mockingEngine = generateEngine()
+		try await commonTests.uploadStreamProvider(engine: mockingEngine)
 	}
 
 	private func generateEngine() -> URLSession {
