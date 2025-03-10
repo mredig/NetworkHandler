@@ -83,7 +83,7 @@ extension HTTPClient: NetworkEngine {
 			while inputStream.hasBytesAvailable {
 				let count = inputStream.read(bufferPointer, maxLength: bufferSize)
 				let chunk = [UInt8](unsafeUninitializedCapacity: count) { arrayBuffer, initializedCount in
-					_ = arrayBuffer.update(fromContentsOf: buffer)
+					_ = arrayBuffer.baseAddress?.update(from: bufferPointer, count: count)
 					initializedCount = count
 				}
 				lastSuccess = writer.write(.byteBuffer(ByteBuffer(bytes: chunk)))
