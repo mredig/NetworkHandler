@@ -554,7 +554,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let url = randomDataURL
 		let request = url.uploadRequest.with {
 			$0.method = .put
-			$0.timeoutInterval = 1
+			$0.timeoutInterval = 0.001
 		}
 
 		let testFileURL = URL.temporaryDirectory.appending(component: UUID().uuidString).appendingPathExtension("bin")
