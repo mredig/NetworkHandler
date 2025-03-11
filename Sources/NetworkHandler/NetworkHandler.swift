@@ -69,13 +69,14 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	) async throws -> (responseHeader: EngineResponseHeader, result: T) {
 		func doPoll(request: NetworkRequest) async -> PollResult<T> {
 			let polledResult: PollResult<T>
-			do {
+			do throws(NetworkError) {
 				let (header, data) = try await transferMahDatas(
 					for: request,
 					delegate: delegate,
 					usingCache: cacheOption,
 					requestLogger: requestLogger,
 					cancellationToken: cancellationToken)
+				guard let data else { throw .noData }
 				let decoded: T = try decodeData(data: data, using: decoder)
 				polledResult = .success((header, decoded))
 			} catch {
@@ -125,7 +126,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		decoder: NHDecoder = DownloadEngineRequest.defaultDecoder,
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
-		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
+		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
 	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, decoded: DecodableType) {
 		let (header, rawData) = try await downloadMahDatas(
 			for: request,
@@ -135,6 +136,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			cancellationToken: cancellationToken,
 			onError: onError)
 
+		guard let rawData else { throw .noData }
 		return try (header, decodeData(data: rawData, using: decoder))
 	}
 
@@ -153,8 +155,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
-		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
-	) async throws -> (responseHeader: EngineResponseHeader, data: Data) {
+		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
+	) async throws -> (responseHeader: EngineResponseHeader, data: Data?) {
 		try await transferMahDatas(
 			for: .upload(request, payload: payload),
 			delegate: delegate,
@@ -173,7 +175,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
-		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
+		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
 	) async throws(NetworkError) -> EngineResponseHeader {
 		let tempFileURL = tempoaryFileURL ?? outFileURL
 
@@ -257,8 +259,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
-		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
-	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, data: Data) {
+		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, data: Data?) {
 		try await transferMahDatas(
 			for: .download(request),
 			delegate: delegate,
@@ -284,8 +286,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
 		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil,
-		onError: @escaping RetryOptionBlock<Data> = { _, _, _ in .throw }
-	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, data: Data) {
+		onError: @escaping RetryOptionBlock = { _, _, _ in .throw }
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, data: Data?) {
 		if let cacheKey = cacheOption.cacheKey(url: request.url) {
 			if let cachedData = cache[cacheKey] {
 				return (cachedData.response, cachedData.data)
@@ -309,7 +311,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			},
 			errorHandler: onError)
 
-		if let cacheKey = cacheOption.cacheKey(url: request.url) {
+		if let cacheKey = cacheOption.cacheKey(url: request.url), let data {
 			self.cache[cacheKey] = NetworkCacheItem(response: header, data: data)
 		}
 
@@ -446,12 +448,12 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 	/// Internal retry loop. Evaluates conditions and output from `errorHandler` to determine what to try next.
 	@NHActor
-	private func retryHandler<T: Sendable>(
+	private func retryHandler(
 		originalRequest: NetworkRequest,
-		transferTask: @NHActor (_ request: NetworkRequest, _ attempt: Int) async throws -> (EngineResponseHeader, T),
-		errorHandler: RetryOptionBlock<T>
-	) async throws(NetworkError) -> (EngineResponseHeader, T) {
-		var retryOption = RetryOption<T>.retry
+		transferTask: @NHActor (_ request: NetworkRequest, _ attempt: Int) async throws -> (EngineResponseHeader, Data?),
+		errorHandler: RetryOptionBlock
+	) async throws(NetworkError) -> (EngineResponseHeader, Data?) {
+		var retryOption = RetryOption.retry
 		var theRequest = originalRequest
 		var attempt = 1
 

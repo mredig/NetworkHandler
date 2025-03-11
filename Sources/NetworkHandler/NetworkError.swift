@@ -20,6 +20,10 @@ public enum NetworkError: Error, Equatable {
 	 */
 	case dataCodingError(specifically: Error, sourceData: Data?)
 	/**
+	 Occurs when using a method that automatically decodes server returned data, but no data is provided.
+	 */
+	case noData
+	/**
 	 Thrown when a `URLResponse` includes a response code other than 200, or a range
 	 of 200-299 (depending on whether `strict200CodeResponse` is on or off). Wraps
 	 the response code and included `Data?`, if there is any.
@@ -67,6 +71,8 @@ public enum NetworkError: Error, Equatable {
 			if case .requestCancelled = rhs { return true } else { return false }
 		case .requestTimedOut:
 			if case .requestTimedOut = rhs { return true } else { return false }
+		case .noData:
+			if case .noData = rhs { return true } else { return false }
 		}
 	}
 
@@ -136,6 +142,8 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 			return "NetworkError: Request was cancelled"
 		case .requestTimedOut:
 			return "NetworkError: Request timed out"
+		case .noData:
+			return "NetworkError: No data from server"
 		}
 	}
 

@@ -4,7 +4,7 @@ import SwiftPizzaSnips
 extension NetworkHandler {
 	/// (previousRequest, failedAttempts, mostRecentError)
 	/// Return whatever option you wish to proceed with.
-	public typealias RetryOptionBlock<T: Decodable> = @NHActor (NetworkRequest, Int, NetworkError) -> RetryOption<T>
+	public typealias RetryOptionBlock = @NHActor (NetworkRequest, Int, NetworkError) -> RetryOption
 
 	public struct RetryConfiguration: Hashable, Sendable, Withable {
 		public static var simple: Self { RetryConfiguration(delay: 0) }
@@ -21,8 +21,8 @@ extension NetworkHandler {
 		}
 	}
 
-	public struct DefaultReturnValueConfiguration<T: Decodable>: Withable {
-		public var data: T
+	public struct DefaultReturnValueConfiguration: Withable, Sendable {
+		public var data: Data?
 		public var response: ResponseOption
 
 		public enum ResponseOption: Hashable, Sendable, Withable {
@@ -31,7 +31,7 @@ extension NetworkHandler {
 		}
 	}
 
-	public enum RetryOption<T: Decodable>: Withable {
+	public enum RetryOption: Sendable, Withable {
 		public static var retry: RetryOption { .retryWithConfiguration(config: .simple) }
 		case retryWithConfiguration(config: RetryConfiguration)
 		public static func retry(
@@ -44,19 +44,19 @@ extension NetworkHandler {
 
 		case `throw`(updatedError: Error?)
 		public static var `throw`: RetryOption { .throw(updatedError: nil) }
-		case defaultReturnValue(config: DefaultReturnValueConfiguration<T>)
+		case defaultReturnValue(config: DefaultReturnValueConfiguration)
 
-		public static func defaultReturnValue(data: T, statusCode: Int) -> RetryOption {
+		public static func defaultReturnValue(data: Data?, statusCode: Int) -> RetryOption {
 			let config = DefaultReturnValueConfiguration(data: data, response: .code(statusCode))
 			return .defaultReturnValue(config: config)
 		}
 
-		public static func defaultReturnValue(data: T, urlResponse: EngineResponseHeader) -> RetryOption {
+		public static func defaultReturnValue(data: Data?, urlResponse: EngineResponseHeader) -> RetryOption {
 			let config = DefaultReturnValueConfiguration(data: data, response: .full(urlResponse))
 			return .defaultReturnValue(config: config)
 		}
 	}
 }
 
-extension NetworkHandler.DefaultReturnValueConfiguration: Equatable where T: Equatable {}
-extension NetworkHandler.DefaultReturnValueConfiguration: Hashable where T: Hashable {}
+extension NetworkHandler.DefaultReturnValueConfiguration: Equatable {}
+extension NetworkHandler.DefaultReturnValueConfiguration: Hashable {}

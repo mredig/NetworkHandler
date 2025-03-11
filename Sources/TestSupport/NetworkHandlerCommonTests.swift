@@ -88,7 +88,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		#if canImport(AppKit) || canImport(UIKit)
 		_ = try #require(
-			TestImage(data: imageOneData),
+			imageOneData.flatMap { TestImage(data: $0) },
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 		#endif
 	}
@@ -340,7 +340,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let dlResult = try await nh.downloadMahDatas(for: dlRequest).data
 		#expect(
-			SHA256.hash(data: dlResult) == dataHash,
+			SHA256.hash(data: dlResult!) == dataHash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
@@ -393,7 +393,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let dlResult = try await nh.downloadMahDatas(for: dlRequest).data
 		#expect(
-			SHA256.hash(data: dlResult) == dataHash,
+			SHA256.hash(data: dlResult!) == dataHash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
@@ -450,7 +450,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
 		#expect(
-			SHA256.hash(data: dlResult) == hash,
+			SHA256.hash(data: dlResult!) == hash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
@@ -513,7 +513,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
 		#expect(
-			SHA256.hash(data: dlResult) == multipartHash,
+			SHA256.hash(data: dlResult!) == multipartHash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
@@ -573,7 +573,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
 		#expect(
-			SHA256.hash(data: dlResult) == multipartHash,
+			SHA256.hash(data: dlResult!) == multipartHash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
