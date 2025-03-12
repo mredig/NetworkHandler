@@ -10,21 +10,18 @@ public struct ETask<Success: Sendable, Failure: Error>: Sendable, Hashable {
 
 	public var value: Success {
 		get async throws(Failure) {
-			do {
-				return try await underlyingTask.value
-			} catch {
-				throw error as! Failure
-			}
+			try await result.get()
 		}
 	}
 
 	public var result: Result<Success, Failure> {
 		get async {
 			do {
-				let val = try await value
-				return .success(val)
+				let resultA = await underlyingTask.result
+				let success = try resultA.get()
+				return .success(success)
 			} catch {
-				return .failure(error)
+				return .failure(error as! Failure)
 			}
 		}
 	}
