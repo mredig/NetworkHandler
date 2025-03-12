@@ -142,8 +142,8 @@ let package = Package(
 	dependencies: [
 		.package(url: "https://github.com/apple/swift-crypto.git", .upToNextMajor(from: "3.0.0")),
 		.package(url: "https://github.com/mredig/PizzaMacros.git", .upToNextMajor(from: "0.1.0")),
-		//		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", .upToNextMajor(from: "0.4.0")),
-		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", branch: "0.4.34g"),
+		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", .upToNextMajor(from: "0.4.35")),
+//		.package(url: "https://github.com/mredig/SwiftPizzaSnips.git", branch: "0.4.34h"),
 		.package(url: "https://github.com/mredig/SwiftlyDotEnv.git", .upToNextMinor(from: "0.2.3")),
 		.package(url: "https://github.com/swift-server/async-http-client", .upToNextMajor(from: "1.25.2")),
 		.package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.6.2")),
