@@ -1,8 +1,5 @@
 import Foundation
 import SwiftPizzaSnips
-//#if canImport(FoundationNetworking)
-//import FoundationNetworking
-//#endif
 
 /// Pre-typed strings for use with NetworkRequest.httpMethod (or URLRequest.httpMethod)
 public struct HTTPMethod:
