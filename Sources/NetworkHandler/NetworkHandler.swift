@@ -473,6 +473,21 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			switch retryOption {
 			case .retryWithConfiguration(config: let config):
 				theRequest = config.updatedRequest ?? theRequest
+
+				if case .upload(let uploadReq, payload: let payload) = theRequest {
+					switch payload {
+					case .inputStream(let stream), .streamProvider(let stream as InputStream):
+						guard let retryStream = stream as? RetryableStream else {
+							logger.error("Streams cannot retry unless they conform to `RetryableStream`")
+							throw theError
+						}
+						let newStream = try retryStream.copyWithRestart()
+						theRequest = .upload(uploadReq, payload: .inputStream(newStream))
+					default:
+						break
+					}
+				}
+
 				if config.delay > 0 {
 					try await NetworkError.captureAndConvert {
 						try await Task.sleep(nanoseconds: UInt64(TimeInterval(1_000_000_000) * config.delay))
