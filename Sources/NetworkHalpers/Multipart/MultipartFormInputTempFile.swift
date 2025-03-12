@@ -16,7 +16,7 @@ public class MultipartFormInputTempFile: @unchecked Sendable {
 
 	private let lock = MutexLock()
 
-	public var multipartContentTypeHeaderValue: HTTPHeaderValue {
+	public var multipartContentTypeHeaderValue: HTTPHeaders.Header.Value {
 		"multipart/form-data; boundary=\(boundary)"
 	}
 

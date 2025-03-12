@@ -11,7 +11,7 @@ public struct AWSV4Signature: Hashable, Sendable, Withable {
 	public var awsRegion: AWSRegion
 	public var awsService: AWSService
 	public var hexContentHash: AWSContentHash
-	public var additionalSignedHeaders: [HTTPHeaders.Header.Key: HTTPHeaderValue]
+	public var additionalSignedHeaders: [HTTPHeaders.Header.Key: HTTPHeaders.Header.Value]
 
 	public init(
 		requestMethod: HTTPMethod = .get,
@@ -22,7 +22,7 @@ public struct AWSV4Signature: Hashable, Sendable, Withable {
 		awsRegion: AWSV4Signature.AWSRegion,
 		awsService: AWSV4Signature.AWSService,
 		hexContentHash: AWSContentHash,
-		additionalSignedHeaders: [HTTPHeaders.Header.Key: HTTPHeaderValue]) {
+		additionalSignedHeaders: [HTTPHeaders.Header.Key: HTTPHeaders.Header.Value]) {
 			self.requestMethod = requestMethod
 			self.url = url
 			self.date = date
@@ -34,7 +34,7 @@ public struct AWSV4Signature: Hashable, Sendable, Withable {
 			self.additionalSignedHeaders = additionalSignedHeaders
 		}
 
-	public var amzHeaders: [HTTPHeaders.Header.Key: HTTPHeaderValue] {
+	public var amzHeaders: [HTTPHeaders.Header.Key: HTTPHeaders.Header.Value] {
 		[
 			"x-amz-content-sha256": "\(hexContentHash.rawValue)",
 			"x-amz-date": "\(Self.isoDateString(from: date))",

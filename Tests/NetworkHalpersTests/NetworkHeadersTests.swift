@@ -26,10 +26,10 @@ struct NetworkHeadersTests {
 	}
 
 	@Test func values() async throws {
-		let a = HTTPHeaderValue(rawValue: "image/jpeg")
-		let b: HTTPHeaderValue = "image/jpeg"
-		let c: HTTPHeaderValue = .jpeg
-		let d = HTTPHeaderValue(rawValue: "image/JPEG")
+		let a = HTTPHeaders.Header.Value(rawValue: "image/jpeg")
+		let b: HTTPHeaders.Header.Value = "image/jpeg"
+		let c: HTTPHeaders.Header.Value = .jpeg
+		let d = HTTPHeaders.Header.Value(rawValue: "image/JPEG")
 
 		#expect(a == b)
 		#expect(a == c)
@@ -46,7 +46,7 @@ struct NetworkHeadersTests {
 	}
 
 	@Test func multipartValue() async throws {
-		let value = HTTPHeaderValue.multipart(boundary: "f0o")
+		let value = HTTPHeaders.Header.Value.multipart(boundary: "f0o")
 
 		#expect("multipart/form-data; boundary=f0o" == value)
 	}
@@ -65,7 +65,7 @@ struct NetworkHeadersTests {
 			"content-type": "application/json",
 		]
 
-		let userAgentValue = HTTPHeaderValue(rawValue: simpleSample["User-Agent"]!)
+		let userAgentValue = HTTPHeaders.Header.Value(rawValue: simpleSample["User-Agent"]!)
 
 		let simpleHeaders = HTTPHeaders(simpleSample)
 		#expect(simpleHeaders[.contentType] == "application/json")
@@ -83,7 +83,7 @@ struct NetworkHeadersTests {
 	}
 
 	@Test func headersHeaderDict() async throws {
-		let simpleSample: [HTTPHeaders.Header.Key: HTTPHeaderValue] = [
+		let simpleSample: [HTTPHeaders.Header.Key: HTTPHeaders.Header.Value] = [
 			"Content-Type": "application/json",
 			"Authorization": "Bearer foobar",
 			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15",
@@ -117,9 +117,9 @@ struct NetworkHeadersTests {
 
 	@Test func headersDictLiteral() async throws {
 		let simpleHeaders: HTTPHeaders = [
-			HTTPHeaders.Header.Key(rawValue: "Content-Type"): HTTPHeaderValue(rawValue: "application/json"),
-			HTTPHeaders.Header.Key(rawValue: "Authorization"): HTTPHeaderValue(rawValue: "Bearer foobar"),
-			HTTPHeaders.Header.Key(rawValue: "User-Agent"): HTTPHeaderValue(rawValue: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header.Key(rawValue: "Content-Type"): HTTPHeaders.Header.Value(rawValue: "application/json"),
+			HTTPHeaders.Header.Key(rawValue: "Authorization"): HTTPHeaders.Header.Value(rawValue: "Bearer foobar"),
+			HTTPHeaders.Header.Key(rawValue: "User-Agent"): HTTPHeaders.Header.Value(rawValue: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
 		]
 
 		let userAgentValue = simpleHeaders["User-Agent"]!

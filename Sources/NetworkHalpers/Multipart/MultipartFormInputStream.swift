@@ -18,7 +18,7 @@ public class MultipartFormInputStream: ConcatenatedInputStream {
 		streams.reduce(0) { $0 + (($1 as? Part)?.length ?? 0) }
 	}
 
-	public var multipartContentTypeHeaderValue: HTTPHeaderValue {
+	public var multipartContentTypeHeaderValue: HTTPHeaders.Header.Value {
 		"multipart/form-data; boundary=\(boundary)"
 	}
 

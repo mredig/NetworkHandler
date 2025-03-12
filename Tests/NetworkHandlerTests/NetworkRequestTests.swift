@@ -105,7 +105,7 @@ struct NetworkRequestTests {
 		#expect(contentKey != "Content-Typo")
 		#expect(contentKey != nilString)
 
-		let gif = HTTPHeaderValue.gif
+		let gif = HTTPHeaders.Header.Value.gif
 
 		#expect("image/gif" == gif)
 		#expect(gif == "image/gif")

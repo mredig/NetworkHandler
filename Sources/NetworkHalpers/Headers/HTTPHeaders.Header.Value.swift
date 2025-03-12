@@ -1,4 +1,4 @@
-public typealias HTTPHeaderValue = HTTPHeaders.Header.Value
+//public typealias Value = HTTPHeaders.Header.Value
 extension HTTPHeaders.Header {
 	public struct Value:
 		RawRepresentable,
@@ -20,57 +20,57 @@ extension HTTPHeaders.Header {
 		}
 
 		// common Content-Type values
-		public static let javascript: HTTPHeaderValue = "application/javascript"
-		public static let json: HTTPHeaderValue = "application/json"
-		public static let octetStream: HTTPHeaderValue = "application/octet-stream"
-		public static let xFontWoff: HTTPHeaderValue = "application/x-font-woff"
-		public static let xml: HTTPHeaderValue = "application/xml"
-		public static let audioMp4: HTTPHeaderValue = "audio/mp4"
-		public static let ogg: HTTPHeaderValue = "audio/ogg"
-		public static let opentype: HTTPHeaderValue = "font/opentype"
-		public static let svgXml: HTTPHeaderValue = "image/svg+xml"
-		public static let webp: HTTPHeaderValue = "image/webp"
-		public static let xIcon: HTTPHeaderValue = "image/x-icon"
-		public static let cacheManifest: HTTPHeaderValue = "text/cache-manifest"
-		public static let vCard: HTTPHeaderValue = "text/v-card"
-		public static let vtt: HTTPHeaderValue = "text/vtt"
-		public static let videoMp4: HTTPHeaderValue = "video/mp4"
-		public static let videoOgg: HTTPHeaderValue = "video/ogg"
-		public static let webm: HTTPHeaderValue = "video/webm"
-		public static let xFlv: HTTPHeaderValue = "video/x-flv"
-		public static let png: HTTPHeaderValue = "image/png"
-		public static let jpeg: HTTPHeaderValue = "image/jpeg"
-		public static let bmp: HTTPHeaderValue = "image/bmp"
-		public static let css: HTTPHeaderValue = "text/css"
-		public static let gif: HTTPHeaderValue = "image/gif"
-		public static let html: HTTPHeaderValue = "text/html"
-		public static let audioMpeg: HTTPHeaderValue = "audio/mpeg"
-		public static let videoMpeg: HTTPHeaderValue = "video/mpeg"
-		public static let pdf: HTTPHeaderValue = "application/pdf"
-		public static let quicktime: HTTPHeaderValue = "video/quicktime"
-		public static let rtf: HTTPHeaderValue = "application/rtf"
-		public static let tiff: HTTPHeaderValue = "image/tiff"
-		public static let plain: HTTPHeaderValue = "text/plain"
-		public static let zip: HTTPHeaderValue = "application/zip"
-		public static let plist: HTTPHeaderValue = "application/x-plist"
+		public static let javascript: Value = "application/javascript"
+		public static let json: Value = "application/json"
+		public static let octetStream: Value = "application/octet-stream"
+		public static let xFontWoff: Value = "application/x-font-woff"
+		public static let xml: Value = "application/xml"
+		public static let audioMp4: Value = "audio/mp4"
+		public static let ogg: Value = "audio/ogg"
+		public static let opentype: Value = "font/opentype"
+		public static let svgXml: Value = "image/svg+xml"
+		public static let webp: Value = "image/webp"
+		public static let xIcon: Value = "image/x-icon"
+		public static let cacheManifest: Value = "text/cache-manifest"
+		public static let vCard: Value = "text/v-card"
+		public static let vtt: Value = "text/vtt"
+		public static let videoMp4: Value = "video/mp4"
+		public static let videoOgg: Value = "video/ogg"
+		public static let webm: Value = "video/webm"
+		public static let xFlv: Value = "video/x-flv"
+		public static let png: Value = "image/png"
+		public static let jpeg: Value = "image/jpeg"
+		public static let bmp: Value = "image/bmp"
+		public static let css: Value = "text/css"
+		public static let gif: Value = "image/gif"
+		public static let html: Value = "text/html"
+		public static let audioMpeg: Value = "audio/mpeg"
+		public static let videoMpeg: Value = "video/mpeg"
+		public static let pdf: Value = "application/pdf"
+		public static let quicktime: Value = "video/quicktime"
+		public static let rtf: Value = "application/rtf"
+		public static let tiff: Value = "image/tiff"
+		public static let plain: Value = "text/plain"
+		public static let zip: Value = "application/zip"
+		public static let plist: Value = "application/x-plist"
 		/// If using built in multipart form support, look into `MultipartFormInputStream.multipartContentTypeHeaderValue`
-		public static func multipart(boundary: String) -> HTTPHeaderValue {
+		public static func multipart(boundary: String) -> Value {
 			"multipart/form-data; boundary=\(boundary)"
 		}
 
-		public static func == (lhs: HTTPHeaderValue, rhs: String?) -> Bool {
+		public static func == (lhs: Value, rhs: String?) -> Bool {
 			lhs.value == rhs
 		}
 
-		public static func == (lhs: String?, rhs: HTTPHeaderValue) -> Bool {
+		public static func == (lhs: String?, rhs: Value) -> Bool {
 			rhs == lhs
 		}
 
-		public static func != (lhs: HTTPHeaderValue, rhs: String?) -> Bool {
+		public static func != (lhs: Value, rhs: String?) -> Bool {
 			!(lhs == rhs)
 		}
 
-		public static func != (lhs: String?, rhs: HTTPHeaderValue) -> Bool {
+		public static func != (lhs: String?, rhs: Value) -> Bool {
 			rhs != lhs
 		}
 	}
