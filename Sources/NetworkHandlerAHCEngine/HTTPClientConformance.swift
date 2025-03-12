@@ -97,7 +97,7 @@ extension HTTPClient: NetworkEngine {
 			guard
 				let fileSize = try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize,
 				let fileStream = InputStream(url: url)
-			else { throw .otherError(error: UploadError.createStreamFromLocalFileFailed) }
+			else { throw .unspecifiedError(reason: "Creating a stream from the referenced local file failed. \(url)") }
 			httpClientRequest.body = .stream(contentLength: Int64(fileSize), { [fileStream] writer in
 				streamWriter(inputStream: fileStream, writer: writer)
 			})
