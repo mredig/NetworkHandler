@@ -8,12 +8,14 @@
 public struct ETask<Success: Sendable, Failure: Error>: Sendable, Hashable {
 	private let underlyingTask: Task<Success, Error>
 
+	/// Same as `Task.value`
 	public var value: Success {
 		get async throws(Failure) {
 			try await result.get()
 		}
 	}
 
+	/// Same as `Task.result`
 	public var result: Result<Success, Failure> {
 		get async {
 			do {
@@ -26,8 +28,10 @@ public struct ETask<Success: Sendable, Failure: Error>: Sendable, Hashable {
 		}
 	}
 
+	/// Same as `Task.isCancelled`
 	public var isCancelled: Bool { underlyingTask.isCancelled }
 
+	/// Same as `Task.init`
 	public init(
 		priority: TaskPriority? = nil,
 		@_implicitSelfCapture operation: sending @escaping @isolated(any) () async throws(Failure) -> Success
@@ -47,6 +51,7 @@ public struct ETask<Success: Sendable, Failure: Error>: Sendable, Hashable {
 		}
 	}
 
+	/// Same as `Task.detached`
 	public static func detached(
 		priority: TaskPriority? = nil,
 		operation: sending @escaping @isolated(any) () async throws(Failure) -> Success
@@ -54,6 +59,7 @@ public struct ETask<Success: Sendable, Failure: Error>: Sendable, Hashable {
 		Self.init(detached: true, priority: priority, operation: operation)
 	}
 
+	/// Same as `Task.cancel`
 	public func cancel() {
 		underlyingTask.cancel()
 	}
