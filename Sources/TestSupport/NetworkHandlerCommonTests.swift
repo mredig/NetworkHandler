@@ -792,6 +792,87 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		#expect(atomicFailCount.value == expectedFailCount, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
+	/// performs a `PUT` request to `randomDataURL` (only really useful to test with `MockingEngine`)
+	public func retryOptions(
+		engine: Engine,
+		retryOption: NetworkHandler<Engine>.RetryOption,
+		anticipatedOutput: Result<(header: EngineResponseHeader, data: Data), NetworkError>,
+		expectedAttemptCount: Int,
+		file: String = #fileID,
+		filePath: String = #filePath,
+		line: Int = #line,
+		function: String = #function
+	) async throws {
+		guard
+			TestEnvironment.s3AccessSecret.isEmpty == false,
+			TestEnvironment.s3AccessKey.isEmpty == false
+		else {
+			throw SimpleTestError(message: "Need s3 credentials")
+		}
+
+		let nh = getNetworkHandler(with: engine)
+		defer { nh.resetCache() }
+
+		let url = randomDataURL
+		let request = url.uploadRequest.with {
+			$0.method = .put
+		}
+
+		var rng: RandomNumberGenerator = SystemRandomNumberGenerator()
+		let data = Data.random(count: 128, using: &rng)
+
+		let hash = SHA256.hash(data: data)
+
+		let awsHeaderInfo = AWSV4Signature(
+			for: request,
+			awsKey: TestEnvironment.s3AccessKey,
+			awsSecret: TestEnvironment.s3AccessSecret,
+			awsRegion: .usEast1,
+			awsService: .s3,
+			hexContentHash: .fromShaHashDigest(hash))
+
+		let signedRequest = try awsHeaderInfo.processRequest(request)
+
+		let atomicFailCount = AtomicValue(value: 0)
+
+		switch anticipatedOutput {
+		case .success(let success):
+			let (header, data) = try await nh.uploadMahDatas(
+				for: signedRequest,
+				payload: .data(data)) { req, attempt, error in
+					atomicFailCount.value = attempt
+					if attempt == 1 {
+						return retryOption
+					} else {
+						return .throw
+					}
+				}
+
+			#expect(
+				success.data == data,
+				sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+			#expect(
+				success.header == header,
+				sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		case .failure(let failure):
+			await #expect(throws: failure, performing: {
+				_ = try await nh.uploadMahDatas(
+					for: signedRequest,
+					payload: .data(data),
+					onError: { req, attempt, error in
+						atomicFailCount.value = attempt
+						if attempt == 1 {
+							return retryOption
+						} else {
+							return .throw
+						}
+					})
+			})
+		}
+
+		#expect(atomicFailCount.value == expectedAttemptCount, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+	}
+
 	/// performs a `GET` request to `randomDataURL`. Provided must be corrupted in some way.
 	public func downloadProgressTracking(
 		engine: Engine,

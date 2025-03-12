@@ -283,6 +283,48 @@ struct NetworkHandlerMockingTests: Sendable {
 		try await commonTests.downloadFile(engine: mockingEngine)
 	}
 
+	/// This test (and the mocking engine block) has highly irregular behavior that probably has no real world
+	/// application. However, it's not intended to replicate real world as much as test the varied scenarios for
+	/// `NetworkHandler.RetryOption`. Because of these irregularities, it probably isn't worth replicating it to other
+	/// engine tests (especially as `RetryOption` behavior happens outside the engine)
+	@Test func retryOptions() async throws {
+		let mockingEngine = generateEngine()
+
+		let url = commonTests.randomDataURL
+		await mockingEngine.addMock(for: url, method: .put) { server, request, pathItems, requestBody in
+			if let previouslyUploaded = server.mockStorage[request.url.path(percentEncoded: false)], previouslyUploaded == requestBody {
+				return (nil, EngineResponseHeader(status: 200, url: request.url, headers: [:]))
+			} else {
+				guard let uploadData = requestBody else {
+					return (nil, EngineResponseHeader(status: 404, url: request.url, headers: [:]))
+				}
+				server.addStorage(uploadData, forKey: request.url.path(percentEncoded: false))
+				return (nil, EngineResponseHeader(status: 201, url: request.url, headers: [:]))
+			}
+		}
+
+		let expectedHeader = EngineResponseHeader(status: 200, url: url, headers: [:])
+
+		try await commonTests.retryOptions(
+			engine: mockingEngine,
+			retryOption: .defaultReturnValue(data: "foo".data(using: .utf8)!, statusCode: 200),
+			anticipatedOutput: .success((expectedHeader, "foo".data(using: .utf8)!)),
+			expectedAttemptCount: 1)
+
+		try await commonTests.retryOptions(
+			engine: mockingEngine,
+			retryOption: .defaultReturnValue(data: "foo".data(using: .utf8)!, urlResponse: EngineResponseHeader(status: 200, url: url, headers: [:])),
+			anticipatedOutput: .success((expectedHeader, "foo".data(using: .utf8)!)),
+			expectedAttemptCount: 1)
+
+		let retryRequest = NetworkRequest.download(commonTests.demoModelURL.downloadRequest)
+		try await commonTests.retryOptions(
+			engine: mockingEngine,
+			retryOption: .retry(withDelay: 0.5, updatedRequest: retryRequest),
+			anticipatedOutput: .failure(.httpUnexpectedStatusCode(code: 404, originalRequest: retryRequest, data: nil)),
+			expectedAttemptCount: 2)
+	}
+
 	private func generateEngine() -> MockingEngine {
 		MockingEngine()
 	}
