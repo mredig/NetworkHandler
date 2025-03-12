@@ -97,12 +97,12 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.randomDataURL
-		await mockingEngine.addMock(for: url, method: .put) { server, request, requestBody in
+		await mockingEngine.addMock(for: url, method: .put) { server, request, _, requestBody in
 			try await s3MockPutSimlulator(server: server, request: request, requestBody: requestBody, mockingEngine: mockingEngine)
 		}
 
-		await mockingEngine.addMock(for: url, method: .get) { server, request, requestBody in
-			try await s3MockGetSimulator(request: request, mockingEngine: mockingEngine)
+		await mockingEngine.addMock(for: url, method: .get) { server, request, _, requestBody in
+			try await s3MockGetSimulator(server: server, request: request, mockingEngine: mockingEngine)
 		}
 
 		try await commonTests.uploadStreamProvider(engine: mockingEngine)
@@ -112,12 +112,12 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.randomDataURL
-		await mockingEngine.addMock(for: url, method: .put) { server, request, requestBody in
+		await mockingEngine.addMock(for: url, method: .put) { server, request, _, requestBody in
 			try await s3MockPutSimlulator(server: server, request: request, requestBody: requestBody, mockingEngine: mockingEngine)
 		}
 
-		await mockingEngine.addMock(for: url, method: .get) { server, request, requestBody in
-			try await s3MockGetSimulator(request: request, mockingEngine: mockingEngine)
+		await mockingEngine.addMock(for: url, method: .get) { server, request, _, requestBody in
+			try await s3MockGetSimulator(server: server, request: request, mockingEngine: mockingEngine)
 		}
 
 		try await commonTests.uploadData(engine: mockingEngine)
@@ -127,12 +127,12 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.uploadURL
-		await mockingEngine.addMock(for: url, method: .put, smartBlock: { server, request, requestBody in
+		await mockingEngine.addMock(for: url, method: .put, smartBlock: { server, request, _, requestBody in
 			try await s3MockPutSimlulator(server: server, request: request, requestBody: requestBody, mockingEngine: mockingEngine)
 		})
 
-		await mockingEngine.addMock(for: url, method: .get) { _, request, _ in
-			try await s3MockGetSimulator(request: request, mockingEngine: mockingEngine)
+		await mockingEngine.addMock(for: url, method: .get) { server, request, _, _ in
+			try await s3MockGetSimulator(server: server, request: request, mockingEngine: mockingEngine)
 		}
 
 		try await commonTests.uploadFileURL(engine: mockingEngine)
@@ -142,12 +142,12 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.uploadURL
-		await mockingEngine.addMock(for: url, method: .put, smartBlock: { server, request, requestBody in
+		await mockingEngine.addMock(for: url, method: .put, smartBlock: { server, request, _, requestBody in
 			try await s3MockPutSimlulator(server: server, request: request, requestBody: requestBody, mockingEngine: mockingEngine)
 		})
 
-		await mockingEngine.addMock(for: url, method: .get) { _, request, _ in
-			try await s3MockGetSimulator(request: request, mockingEngine: mockingEngine)
+		await mockingEngine.addMock(for: url, method: .get) { server, request, _, _ in
+			try await s3MockGetSimulator(server: server, request: request, mockingEngine: mockingEngine)
 		}
 
 		try await commonTests.uploadMultipartFile(engine: mockingEngine)
@@ -157,12 +157,12 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.uploadURL
-		await mockingEngine.addMock(for: url, method: .put, smartBlock: { server, request, requestBody in
+		await mockingEngine.addMock(for: url, method: .put, smartBlock: { server, request, _, requestBody in
 			try await s3MockPutSimlulator(server: server, request: request, requestBody: requestBody, mockingEngine: mockingEngine)
 		})
 
-		await mockingEngine.addMock(for: url, method: .get) { _, request, _ in
-			try await s3MockGetSimulator(request: request, mockingEngine: mockingEngine)
+		await mockingEngine.addMock(for: url, method: .get) { server, request, _, _ in
+			try await s3MockGetSimulator(server: server, request: request, mockingEngine: mockingEngine)
 		}
 
 		try await commonTests.uploadMultipartStream(engine: mockingEngine)
@@ -220,7 +220,7 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.randomDataURL
-		await mockingEngine.addMock(for: url, method: .put) { _, request, requestBody in
+		await mockingEngine.addMock(for: url, method: .put) { _, request, _, requestBody in
 			try await Task.sleep(for: .seconds(5))
 			return (nil, EngineResponseHeader(status: 201, url: request.url, headers: [:]))
 		}
@@ -242,7 +242,7 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.randomDataURL
-		await mockingEngine.addMock(for: url, method: .put) { server, request, requestBody in
+		await mockingEngine.addMock(for: url, method: .put) { server, request, _, requestBody in
 			try await s3MockPutSimlulator(server: server, request: request, requestBody: requestBody, mockingEngine: mockingEngine)
 		}
 
@@ -253,18 +253,16 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let encoder = JSONEncoder()
-		for i in 0..<4 {
-			let url = commonTests.echoURL.with {
-				guard i != 0 else { return }
-				$0.append(component: "\(i)")
-			}
-
-			await mockingEngine.addMock(for: url, method: .get) { server, request, requestBody in
-				let echo = NetworkHandlerCommonTests<MockingEngine>.BeeEchoModel(path: url.path(percentEncoded: false))
-				let echoData = try encoder.encode(echo)
-				return (echoData, EngineResponseHeader(status: 200, url: url, headers: [.contentLength: "\(echoData.count)"]))
-			}
+		let responseBlock: MockingEngine.SmartResponseMockBlock = { server, request, pathItems, requestBody in
+			let echo = NetworkHandlerCommonTests<MockingEngine>.BeeEchoModel(path: request.url.path(percentEncoded: false))
+			let echoData = try encoder.encode(echo)
+			return (echoData, EngineResponseHeader(status: 200, url: request.url, headers: [.contentLength: "\(echoData.count)"]))
 		}
+
+		let url = commonTests.echoURL
+		let iterationURL = url.appending(component: ":iteration")
+		await mockingEngine.addMock(for: url, method: .get, smartBlock: responseBlock)
+		await mockingEngine.addMock(for: iterationURL, method: .get, smartBlock: responseBlock)
 
 		try await commonTests.polling(engine: mockingEngine)
 	}
@@ -310,9 +308,9 @@ extension NetworkHandlerMockingTests {
 		return (nil, EngineResponseHeader(status: 200, url: request.url, headers: [:]))
 	}
 
-	private func s3MockGetSimulator(request: NetworkRequest, mockingEngine: MockingEngine) async throws -> (data: Data?, response: EngineResponseHeader) {
+	private func s3MockGetSimulator(server: MockingEngine.MockingServer, request: NetworkRequest, mockingEngine: MockingEngine) async throws -> (data: Data?, response: EngineResponseHeader) {
 		guard
-			let blob = await mockingEngine.mockStorage[request.url.path(percentEncoded: false)]
+			let blob = await server.mockStorage[request.url.path(percentEncoded: false)]
 		else { throw NetworkError.httpUnexpectedStatusCode(code: 404, originalRequest: request, data: Data("Requested object not found".utf8)) }
 
 		return (blob, EngineResponseHeader(status: 200, url: request.url, headers: [.contentLength: "\(blob.count)"]))

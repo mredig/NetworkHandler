@@ -12,7 +12,7 @@ public actor MockingEngine: NetworkEngine {
 	public init() {}
 
 	public func addMock(for url: URL, method: HTTPMethod, responseData: Data?, responseCode: Int, delay: TimeInterval = 0) async {
-		await addMock(for: url, method: method) { server, request, _ in
+		await addMock(for: url, method: method) { server, request, _, _ in
 			if delay > 0 {
 				try await Task.sleep(for: .seconds(delay))
 			}
@@ -277,12 +277,17 @@ extension MockingEngine {
 			var header: NetworkRequest?
 			var responseBlock: SmartResponseMockBlock?
 			var bodyAccumulator: Data?
+			var pathItems: [String: String] = [:]
 			for try await chunk in sendStream {
 				try await Task.sleep(for: .milliseconds(20))
 				switch chunk {
 				case .requestHeader(let netrequest):
 					let key = Key(url: netrequest.url, method: netrequest.method)
 					responseBlock = acceptedIntercepts[key]
+					if responseBlock == nil, let dynamicResponse = acceptedIntercepts.first(where: { $0.key.respondsTo(key) }) {
+						responseBlock = dynamicResponse.value
+						pathItems = dynamicResponse.key.pathItems(from: netrequest.url)
+					}
 					header = netrequest
 				case .bodyStreamChunk(let clientBodyChunk):
 					if bodyAccumulator == nil { bodyAccumulator = Data() }
@@ -298,7 +303,7 @@ extension MockingEngine {
 				return
 			}
 
-			let processedResponse = try await responseBlock(self, header, bodyAccumulator)
+			let processedResponse = try await responseBlock(self, header, pathItems, bodyAccumulator)
 			defer { try? responseStreamContinuation.finish() }
 			try await Task.sleep(for: .milliseconds(20))
 
@@ -337,11 +342,54 @@ extension MockingEngine {
 				components?.queryItems = nil
 				return components!.url!
 			}
+
+			public func pathItems(from requestURL: URL) -> [String: String] {
+				let components = url.pathComponents
+				let requestComponents = Self.stripQuery(from: requestURL).pathComponents
+
+				var accum: [String: String] = [:]
+				for (comp, req) in zip(components, requestComponents) {
+					guard comp.starts(with: ":") else { continue }
+					accum[String(comp.dropFirst())] = req
+				}
+				return accum
+			}
+
+			public func respondsTo(_ key: Key) -> Bool {
+				let stripped = key.url
+				guard key.method == method else { return false }
+				guard self.url != stripped else { return true }
+
+				guard self.url.host()?.lowercased() == url.host()?.lowercased() else { return false }
+
+				let selfComponents = self.url.pathComponents
+				let requestComponents = stripped.pathComponents
+
+				guard requestComponents.count >= selfComponents.count else {
+					return false
+				}
+				for (a, b) in zip(selfComponents, requestComponents) {
+					guard a != b else { continue }
+					if a.first == ":" {
+						continue
+					} else if a == "*" {
+						continue
+					}
+					return false
+				}
+
+				if requestComponents.count == selfComponents.count {
+					return true
+				} else {
+					return selfComponents.last == "*"
+				}
+			}
 		}
 
 		public typealias SmartResponseMockBlock = @Sendable (
 			_ server: isolated MockingServer,
 			_ request: NetworkRequest,
+			_ requestPathArguments: [String: String],
 			_ requestBody: Data?
 		) async throws -> (data: Data?, response: EngineResponseHeader)
 	}
