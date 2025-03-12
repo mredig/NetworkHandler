@@ -1,13 +1,13 @@
 import Foundation
 import Crypto
 
-protocol DigestToValues: Sequence {
+package protocol DigestToValues: Sequence {
 	func bytes() -> Data
 	func hex() -> String
 	func base64(options: Data.Base64EncodingOptions) -> String
 }
 
-extension DigestToValues where Element == UInt8 {
+package extension DigestToValues where Element == UInt8 {
 	func bytes() -> Data {
 		Data(self)
 	}

@@ -2,6 +2,7 @@ import Foundation
 import Logging
 import Crypto
 import SwiftPizzaSnips
+import NetworkHalpers
 
 class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 	let fileManager = FileManager.default
@@ -168,7 +169,7 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 	}
 
 	private func path(for key: String) -> URL {
-		let sha1 = Insecure.SHA1.hash(data: Data(key.utf8)).toHexString()
+		let sha1 = Insecure.SHA1.hash(data: Data(key.utf8)).hex()
 		if cacheLocation.checkResourceIsAccessible() == false {
 			try? fileManager.createDirectory(at: cacheLocation, withIntermediateDirectories: true)
 		}
