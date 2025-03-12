@@ -3,10 +3,10 @@ import NetworkHalpers
 
 struct NetworkHeadersTests {
 	@Test func keys() async throws {
-		let a = HTTPHeaderKey(rawValue: "Content-Type")
-		let b: HTTPHeaderKey = "Content-Type"
-		let c: HTTPHeaderKey = .contentType
-		let d = HTTPHeaderKey(rawValue: "content-type")
+		let a = HTTPHeaders.Header.Key(rawValue: "Content-Type")
+		let b: HTTPHeaders.Header.Key = "Content-Type"
+		let c: HTTPHeaders.Header.Key = .contentType
+		let d = HTTPHeaders.Header.Key(rawValue: "content-type")
 
 		#expect(a == b)
 		#expect(a == c)
@@ -83,7 +83,7 @@ struct NetworkHeadersTests {
 	}
 
 	@Test func headersHeaderDict() async throws {
-		let simpleSample: [HTTPHeaderKey: HTTPHeaderValue] = [
+		let simpleSample: [HTTPHeaders.Header.Key: HTTPHeaderValue] = [
 			"Content-Type": "application/json",
 			"Authorization": "Bearer foobar",
 			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15",
@@ -117,9 +117,9 @@ struct NetworkHeadersTests {
 
 	@Test func headersDictLiteral() async throws {
 		let simpleHeaders: HTTPHeaders = [
-			HTTPHeaderKey(rawValue: "Content-Type"): HTTPHeaderValue(rawValue: "application/json"),
-			HTTPHeaderKey(rawValue: "Authorization"): HTTPHeaderValue(rawValue: "Bearer foobar"),
-			HTTPHeaderKey(rawValue: "User-Agent"): HTTPHeaderValue(rawValue: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header.Key(rawValue: "Content-Type"): HTTPHeaderValue(rawValue: "application/json"),
+			HTTPHeaders.Header.Key(rawValue: "Authorization"): HTTPHeaderValue(rawValue: "Bearer foobar"),
+			HTTPHeaders.Header.Key(rawValue: "User-Agent"): HTTPHeaderValue(rawValue: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
 		]
 
 		let userAgentValue = simpleHeaders["User-Agent"]!

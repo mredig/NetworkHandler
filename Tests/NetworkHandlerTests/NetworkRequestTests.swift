@@ -95,7 +95,7 @@ struct NetworkRequestTests {
 	}
 
 	@Test func headerKeysAndValuesEquatableWithString() {
-		let contentKey = HTTPHeaderKey.contentType
+		let contentKey = HTTPHeaders.Header.Key.contentType
 
 		let nilString: String? = nil
 

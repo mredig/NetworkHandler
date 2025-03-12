@@ -46,7 +46,7 @@ class AWSv4AuthTests: XCTestCase {
 	func testApplyingAdditionalHeaders() throws {
 		let request = Self.awsURL.downloadRequest
 
-		let headerKey: HTTPHeaderKey = "AdditionalHeaderKey"
+		let headerKey: HTTPHeaders.Header.Key = "AdditionalHeaderKey"
 		let headerValue: HTTPHeaderValue = "AdditionalHeaderValue"
 		let awsSignature = AWSV4Signature(
 			requestMethod: .get,
