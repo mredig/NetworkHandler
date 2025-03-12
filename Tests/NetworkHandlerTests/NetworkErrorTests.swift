@@ -60,6 +60,7 @@ extension NetworkError {
 			.requestTimedOut,
 			.otherError(error: dummyError),
 			.requestCancelled,
+			.noData,
 		]
 		return allErrorCases
 	}
