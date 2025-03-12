@@ -7,8 +7,6 @@ import Algorithms
 public actor MockingEngine: NetworkEngine {
 	public var acceptedIntercepts: [Key: SmartResponseMockBlock] { get async { await server.acceptedIntercepts } }
 
-	public var mockStorage: [String: Data]  { get async { await server.mockStorage } }
-
 	let server = MockingServer()
 
 	public init() {}
@@ -266,7 +264,7 @@ extension MockingEngine {
 	public actor MockingServer {
 		var acceptedIntercepts: [Key: SmartResponseMockBlock] = [:]
 
-		var mockStorage: [String: Data] = [:]
+		public var mockStorage: [String: Data] = [:]
 
 		func modifyProperties<E: Error>(_ block: @Sendable (isolated MockingServer) throws(E) -> Void) throws(E) {
 			try block(self)
@@ -312,160 +310,6 @@ extension MockingEngine {
 				try responseStreamContinuation.yield(.bodyStreamChunk(Array(chunk)))
 			}
 		}
-
-		func processMock(
-			_ request: NetworkRequest,
-			interceptor: @escaping @Sendable SmartResponseMockBlock,
-			logger: Logger?
-		) async throws(NetworkError) -> (
-			uploadProgress: UploadProgressStream,
-			responseTask: ETask<EngineResponseHeader, NetworkError>,
-			responseBody: ResponseBodyStream
-		) {
-			let (uploadProgress, responseTask, responseBody) = try await self._processMock(request, interceptor: interceptor, logger: logger)
-
-			// poor substitute for a real timeout
-			Task {
-				try await Task.sleep(for: .seconds(request.timeoutInterval))
-				responseBody.cancel(throwing: URLError(.timedOut))
-			}
-
-			return (uploadProgress, responseTask, responseBody)
-		}
-
-		private func _processMock(
-			_ request: NetworkRequest,
-			interceptor: @escaping @Sendable SmartResponseMockBlock,
-			logger: Logger?
-		) async throws(NetworkError) -> (
-			uploadProgress: UploadProgressStream,
-			responseTask: ETask<EngineResponseHeader, NetworkError>,
-			responseBody: ResponseBodyStream
-		) {
-			let (upProg, upProgCont) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
-			let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
-
-			let everythingTask = ETask { () async throws(NetworkError) in
-				try await NetworkError.captureAndConvert {
-					let clientData = try await loadFromClient(
-						request,
-						sendProgContinuation: upProgCont,
-						logger: logger)
-					try upProgCont.finish()
-
-					return try await interceptor(self, request, clientData)
-				}
-			}
-
-			let responseTask = ETask { () async throws(NetworkError) in
-				try await everythingTask.value.response
-			}
-
-			Task {
-				guard
-					let responseBody = try await everythingTask.value.data
-				else {
-					try bodyContinuation.finish()
-					return
-				}
-
-				let size = 1024 * 1024 // 1 MB
-
-				do {
-					for chunk in responseBody.chunks(ofCount: size) {
-						try Task.checkCancellation()
-						try bodyContinuation.yield(Array(chunk))
-						try await Task.sleep(for: .milliseconds(20))
-					}
-					try bodyContinuation.finish()
-				} catch {
-					try bodyContinuation.finish(throwing: error)
-				}
-			}
-
-			upProgCont.onFinish { reason in
-				switch reason {
-				case .cancelled:
-					everythingTask.cancel()
-				case .finished(let error):
-					guard error != nil else { return }
-					everythingTask.cancel()
-				@unknown default:
-					print("Unexpected reason. Cancelling: \(reason)")
-					everythingTask.cancel()
-				}
-			}
-
-			bodyContinuation.onFinish { reason in
-				switch reason {
-				case .cancelled:
-					everythingTask.cancel()
-				case .finished(let error):
-					guard error != nil else { return }
-					everythingTask.cancel()
-				}
-			}
-
-			return (upProg, responseTask, bodyStream)
-		}
-
-		private func loadFromClient(
-			_ request: NetworkRequest,
-			sendProgContinuation: UploadProgressStream.Continuation,
-			logger: Logger?
-		) async throws(NetworkError) -> Data? {
-			logger?.debug("Loading request from client", metadata: ["URL": "\(request.url)"])
-
-			func streamToData(_ stream: InputStream) async throws(NetworkError) -> Data {
-				try await NetworkError.captureAndConvert {
-					defer { try? sendProgContinuation.finish() }
-					let bufferSize = 1024 * 1024 * 1 // 1 MB
-					let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 1024 * 1024 * 4)
-					defer { buffer.deallocate() }
-					guard let bufferPointer = buffer.baseAddress else {
-						throw NetworkError.unspecifiedError(reason: "Failure to create buffer")
-					}
-
-					var totalSent: Int64 = 0
-					stream.open()
-					defer { stream.close() }
-					var accumulator = Data()
-					while stream.hasBytesAvailable {
-						try await Task.sleep(for: .milliseconds(200))
-						try Task.checkCancellation()
-						let bytesRead = stream.read(bufferPointer, maxLength: bufferSize)
-						accumulator.append(bufferPointer, count: bytesRead)
-						totalSent += Int64(bytesRead)
-						try sendProgContinuation.yield(totalSent)
-					}
-					return accumulator
-				}
-			}
-
-			var data: Data?
-			switch request {
-			case .upload(_, let payload):
-				switch payload {
-				case .localFile(let url):
-					guard
-						let inputStream = InputStream(url: url)
-					else { throw .unspecifiedError(reason: "Error opening file for mock upload") }
-					data = try await streamToData(inputStream)
-				case .data(let inData):
-					let inputStream = InputStream(data: inData)
-					data = try await streamToData(inputStream)
-				case .streamProvider(let streamProvider):
-					data = try await streamToData(streamProvider)
-				case .inputStream(let stream):
-					data = try await streamToData(stream)
-				}
-			case .download(let downloadEngineRequest):
-				data = downloadEngineRequest.payload
-			}
-
-			return data
-		}
-
 
 		enum TransferChunk {
 			case requestHeader(NetworkRequest)
