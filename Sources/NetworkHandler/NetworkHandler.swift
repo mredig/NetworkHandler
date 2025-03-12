@@ -341,10 +341,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 						$0.expectedContentLength = data.count
 					case .localFile(let fileURL):
 						$0.expectedContentLength = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize
-					case .streamProvider(let stream):
-						$0.expectedContentLength = stream.totalStreamBytes
-					case .inputStream:
-						$0.expectedContentLength = nil
+					case .inputStream(let stream):
+						$0.expectedContentLength = (stream as? KnownLengthStream)?.totalStreamBytes
 					}
 				}
 				if inputReq != uploadRequest {
@@ -476,7 +474,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 				if case .upload(let uploadReq, payload: let payload) = theRequest {
 					switch payload {
-					case .inputStream(let stream), .streamProvider(let stream as InputStream):
+					case .inputStream(let stream):
 						guard let retryStream = stream as? RetryableStream else {
 							logger.error("Streams cannot retry unless they conform to `RetryableStream`")
 							throw theError

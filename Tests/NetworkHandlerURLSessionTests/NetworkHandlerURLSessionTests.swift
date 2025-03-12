@@ -69,11 +69,6 @@ struct NetworkHandlerURLSessionTests: Sendable {
 		try await commonTests.uploadFileURL(engine: engine)
 	}
 
-	@Test func uploadStreamProvider() async throws {
-		let mockingEngine = generateEngine()
-		try await commonTests.uploadStreamProvider(engine: mockingEngine)
-	}
-
 	@Test func uploadData() async throws {
 		let mockingEngine = generateEngine()
 		try await commonTests.uploadData(engine: mockingEngine)

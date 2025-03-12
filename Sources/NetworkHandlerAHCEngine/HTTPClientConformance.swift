@@ -103,8 +103,8 @@ extension HTTPClient: NetworkEngine {
 			})
 		case .data(let data):
 			httpClientRequest.body = .data(data)
-		case .inputStream(let stream), .streamProvider(let stream as InputStream):
-			httpClientRequest.body = .stream(contentLength: nil, { [stream] writer in
+		case .inputStream(let stream):
+			httpClientRequest.body = .stream(contentLength: request.expectedContentLength.flatMap(Int64.init), { [stream] writer in
 				streamWriter(inputStream: stream, writer: writer)
 			})
 		}

@@ -58,11 +58,6 @@ struct NetworkHandlerAHCTests: Sendable {
 		try await commonTests.expect201OnlyGet200(engine: mockingEngine)
 	}
 
-	@Test func uploadStreamProvider() async throws {
-		let mockingEngine = generateEngine()
-		try await commonTests.uploadStreamProvider(engine: mockingEngine)
-	}
-
 	@Test func uploadData() async throws {
 		let mockingEngine = generateEngine()
 		try await commonTests.uploadData(engine: mockingEngine)

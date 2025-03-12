@@ -208,7 +208,7 @@ public actor MockingEngine: NetworkEngine {
 						let stream = InputStream(url: localFile)
 					else { throw NetworkError.unspecifiedError(reason: "Error opening file for mock upload") }
 					try await sendStream(stream)
-				case .inputStream(let inputStream), .streamProvider(let inputStream as InputStream):
+				case .inputStream(let inputStream):
 					try await sendStream(inputStream)
 				}
 			}

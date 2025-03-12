@@ -81,8 +81,6 @@ extension URLSession: NetworkEngine {
 				let stream = InputStream(url: localFile)
 			else { throw .otherError(error: UploadError.createStreamFromLocalFileFailed) }
 			payloadStream = stream
-		case .streamProvider(let stream):
-			payloadStream = stream
 		case .inputStream(let stream):
 			payloadStream = stream
 		}
