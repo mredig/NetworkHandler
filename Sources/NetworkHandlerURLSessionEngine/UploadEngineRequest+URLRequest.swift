@@ -22,7 +22,7 @@ extension UploadEngineRequest {
 		new.allowsExpensiveNetworkAccess = storedRequest.allowsExpensiveNetworkAccess
 		new.networkServiceType = storedRequest.networkServiceType
 		new.attribution = storedRequest.attribution
-		if #available(macOS 15.0, *) {
+		if #available(macOS 15.0, iOS 18.0, *) {
 			new.allowsPersistentDNS = storedRequest.allowsPersistentDNS
 		}
 		new.assumesHTTP3Capable = storedRequest.assumesHTTP3Capable

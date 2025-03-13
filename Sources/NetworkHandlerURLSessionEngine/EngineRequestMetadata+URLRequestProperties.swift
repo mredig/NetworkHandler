@@ -60,7 +60,7 @@ public extension EngineRequestMetadata {
 		set { derivedURLRequest.attribution = newValue }
 	}
 
-	@available(macOS 15.0, iOS 16.1, tvOS 16.1, visionOS 1.0, watchOS 9.1, *)
+	@available(macOS 15.0, iOS 18.0, tvOS 18.0, visionOS 1.0, watchOS 9.1, *)
 	var allowsPersistentDNS: Bool {
 		get { derivedURLRequest.allowsPersistentDNS }
 		set { derivedURLRequest.allowsPersistentDNS = newValue }
