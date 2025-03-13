@@ -3,6 +3,12 @@ import Foundation
 import SwiftPizzaSnips
 import Logging
 
+/// The bread and butter of this package!
+///
+/// `NetworkHandler` is the central location housing the high level logic for how to handle networking.
+///
+/// All of the transfer methods are foundationally built off of `streamMahDatas()`, implementing the specific behavior
+/// required for each individual method.
 public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withable {
 	// MARK: - Properties
 	public let logger: Logger
@@ -12,7 +18,10 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	 optional, but automatic when making requests using the `usingCache` flag.
 	 */
 	let cache: NetworkCache
-
+	
+	/// Used to label this instance of `NetworkHandler` for things like logging or debugging. Also useful
+	/// if you desire anthropomorphizing `NetworkHandler` instances as they are created ephemerally in
+	/// memory only to be ruthlessly destroyed once their usefulness has expired. I call this instance "Jimi".
 	public let name: String
 
 	/// Underlying engine running network transactions
@@ -41,6 +50,13 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		engine.shutdown()
 	}
 
+	/// Clears the contents of the cache either in memory, on disk, or both.
+	///
+	/// - Parameters:
+	///   - memory: A Boolean value indicating whether to clear the in-memory cache. Defaults to `true`.
+	///   - disk: A Boolean value indicating whether to clear the disk cache. Defaults to `true`.
+	///
+	/// Use this method to completely wipe the cache, ensuring that no stale or outdated data remains. Logs these operations for visibility.
 	public func resetCache(memory: Bool = true, disk: Bool = true) {
 		cache.reset(memory: memory, disk: disk)
 	}
@@ -116,6 +132,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   at all. **Default**: `.dontUseCache`
 	///   - decoder: The decoder used to perform the decoding
 	///   - requestLogger: Logger to use for this request
+	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
+	///   allowing you to cancel the request before it completes.
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the decoded body of the response.
 	@NHActor
@@ -146,6 +164,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - payload: The file/data/stream you're uploading.
 	///   - delegate: Provides transfer lifecycle information
 	///   - requestLogger: Logger to use for this request
+	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
+	///   allowing you to cancel the request before it completes.
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
@@ -165,7 +185,20 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			cancellationToken: cancellationToken,
 			onError: onError)
 	}
-
+	
+	/// Downloads remote data to a local file URL.
+	/// - Parameters:
+	///   - request: DownloadEngineRequest
+	///   - outFileURL: The file URL to save the final data into (also used as the temporary file if none is explicitly specified)
+	///   - tempoaryFileURL: The file URL to save file into as it's accumulated before the transfer is completed.
+	///   - delegate: Provides transfer lifecycle information
+	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
+	///   at all. **Default**: `.dontUseCache`
+	///   - requestLogger: Logger to use for this request
+	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
+	///   allowing you to cancel the request before it completes.
+	///   - onError: Error and retry handling
+	/// - Returns: The response header from the server.
 	@NHActor
 	@discardableResult public func downloadMahFile(
 		for request: DownloadEngineRequest,
@@ -277,6 +310,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
 	///   at all. **Default**: `.dontUseCache`
 	///   - requestLogger: Logger to use for this request
+	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
+	///   allowing you to cancel the request before it completes.
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
@@ -321,7 +356,10 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	/// Streams data from a server. Powers the rest of NetworkHandler.
 	/// - Parameters:
 	///   - request: NetworkRequest
+	///   - requestLogger: Logger to use for this request
 	///   - delegate: Provides transfer lifecycle information
+	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
+	///   allowing you to cancel the request before it completes.
 	/// - Returns: The response header from the server and a data stream that provides data as it is received.
 	@NHActor
 	@discardableResult public func streamMahDatas(
