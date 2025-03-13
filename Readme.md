@@ -1,56 +1,52 @@
-# NetworkHandler and NetworkHalpers
+# NetworkHandler
 
-NetworkHandler was originally created to reduce boilerplate when using `URLSession`. With the advent of Async/Await in Swift 5.5, that's largely a non issue now. However, there are still some shortcomings of URLSession.
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmredig%2FNetworkHandler%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/mredig/NetworkHandler)
 
-### NetworkHalpers
-*Bring some type safety and convenience to constructing a `URLRequest`*
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmredig%2FNetworkHandler%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/mredig/NetworkHandler)
+NetworkHandler was originally created to reduce boilerplate when using `URLSession`. However, it's since grown into a unified, consistent abstraction built on top any engine conforming to `NetworkEngine`
 
-`NetworkHalpers` may be used without `NetworkHandler`. However, `NetworkHandler` depends on `NetworkHalpers`.
-
-* `HTTPMethod`
-	* a string backed, extensible, but type safe implementation for HTTP methods with presets for common methods (`GET`, `POST`, etc)
-* `HTTPHeaderKey`
-	* a string backed, extensible, but type safe implementation for HTTP header keys with presets for common keys (`Authorization`, `Content-Type`, etc)
-* `HTTPHeaderValue`
-	* a string backed, extensible, but type safe implementation for HTTP header values with presets for some common Content-Types (`image/jpeg`, `application/json`, etc)
-* `MultipartFormInputStream`
-	* Allows convenient construction of a multipart form constructed via an `InputStream` for efficient form uploading.
-* `URLRequest`
-	* adds support for utilizing the above types
-	* adds `func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType, encoder: NHEncoder? = nil)` as a convenient way to encapsulate data for sending to servers. Uses `URLRequest.defaultEncoder` which can be either a `JSONEncoder` or `PropertyListEncoder` (or any other encoder you create and conform to `NHEncoder`)
-	* adds `func setContentType(_ contentType: HTTPHeaderValue)` and `func setAuthorization(_ value: HTTPHeaderValue)` as convenient methods to set exceptionally common headers on requests
-* `URL`
-	* `var urlRequest: URLRequest` adds convenient creation of a `URLRequest` from a `URL`
-	
-### NetworkHelper
-*Adds robust custom caching, progress tracking, control over how `URLSessionTasks` are constructed, and convenience for mocking on top of `URLSession`*
-
-1. Create and customize a `NetworkRequest` from a url `url.request`
-	* in addition to all `URLRequest` properties and methods, you can additionally set the priority that a task will be created, provide a decoder for decoding a `Decodable` response, and provide the expected response code range to have an error automatcially thrown if the code is not within the range.
-1. Optionally create an object conforming to `NetworkHandlerTransferDelegate` for progress and state tracking or if you otherwise want to be able to retrieve the associated `URLSessionTask` that is running behind the async method.
-1. From an instance of `NetworkHelper` (or the default instance) initiate an async transfer via `transferMahDatas` or `transferMahCodableDatas`
-1. ????
-1. PROFIT
-
-### Installation:
-
-1. Download and install
-	* SPM (recommended)
-		1. Add the line `.package(url: "https://github.com/mredig/NetworkHandler.git", .upToNextMinor(from: "1.0.0"))` to the appropriate section of your Package.swift
-		1. The Package Name is `NetworkHandler` - add that as a dependency to any targets you want to use it in.
-		swift package update or use Xcode
-		1. Add `import NetworkHandler` to the top of any file you with to use it in
-	* Brute Force Files
-		* Alternatively, you could copy all the swift files in the `Sources/NetworkHandler` folder to your project, if you're masochistic.
-1. Import to any files you want to use it in
-	`import NetworkHandler`
-1. Use it!
-
-#### Compatibility
-Everything should be compatible with all Apple platforms that support Swift 5.5 with Async/Await.
-However, while the previous version was theoretically cross compatible with Linux, this latest iteration is not. I started an attempt (which you can see on the `linux-compatibility` branch), but ultimately it was more involved than the time I had available to proceed with support. Right now, the main obstacle is KVO compatibility for progress tracking a download. If someone is abitious enough, you should be able to get progress information from the delegate's data loaded method and open a PR. A couple files also need `FoundationNetworking` imported conditionally for Linux.
+By default, `NetworkEngine` implementations are provided for both `URLSession` if you have full access to `Foundation` (aka Apple platforms) and `AsyncHTTPClient` when you don't (or do, I'm not your mom). 
 
 
-#### To Do (contribution ideas)
-* after every task, grab its metrics (URLSessionMetrics or something like that) to make an easy to use interface to see network quality
-* it'd be nice to have a codable method return a value directly decoded instead of needing a tuple (might be a 3.0 feature)
+### Getting Started
+
+1. Add the line 
+	```swift 
+	.package(url: "https://github.com/mredig/NetworkHandler.git", from: "3.0.0"))
+	``` 
+	to the appropriate section of your Package.swift
+1. Add the dependency `NetworkHandlerURLSessionEngine` or `NetworkHandlerAHCEngine`, whichever you wish to use (The URLSession engine is unavailable on Linux) to your target.
+1. Add `import NetworkHandler` to the top of any file you with to use it in
+1. Here's a simple demo usage:
+
+	```swift
+	public struct DemoModel: Codable, Equatable, Sendable {
+		public let id: UUID
+		public var title: String
+		public var subtitle: String
+		public var imageURL: URL
+
+		public init(id: UUID = UUID(), title: String, subtitle: String, imageURL: URL) {
+			self.id	= id
+			self.title = title
+			self.subtitle = subtitle
+			self.imageURL = imageURL
+		}
+	}
+
+	func getDemoModel() async throws(NetworkError) {
+		let urlSession = URLSession.asEngine(withConfiguration: .networkHandlerDefault)
+
+		let networkHander = NetworkHandler(name: "Jimbob", engine: urlSession)
+
+		let url = URL(string: "https://s3.wasabisys.com/network-handler-tests/coding/demoModel.json")
+
+		let resultModel: DemoModel = try await nh.downloadMahCodableDatas(for: url.downloadRequest).decoded
+
+		print(resultModel)
+	}
+	```
+
+
+
+Further documentation is available on [SwiftPackageIndex](https://swiftpackageindex.com/mredig/NetworkHandler/main/documentation/networkhandler)

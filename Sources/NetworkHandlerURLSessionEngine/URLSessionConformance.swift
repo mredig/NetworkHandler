@@ -4,7 +4,12 @@ import SwiftPizzaSnips
 import Logging
 
 extension URLSession: NetworkEngine {
-	public static func asEngine(withConfiguration configuration: URLSessionConfiguration = .default) -> URLSession {
+	/// During testing and troubleshooting, I had to constrain the URLSession delegate to a single operation queue
+	/// for some reason. I believe I resolved the issue with correct thread safety in the delegate, but I don't want to
+	/// remove this standardized configuration until I know we are good to go.
+	/// - Parameter configuration: URLSessionConfiguration - defaults to `.networkHandlerDefault`
+	/// - Returns: a new `URLSession`
+	public static func asEngine(withConfiguration configuration: URLSessionConfiguration = .networkHandlerDefault) -> URLSession {
 		let delegate = UploadDellowFelegate()
 		let queue = OperationQueue()
 		queue.maxConcurrentOperationCount = 1
