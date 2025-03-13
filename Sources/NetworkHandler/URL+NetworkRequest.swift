@@ -1,8 +1,8 @@
 import Foundation
 
 public extension URL {
-	var downloadRequest: DownloadEngineRequest {
-		DownloadEngineRequest(url: self)
+	var downloadRequest: GeneralEngineRequest {
+		GeneralEngineRequest(url: self)
 	}
 
 	var uploadRequest: UploadEngineRequest {

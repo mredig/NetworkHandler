@@ -15,7 +15,7 @@ struct NetworkRequestTests {
 
 		let data = try #require(request.payload)
 
-		let decoded = try DownloadEngineRequest.defaultDecoder.decode(DummyType.self, from: data)
+		let decoded = try GeneralEngineRequest.defaultDecoder.decode(DummyType.self, from: data)
 		#expect(decoded == testDummy)
 	}
 

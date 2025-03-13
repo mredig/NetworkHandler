@@ -7,11 +7,11 @@ import SwiftPizzaSnips
 ///
 /// This is a lowst common denominator representation of an HTTP request. If you're conforming your own
 /// engine to `NetworkEngine`, you'll most likely want to add a computed property or function to convert
-/// a `DownloadEngineRequest` to the request type native to your engine.
+/// a `GeneralEngineRequest` to the request type native to your engine.
 @dynamicMemberLookup
-public struct DownloadEngineRequest: Hashable, Sendable, Withable {
+public struct GeneralEngineRequest: Hashable, Sendable, Withable {
 	/// Internal metadata used to store common HTTP request properties, such as HTTP headers, response codes,
-	/// and URLs. This allows `DownloadEngineRequest` to provide a lightweight wrapper around core functionality
+	/// and URLs. This allows `GeneralEngineRequest` to provide a lightweight wrapper around core functionality
 	/// without duplicating state or logic.
 	package var metadata: EngineRequestMetadata
 
@@ -83,7 +83,7 @@ public struct DownloadEngineRequest: Hashable, Sendable, Withable {
 	/// - Throws: Errors from the encoder if the object cannot be serialized.
 	@discardableResult
 	public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType, withEncoder encoder: NHEncoder? = nil) throws -> Data {
-		let encoder = encoder ?? DownloadEngineRequest.defaultEncoder
+		let encoder = encoder ?? GeneralEngineRequest.defaultEncoder
 
 		let data = try encoder.encode(encodableType)
 

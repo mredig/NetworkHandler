@@ -3,7 +3,7 @@ import Foundation
 import SwiftPizzaSnips
 
 /// An HTTP request type designed specifically for uploading larger payloads, such as files or
-/// large binary data. Unlike `DownloadEngineRequest`, this tracks both upload and download progress.
+/// large binary data. Unlike `GeneralEngineRequest`, this tracks both upload and download progress.
 ///
 /// The request metadata is shared with `EngineRequestMetadata`, simplifying configuration for things
 /// like headers and request IDs.

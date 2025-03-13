@@ -32,7 +32,7 @@ public protocol NetworkEngine: Sendable, Withable {
 	///   - request: The request
 	///   - requestLogger: logger to use
 	func fetchNetworkData(
-		from request: DownloadEngineRequest,
+		from request: GeneralEngineRequest,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream)
 

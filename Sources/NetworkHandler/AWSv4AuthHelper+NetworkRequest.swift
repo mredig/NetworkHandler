@@ -64,10 +64,10 @@ extension AWSV4Signature {
 			hexContentHash: hexContentHash)
 	}
 
-	/// Initializes an `AWSV4Signature` instance for a `DownloadEngineRequest`.
+	/// Initializes an `AWSV4Signature` instance for a `GeneralEngineRequest`.
 	///
 	/// - Parameters:
-	///   - request: A `DownloadEngineRequest` object representing an HTTP download.
+	///   - request: A `GeneralEngineRequest` object representing an HTTP download.
 	///   - date: The date and time for the request signature. Defaults to the current system date.
 	///   - awsKey: The AWS access key string.
 	///   - awsSecret: The AWS secret access key string.
@@ -75,7 +75,7 @@ extension AWSV4Signature {
 	///   - awsService: The AWS service name (e.g., `s3`).
 	///   - hexContentHash: The precomputed SHA-256 hash of the request payload, as a hex string.
 	public init(
-		for request: DownloadEngineRequest,
+		for request: GeneralEngineRequest,
 		date: Date = Date(),
 		awsKey: String,
 		awsSecret: String,
@@ -127,16 +127,16 @@ extension AWSV4Signature {
 		return request
 	}
 
-	/// Processes a `DownloadEngineRequest` by attaching AWS-signed headers.
+	/// Processes a `GeneralEngineRequest` by attaching AWS-signed headers.
 	///
 	/// This function  validates the `url` and `method`, generates AWS-specific headers, and merges
-	/// them into the request. The final `DownloadEngineRequest` is returned post-processing.
+	/// them into the request. The final `GeneralEngineRequest` is returned post-processing.
 	///
-	/// - Parameter request: A `DownloadEngineRequest` to be signed.
-	/// - Returns: The updated `DownloadEngineRequest` with the signed headers integrated.
+	/// - Parameter request: A `GeneralEngineRequest` to be signed.
+	/// - Returns: The updated `GeneralEngineRequest` with the signed headers integrated.
 	/// - Throws: `AWSAuthError` if the `url` or `method` on the request does not match
 	///   those defined in the signature context.
-	public func processRequest(_ request: DownloadEngineRequest) throws -> DownloadEngineRequest {
+	public func processRequest(_ request: GeneralEngineRequest) throws -> GeneralEngineRequest {
 		let processed = try processRequest(.download(request))
 		guard case .download(let request) = processed else {
 			fatalError("Illegal request")

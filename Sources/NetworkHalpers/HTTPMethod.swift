@@ -1,7 +1,7 @@
 import Foundation
 import SwiftPizzaSnips
 
-/// Pre-typed strings for use with `NetworkRequest`, `DownloadEngineRequest`, and `UploadEngineRequest`
+/// Pre-typed strings for use with `NetworkRequest`, `GeneralEngineRequest`, and `UploadEngineRequest`
 public struct HTTPMethod:
 	RawRepresentable,
 	Sendable,

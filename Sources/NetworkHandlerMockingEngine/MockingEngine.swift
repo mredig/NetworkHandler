@@ -40,7 +40,7 @@ public actor MockingEngine: NetworkEngine {
 	}
 
 	public func fetchNetworkData(
-		from request: DownloadEngineRequest,
+		from request: GeneralEngineRequest,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
 

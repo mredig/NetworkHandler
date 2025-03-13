@@ -3,7 +3,7 @@ import Foundation
 import SwiftPizzaSnips
 
 /// Encapsulates shared metadata for a network engine request, such as headers, response codes,
-/// HTTP method, and URL. Designed to be shared across related request types (`DownloadEngineRequest`
+/// HTTP method, and URL. Designed to be shared across related request types (`GeneralEngineRequest`
 /// and `UploadEngineRequest`) for centralized management of common attributes.
 public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 	/// Defines the range of acceptable HTTP response status codes for a request.

@@ -10,7 +10,7 @@ import Logging
 extension HTTPClient: @retroactive Withable {}
 extension HTTPClient: NetworkEngine {
 	public func fetchNetworkData(
-		from request: DownloadEngineRequest,
+		from request: GeneralEngineRequest,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
 		let httpClientRequest = request.httpClientRequest
