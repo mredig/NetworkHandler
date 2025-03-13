@@ -2,8 +2,15 @@ import NetworkHalpers
 import Foundation
 import SwiftPizzaSnips
 
-/// A network request primarily intended for sending larger amounts of data. It might include a large blob or chunked
-/// stream for uploading. Progress is tracked for uploading AND downloading.
+/// An HTTP request type designed specifically for uploading larger payloads, such as files or
+/// large binary data. Unlike `DownloadEngineRequest`, this tracks both upload and download progress.
+///
+/// The request metadata is shared with `EngineRequestMetadata`, simplifying configuration for things
+/// like headers and request IDs.
+///
+/// This is a lowst common denominator representation of an HTTP request. If you're conforming your own
+/// engine to `NetworkEngine`, you'll most likely want to add a computed property or function to convert
+/// a `UploadEngineRequest` to the request type native to your engine.
 @dynamicMemberLookup
 public struct UploadEngineRequest: Hashable, Sendable, Withable {
 	package var metadata: EngineRequestMetadata

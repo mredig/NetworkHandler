@@ -2,8 +2,19 @@ import NetworkHalpers
 import Foundation
 import SwiftPizzaSnips
 
-/// Carries common networking request data, such as the url the request is for. 
+/// Encapsulates shared metadata for a network engine request, such as headers, response codes,
+/// HTTP method, and URL. Designed to be shared across related request types (`DownloadEngineRequest`
+/// and `UploadEngineRequest`) for centralized management of common attributes.
 public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
+	/// Defines the range of acceptable HTTP response status codes for a request.
+	/// This type encapsulates response codes as a set of integers and provides
+	/// conveniences for constructing it from individual integers, ranges, or arrays.
+	///
+	/// Example:
+	/// ```swift
+	/// let successCodes: ResponseCodes = [200, 201, 202]
+	/// let any2xxCode = ResponseCodes(range: 200..<300)
+	/// ```
 	public struct ResponseCodes: Hashable, Sendable, Withable, RawRepresentable, ExpressibleByIntegerLiteral, ExpressibleByArrayLiteral {
 		public var rawValue: Set<Int>
 
@@ -24,8 +35,20 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 		}
 	}
 
+	/// Specifies the range or list of HTTP response codes that are considered valid for this request.
+	/// Responses falling outside this range may be treated as errors, depending on the network engine's logic.
+	///
+	/// Example:
+	/// ```swift
+	/// metadata.expectedResponseCodes = [200, 201, 202]
+	/// metadata.expectedResponseCodes = ResponseCodes(range: 200..<300)
+	/// ```
 	public var expectedResponseCodes: ResponseCodes
 
+	/// Gets or sets the expected size of the response payload in bytes via the `Content-Length` header.
+	///
+	/// When set, the `Content-Length` header is automatically updated.
+	/// Setting this to `nil` removes the header from the metadata.
 	public var expectedContentLength: Int? {
 		get { headers[.contentLength].flatMap { Int($0.rawValue) } }
 		set {
@@ -47,6 +70,11 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 
 	private var extensionStorage: [String: AnyHashable] = [:]
 
+	/// The unique ID used to identify this request. Follows the `X-Request-ID` HTTP header convention.
+	///
+	/// Automatically populated with a UUID string upon initialization if autogeneration is enabled.
+	/// To disable this behavior, pass `autogenerateRequestID: false` during construction.
+	///
 	/// See [X-Request-ID](https://http.dev/x-request-id) for more info. Note that while it's an optional header,
 	/// convention dictates that it should be the same when retrying a request.
 	public var requestID: String? {
@@ -60,9 +88,15 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 		}
 	}
 
-	/// To support specialized properties for your platform, you can create an extension that stores its values here
-	/// (since extensions only support computed properties)
+	/// Stores platform or library-specific metadata in a key-value dictionary.
 	///
+	/// This mechanism allows extending `EngineRequestMetadata` with custom properties, especially
+	/// in extensions (since extensions cannot introduce stored properties).
+	///
+	/// - Parameters:
+	///   - value: The value to store. Setting `nil` removes the key from the storage.
+	///   - key: A unique identifier for the metadata entry.
+	///   
 	/// For example, if you want to use Foundation's networking as your engine and use URLRequest, you could add
 	///
 	/// ```swift
