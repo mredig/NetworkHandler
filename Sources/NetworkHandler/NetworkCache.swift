@@ -54,6 +54,20 @@ class NetworkCache {
 		set { cache.name = newValue }
 	}
 
+	/// Access or modify the object associated with a specific `key` in the cache.
+	///
+	/// - Parameter key: The unique string representing the object to retrieve or store.
+	/// - Returns: The `NetworkCacheItem` associated with the provided key, or `nil` if no item exists in
+	/// either the memory cache or disk cache.
+	///
+	/// When accessing a key:
+	/// - Attempts to retrieve the corresponding object from the in-memory cache first (faster).
+	/// - If not found in memory, checks the disk-based backing store (slower), then decodes it into a `NetworkCacheItem`.
+	///
+	/// When storing a key:
+	/// - Adds the item to both the memory cache and the disk cache. If the value is `nil`, the entry is removed from both caches.
+	///
+	/// Logs the cache hit/miss or storage activity for debugging purposes.
 	public subscript(key: String) -> NetworkCacheItem? {
 		get {
 			if let cachedItem = cache.object(forKey: key as NSString) {
@@ -79,6 +93,15 @@ class NetworkCache {
 	public let logger: Logger
 
 	// MARK: - Init
+	/// Creates a new instance of `NetworkCache` with a given name, logger, and disk cache capacity.
+	///
+	/// - Parameters:
+	///   - name: The name of the cache, used for organization and logging clarity.
+	///   - logger: A `Logger` instance to report cache activity.
+	///   - diskCacheCapacity: The maximum size of the disk cache in bytes. Defaults to `.max`, meaning unlimited.
+	///
+	/// This initializer sets up both an in-memory cache and a redundant disk cache, providing robust, persistent storage.
+	/// A secondary logger is configured for the disk cache, based on the provided logger's settings.
 	init(name: String, logger: Logger, diskCacheCapacity: UInt64 = .max) {
 		self.logger = logger
 		var diskLogger = Logger(label: "\(logger.label) - Disk Cache")
@@ -89,6 +112,13 @@ class NetworkCache {
 	}
 
 	// MARK: - Methods
+	/// Clears the contents of the cache either in memory, on disk, or both.
+	///
+	/// - Parameters:
+	///   - memory: A Boolean value indicating whether to clear the in-memory cache. Defaults to `true`.
+	///   - disk: A Boolean value indicating whether to clear the disk cache. Defaults to `true`.
+	///
+	/// Use this method to completely wipe the cache, ensuring that no stale or outdated data remains. Logs these operations for visibility.
 	public func reset(memory: Bool = true, disk: Bool = true) {
 		if memory {
 			cache.removeAllObjects()
@@ -99,6 +129,13 @@ class NetworkCache {
 		}
 	}
 
+	/// Removes and optionally returns the cached object associated with the specified key.
+	///
+	/// - Parameter key: The unique string representing the object to remove from the cache.
+	/// - Returns: The `NetworkCacheItem` that was associated with the key, or `nil` if no matching item was found.
+	///
+	/// This method removes the object from both the in-memory cache and the disk cache. It also logs the key removal for auditability.
+	/// The return value allows you to retrieve the removed object if necessary.
 	@discardableResult public func remove(objectFor key: String) -> NetworkCacheItem? {
 		let cachedItem = cache.object(forKey: key as NSString)
 		cache.removeObject(forKey: key as NSString)
