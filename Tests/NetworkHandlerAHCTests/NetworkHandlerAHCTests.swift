@@ -42,7 +42,7 @@ struct NetworkHandlerAHCTests: Sendable {
 			engine: mockingEngine,
 			expectedError: NetworkError.httpUnexpectedStatusCode(
 				code: 404,
-				originalRequest: .general(demo404URL.downloadRequest),
+				originalRequest: .general(demo404URL.generalRequest),
 				data: nil))
 	}
 

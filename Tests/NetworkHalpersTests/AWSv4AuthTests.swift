@@ -44,7 +44,7 @@ class AWSv4AuthTests: XCTestCase {
 	}
 
 	func testApplyingAdditionalHeaders() throws {
-		let request = Self.awsURL.downloadRequest
+		let request = Self.awsURL.generalRequest
 
 		let headerKey: HTTPHeaders.Header.Key = "AdditionalHeaderKey"
 		let headerValue: HTTPHeaders.Header.Value = "AdditionalHeaderValue"

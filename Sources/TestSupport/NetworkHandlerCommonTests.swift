@@ -48,14 +48,14 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let rawStart = Date()
 		let image1Result = try await nh.downloadMahDatas(
-			for: imageURL.downloadRequest,
+			for: imageURL.generalRequest,
 			usingCache: .key("kitten"),
 			requestLogger: logger)
 		let rawFinish = Date()
 
 		let cacheStart = Date()
 		let image2Result = try await nh.downloadMahDatas(
-			for: imageURL.downloadRequest,
+			for: imageURL.generalRequest,
 			usingCache: .key("kitten"),
 			requestLogger: logger)
 		let cacheFinish = Date()
@@ -106,7 +106,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		defer { nh.resetCache() }
 
 		let resultModel: D = try await nh.downloadMahCodableDatas(
-			for: modelURL.downloadRequest,
+			for: modelURL.generalRequest,
 			delegate: nil,
 			requestLogger: logger).decoded
 
@@ -127,7 +127,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		defer { nh.resetCache() }
 
 		let url = chonkURL
-		let request = url.downloadRequest
+		let request = url.generalRequest
 
 		let outputFileURL = URL.temporaryDirectory.appending(component: "downloadfile").appendingPathExtension("test")
 		let tempFileURL = URL.temporaryDirectory.appending(components: UUID().uuidString)
@@ -180,7 +180,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let resultModel: Result<String, Error> = await Task { [logger] in
 			try await nh.downloadMahCodableDatas(
-				for: url.downloadRequest,
+				for: url.generalRequest,
 				delegate: nil,
 				requestLogger: logger).decoded
 		}.result
@@ -214,7 +214,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		defer { nh.resetCache() }
 
 		let url = demoModelURL
-		let request = url.downloadRequest.with {
+		let request = url.generalRequest.with {
 			$0.expectedResponseCodes = 200
 		}
 		_ = try await nh.transferMahDatas(
@@ -243,7 +243,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let payloadData = Data(##"{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/lighthouse.jpg","subtitle":"BarSub","title":"FooTitle"}"##.utf8)
 		let url = demoModelURL
-		let request = url.downloadRequest.with {
+		let request = url.generalRequest.with {
 			$0.expectedResponseCodes = 201
 			$0.method = .put
 			$0.payload = payloadData
@@ -324,7 +324,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			atomicRequest.value.expectedContentLength != nil,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
-		let dlRequest = url.downloadRequest
+		let dlRequest = url.generalRequest
 
 		let dlResult = try await nh.downloadMahDatas(for: dlRequest).data
 		#expect(
@@ -381,7 +381,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			atomicRequest.value.expectedContentLength != nil,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
-		let dlRequest = url.downloadRequest
+		let dlRequest = url.generalRequest
 
 		let dlResult = try await nh.transferMahDatas(for: .general(dlRequest)).data
 		#expect(
@@ -444,7 +444,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			atomicRequest.value.expectedContentLength != nil,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
-		let dlRequest = uploadURL.downloadRequest
+		let dlRequest = uploadURL.generalRequest
 
 		let dlResult = try await nh.transferMahDatas(for: .general(dlRequest)).data
 		#expect(
@@ -504,7 +504,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			atomicRequest.value.expectedContentLength == nil,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 
-		let dlRequest = uploadURL.downloadRequest
+		let dlRequest = uploadURL.generalRequest
 
 		let dlResult = try await nh.transferMahDatas(for: .general(dlRequest)).data
 		#expect(
@@ -527,7 +527,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0),
 			performing: {
 				let _: DemoModel = try await nh.downloadMahCodableDatas(
-					for: badDemoModelURL.downloadRequest,
+					for: badDemoModelURL.generalRequest,
 					delegate: nil,
 					requestLogger: logger).decoded
 			},
@@ -551,7 +551,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let nh = getNetworkHandler(with: engine)
 		defer { nh.resetCache() }
 
-		let request = randomDataURL.downloadRequest
+		let request = randomDataURL.generalRequest
 
 		let cancelToken = NetworkCancellationToken()
 		let forCancel = Task {
@@ -582,7 +582,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let nh = getNetworkHandler(with: engine)
 		defer { nh.resetCache() }
 
-		let request = randomDataURL.downloadRequest
+		let request = randomDataURL.generalRequest
 
 		let stream = try await nh.streamMahDatas(for: .general(request)).stream
 
@@ -820,7 +820,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		defer { nh.resetCache() }
 
 		let url = randomDataURL
-		let request = url.downloadRequest
+		let request = url.generalRequest
 
 		let accumulator = AtomicValue(value: [Int]())
 		let expectedTotalAtomic = AtomicValue(value: 0)
@@ -909,7 +909,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		defer { nh.resetCache() }
 
 		let url = echoURL
-		let request = url.downloadRequest
+		let request = url.generalRequest
 
 		let echo: BeeEchoModel = try await nh.poll(
 			request: .general(request),

@@ -78,7 +78,7 @@ public class DemoModelController: @unchecked Sendable {
 	public func fetchDemoModels() async throws {
 		let getURL = baseURL.appendingPathExtension("json")
 
-		let request = getURL.downloadRequest
+		let request = getURL.generalRequest
 		let nh = NetworkHandler(name: "Default", engine: HTTPClient())
 
 		do {
@@ -95,7 +95,7 @@ public class DemoModelController: @unchecked Sendable {
 			.appendingPathComponent(model.id.uuidString)
 			.appendingPathExtension("json")
 
-		var request = putURL.downloadRequest
+		var request = putURL.generalRequest
 		request.method = .put
 
 		try request.encodeData(model)
@@ -109,7 +109,7 @@ public class DemoModelController: @unchecked Sendable {
 			.appendingPathExtension("json")
 		let nh = NetworkHandler(name: "Default", engine: HTTPClient())
 
-		var request = deleteURL.downloadRequest
+		var request = deleteURL.generalRequest
 		request.method = .delete
 
 		try await nh.transferMahDatas(for: .general(request))

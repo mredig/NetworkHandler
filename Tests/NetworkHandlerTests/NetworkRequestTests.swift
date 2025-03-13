@@ -9,7 +9,7 @@ struct NetworkRequestTests {
 		let testDummy = DummyType(id: 23, value: "Woop woop woop!", other: 25.3)
 
 		let dummyURL = #URL("https://redeggproductions.com")
-		let request = try dummyURL.downloadRequest.with {
+		let request = try dummyURL.generalRequest.with {
 			try $0.encodeData(testDummy)
 		}
 
@@ -22,7 +22,7 @@ struct NetworkRequestTests {
 	/// Tests adding, setting, and getting header values
 	@Test func requestHeaders() {
 		let dummyURL = #URL("https://redeggproductions.com")
-		let origRequest = dummyURL.downloadRequest.with {
+		let origRequest = dummyURL.generalRequest.with {
 			$0.requestID = nil
 		}
 		var request = NetworkRequest.general(origRequest)
@@ -49,7 +49,7 @@ struct NetworkRequestTests {
 		request.headers = allFields
 		#expect(allFields == request.headers)
 
-		var request2 = dummyURL.downloadRequest.with {
+		var request2 = dummyURL.generalRequest.with {
 			$0.requestID = nil
 		}
 		request2.headers.setValue(.audioMp4, forKey: .contentType)
@@ -64,7 +64,7 @@ struct NetworkRequestTests {
 
 	@Test func requestHeadersWithDuplicates() async throws {
 		let dummyURL = #URL("https://redeggproductions.com")
-		var requestWithNoDup = dummyURL.downloadRequest.with {
+		var requestWithNoDup = dummyURL.generalRequest.with {
 			$0.requestID = nil
 		}
 		requestWithNoDup.headers.addValue("sessionId=abc123", forKey: .cookie)
@@ -79,7 +79,7 @@ struct NetworkRequestTests {
 
 	@Test func requestHeadersWithDuplicatesAddedInDifferentOrder() async throws {
 		let dummyURL = #URL("https://redeggproductions.com")
-		var request1 = dummyURL.downloadRequest.with {
+		var request1 = dummyURL.generalRequest.with {
 			$0.requestID = nil
 		}
 		var request2 = request1
@@ -117,7 +117,7 @@ struct NetworkRequestTests {
 	@Test func requestID() throws {
 		let dummyURL = #URL("https://redeggproductions.com")
 
-		let downRequest = dummyURL.downloadRequest
+		let downRequest = dummyURL.generalRequest
 		#expect(downRequest.requestID != nil)
 
 		let upRequest = dummyURL.uploadRequest

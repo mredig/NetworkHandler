@@ -56,7 +56,7 @@ struct NetworkHandlerMockingTests: Sendable {
 			engine: mockingEngine,
 			expectedError: NetworkError.httpUnexpectedStatusCode(
 				code: 404,
-				originalRequest: .general(demo404URL.downloadRequest),
+				originalRequest: .general(demo404URL.generalRequest),
 				data: nil))
 	}
 
@@ -69,8 +69,8 @@ struct NetworkHandlerMockingTests: Sendable {
 			engine: mockingEngine,
 			expectedError: NetworkError.httpUnexpectedStatusCode(
 				code: 404,
-				originalRequest: .general(demo404URL.downloadRequest),
-				data: MockingEngine.noMockCreated404ErrorText(for: .general(demo404URL.downloadRequest)).data(using: .utf8)))
+				originalRequest: .general(demo404URL.generalRequest),
+				data: MockingEngine.noMockCreated404ErrorText(for: .general(demo404URL.generalRequest)).data(using: .utf8)))
 	}
 
 	@Test func expect200OnlyGet200() async throws {
@@ -302,7 +302,7 @@ struct NetworkHandlerMockingTests: Sendable {
 			anticipatedOutput: .success((expectedHeader, "foo".data(using: .utf8)!)),
 			expectedAttemptCount: 1)
 
-		let retryRequest = NetworkRequest.general(commonTests.demoModelURL.downloadRequest)
+		let retryRequest = NetworkRequest.general(commonTests.demoModelURL.generalRequest)
 		try await commonTests.retryOptions(
 			engine: mockingEngine,
 			retryOption: .retry(withDelay: 0.5, updatedRequest: retryRequest),
