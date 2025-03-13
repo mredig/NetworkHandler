@@ -233,8 +233,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			transferTask: { transferRequest, attempt in
 				let (streamHeader, stream) = try await streamMahDatas(
 					for: transferRequest,
-					requestLogger: requestLogger,
 					delegate: delegate,
+					requestLogger: requestLogger,
 					cancellationToken: cancellationToken)
 				try? FileManager.default.removeItem(at: tempFileURL)
 
@@ -334,8 +334,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			transferTask: { transferRequest, attempt in
 				let (streamHeader, stream) = try await streamMahDatas(
 					for: transferRequest,
-					requestLogger: requestLogger,
 					delegate: delegate,
+					requestLogger: requestLogger,
 					cancellationToken: cancellationToken)
 
 				var accumulator = Data()
@@ -356,16 +356,16 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	/// Streams data from a server. Powers the rest of NetworkHandler.
 	/// - Parameters:
 	///   - request: NetworkRequest
-	///   - requestLogger: Logger to use for this request
 	///   - delegate: Provides transfer lifecycle information
+	///   - requestLogger: Logger to use for this request
 	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
 	///   allowing you to cancel the request before it completes.
 	/// - Returns: The response header from the server and a data stream that provides data as it is received.
 	@NHActor
 	@discardableResult public func streamMahDatas(
 		for request: NetworkRequest,
-		requestLogger: Logger? = nil,
 		delegate: NetworkHandlerTaskDelegate? = nil,
+		requestLogger: Logger? = nil,
 		cancellationToken: NetworkCancellationToken? = nil
 	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, stream: ResponseBodyStream) {
 		let (httpResponse, bodyResponseStream): (EngineResponseHeader, ResponseBodyStream)
