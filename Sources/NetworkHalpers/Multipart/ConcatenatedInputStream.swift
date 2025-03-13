@@ -1,6 +1,16 @@
 import Foundation
 import Logging
 
+/// A class delightfully engineered to seamlessly concatenate multiple `InputStream` instances.
+///
+/// Think of it as a marvelous utilitarian tool akin to the Pan Galactic Gargle Blaster.
+/// It elegantly takes multiple `InputStream`s—each potentially brimming with untold data—
+/// and melds them into a single cohesive stream. Whether used for combining files, network
+/// responses, or other miscellany of data, its sole mission is to deliver your concatenated
+/// content with the smooth precision of a hyperspace bypass.
+///
+/// Overrides the standard `InputStream` methods for proper functionality, sprinkling in
+/// just the right amount of additional logic to achieve its heroic task of unification.
 public class ConcatenatedInputStream: InputStream {
 
 	public private(set) var streams: [InputStream] = []
