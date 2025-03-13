@@ -42,7 +42,7 @@ struct NetworkHandlerURLSessionTests: Sendable {
 			engine: mockingEngine,
 			expectedError: NetworkError.httpUnexpectedStatusCode(
 				code: 404,
-				originalRequest: .download(demo404URL.downloadRequest),
+				originalRequest: .general(demo404URL.downloadRequest),
 				data: nil))
 	}
 

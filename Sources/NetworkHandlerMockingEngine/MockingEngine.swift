@@ -44,7 +44,7 @@ public actor MockingEngine: NetworkEngine {
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
 
-		let (_, headerTask, responseStream) = try await performServerInteraction(for: .download(request))
+		let (_, headerTask, responseStream) = try await performServerInteraction(for: .general(request))
 
 		let header = try await headerTask.value
 		return (header, responseStream)
@@ -191,7 +191,7 @@ public actor MockingEngine: NetworkEngine {
 
 			defer { try? sendContinuation.finish() }
 			switch request {
-			case .download(let downloadRequest):
+			case .general(let downloadRequest):
 				if let sendBody = downloadRequest.payload {
 					for chunk in sendBody.chunks(ofCount: 1024) {
 						try await Task.sleep(for: .milliseconds(20))

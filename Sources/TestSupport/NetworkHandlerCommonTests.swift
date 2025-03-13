@@ -218,7 +218,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			$0.expectedResponseCodes = 200
 		}
 		_ = try await nh.transferMahDatas(
-			for: .download(request),
+			for: .general(request),
 			requestLogger: logger,
 			onError: { _,_,_  in .throw })
 	}
@@ -265,7 +265,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0),
 			performing: {
 				_ = try await nh.transferMahDatas(
-					for: .download(signedRequest),
+					for: .general(signedRequest),
 					requestLogger: logger,
 					onError: { _,_,_  in .throw })
 			},
@@ -383,7 +383,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let dlRequest = url.downloadRequest
 
-		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
+		let dlResult = try await nh.transferMahDatas(for: .general(dlRequest)).data
 		#expect(
 			SHA256.hash(data: dlResult!) == hash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
@@ -446,7 +446,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let dlRequest = uploadURL.downloadRequest
 
-		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
+		let dlResult = try await nh.transferMahDatas(for: .general(dlRequest)).data
 		#expect(
 			SHA256.hash(data: dlResult!) == multipartHash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
@@ -506,7 +506,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let dlRequest = uploadURL.downloadRequest
 
-		let dlResult = try await nh.transferMahDatas(for: .download(dlRequest)).data
+		let dlResult = try await nh.transferMahDatas(for: .general(dlRequest)).data
 		#expect(
 			SHA256.hash(data: dlResult!) == multipartHash,
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
@@ -563,7 +563,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 				cancelToken.cancel()
 			})
 
-			return try await nh.transferMahDatas(for: .download(request), delegate: delegate, cancellationToken: cancelToken)
+			return try await nh.transferMahDatas(for: .general(request), delegate: delegate, cancellationToken: cancelToken)
 		}
 
 		await #expect(throws: NetworkError.requestCancelled, performing: {
@@ -584,7 +584,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let request = randomDataURL.downloadRequest
 
-		let stream = try await nh.streamMahDatas(for: .download(request)).stream
+		let stream = try await nh.streamMahDatas(for: .general(request)).stream
 
 		let forCancel = Task {
 			var accumulated = Data()
@@ -912,7 +912,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let request = url.downloadRequest
 
 		let echo: BeeEchoModel = try await nh.poll(
-			request: .download(request),
+			request: .general(request),
 			requestLogger: logger,
 			until: { pollRequest, pollResult in
 				do {

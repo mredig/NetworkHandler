@@ -112,7 +112,7 @@ public class DemoModelController: @unchecked Sendable {
 		var request = deleteURL.downloadRequest
 		request.method = .delete
 
-		try await nh.transferMahDatas(for: .download(request))
+		try await nh.transferMahDatas(for: .general(request))
 	}
 
 	// MARK: - demo purposes

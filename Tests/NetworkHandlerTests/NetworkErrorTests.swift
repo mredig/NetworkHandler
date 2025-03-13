@@ -35,7 +35,7 @@ class NetworkErrorTests: XCTestCase {
 
 		XCTAssertEqual(error1Str, error.debugDescription)
 
-		error = .httpUnexpectedStatusCode(code: 401, originalRequest: .download(Self.simpleURL.downloadRequest).with { $0.requestID = nil }, data: testData)
+		error = .httpUnexpectedStatusCode(code: 401, originalRequest: .general(Self.simpleURL.downloadRequest).with { $0.requestID = nil }, data: testData)
 		let error2Str = "NetworkError: Bad Response Code (401) for request: (GET): http://he@ho.hum with data: \(testString)"
 		XCTAssertEqual(error2Str, error.debugDescription)
 
@@ -49,7 +49,7 @@ extension NetworkError {
 	/// Creates a collection of Network errors covering most of the spectrum
 	static func allErrorCases() -> [NetworkError] {
 		let dummyError = NSError(domain: "com.redeggproductions.NetworkHandler", code: -1, userInfo: nil)
-		let originalRequest = NetworkRequest.download(NetworkErrorTests.simpleURL.downloadRequest).with {
+		let originalRequest = NetworkRequest.general(NetworkErrorTests.simpleURL.downloadRequest).with {
 			$0.requestID = nil
 		}
 		let allErrorCases: [NetworkError] = [

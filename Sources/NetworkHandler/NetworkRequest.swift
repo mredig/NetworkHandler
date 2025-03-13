@@ -4,14 +4,14 @@ import SwiftPizzaSnips
 @dynamicMemberLookup
 public enum NetworkRequest: Sendable {
 	case upload(UploadEngineRequest, payload: UploadFile)
-	case download(GeneralEngineRequest)
+	case general(GeneralEngineRequest)
 
 	private var metadata: EngineRequestMetadata {
 		get {
 			switch self {
 			case .upload(let uploadEngineRequest, _):
 				uploadEngineRequest.metadata
-			case .download(let generalEngineRequest):
+			case .general(let generalEngineRequest):
 				generalEngineRequest.metadata
 			}
 		}
@@ -21,9 +21,9 @@ public enum NetworkRequest: Sendable {
 			case .upload(var uploadEngineRequest, let payload):
 				uploadEngineRequest.metadata = newValue
 				self = .upload(uploadEngineRequest, payload: payload)
-			case .download(var generalEngineRequest):
+			case .general(var generalEngineRequest):
 				generalEngineRequest.metadata = newValue
-				self = .download(generalEngineRequest)
+				self = .general(generalEngineRequest)
 			}
 		}
 	}

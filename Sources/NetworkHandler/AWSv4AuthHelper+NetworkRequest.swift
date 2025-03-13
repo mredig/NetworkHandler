@@ -84,7 +84,7 @@ extension AWSV4Signature {
 		hexContentHash: AWSContentHash
 	) {
 		self.init(
-			for: .download(request),
+			for: .general(request),
 			date: date,
 			awsKey: awsKey,
 			awsSecret: awsSecret,
@@ -137,8 +137,8 @@ extension AWSV4Signature {
 	/// - Throws: `AWSAuthError` if the `url` or `method` on the request does not match
 	///   those defined in the signature context.
 	public func processRequest(_ request: GeneralEngineRequest) throws -> GeneralEngineRequest {
-		let processed = try processRequest(.download(request))
-		guard case .download(let request) = processed else {
+		let processed = try processRequest(.general(request))
+		guard case .general(let request) = processed else {
 			fatalError("Illegal request")
 		}
 		return request
