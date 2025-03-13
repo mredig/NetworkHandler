@@ -61,12 +61,9 @@ extension HTTPClient: NetworkEngine {
 	public func uploadNetworkData(
 		request: inout UploadEngineRequest,
 		with payload: UploadFile,
+		uploadProgressContinuation upProgContinuation: UploadProgressStream.Continuation,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (
-		uploadProgress: UploadProgressStream,
-		responseTask: ETask<EngineResponseHeader, NetworkError>,
-		responseBody: ResponseBodyStream
-	) {
+	) async throws(NetworkError) -> (responseTask: ETask<EngineResponseHeader, NetworkError>, responseBody: ResponseBodyStream) {
 		var httpClientRequest = try NetworkError.captureAndConvert { try request.httpClientFutureRequest }
 
 		@Sendable func streamWriter(
@@ -110,11 +107,10 @@ extension HTTPClient: NetworkEngine {
 		}
 
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
-		let (upProgStream, upProgContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
 		let timeoutDebouncer = TimeoutDebouncer(timeoutDuration: request.timeoutInterval) {
 			bodyStream.cancel(throwing: NetworkError.requestTimedOut)
-			upProgStream.cancel(throwing: NetworkError.requestTimedOut)
+			try? upProgContinuation.finish(throwing: NetworkError.requestTimedOut)
 		}
 
 		let delegate = HTTPDellowFelegate(
@@ -136,7 +132,7 @@ extension HTTPClient: NetworkEngine {
 
 		_ = execute(request: httpClientRequest, delegate: delegate)
 
-		return (upProgStream, responseTask, bodyStream)
+		return (responseTask, bodyStream)
 	}
 	
 	public func shutdown() {

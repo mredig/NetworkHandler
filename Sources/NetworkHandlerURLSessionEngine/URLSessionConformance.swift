@@ -4,9 +4,12 @@ import SwiftPizzaSnips
 import Logging
 
 extension URLSession: NetworkEngine {
-	/// During testing and troubleshooting, I had to constrain the URLSession delegate to a single operation queue
+	/// To properly support progress and other features fully, a specific, custom `URLSessionDelegate` is needed.
+	/// This method eliminates the need for the user of this code to manage that themselves.
+	///
+	/// Additionally, during testing and troubleshooting, I had to constrain the URLSession delegate to a single operation queue
 	/// for some reason. I believe I resolved the issue with correct thread safety in the delegate, but I don't want to
-	/// remove this standardized configuration until I know we are good to go.
+	/// remove the syncronous queue configuration until I know we are good to go.
 	/// - Parameter configuration: URLSessionConfiguration - defaults to `.networkHandlerDefault`
 	/// - Returns: a new `URLSession`
 	public static func asEngine(withConfiguration configuration: URLSessionConfiguration = .networkHandlerDefault) -> URLSession {
@@ -65,17 +68,14 @@ extension URLSession: NetworkEngine {
 	public func uploadNetworkData(
 		request: inout UploadEngineRequest,
 		with payload: UploadFile,
+		uploadProgressContinuation: UploadProgressStream.Continuation,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (
-		uploadProgress: UploadProgressStream,
-		responseTask: ETask<EngineResponseHeader, NetworkError>,
-		responseBody: ResponseBodyStream
-	) {
-
-		let (progStream, progContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
-		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
-
-		let delegate = delegate as! UploadDellowFelegate
+	) async throws(NetworkError) -> (responseTask: ETask<EngineResponseHeader, NetworkError>, responseBody: ResponseBodyStream) {
+		guard
+			let delegate = delegate as? UploadDellowFelegate
+		else {
+			throw .unspecifiedError(reason: "URLSession delegate must be an instance of `UploadDellowFelegate`. Create your URLSession with `URLSession.asEngine()` to have this handled for you.")
+		}
 
 		let payloadStream: InputStream
 		switch payload {
@@ -91,12 +91,13 @@ extension URLSession: NetworkEngine {
 		}
 		let urlRequest = request.urlRequest
 
+		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 		let urlTask = uploadTask(withStreamedRequest: urlRequest)
 
 		delegate.addTask(
 			urlTask,
 			withStream: payloadStream,
-			progressContinuation: progContinuation,
+			progressContinuation: uploadProgressContinuation,
 			bodyContinuation: bodyContinuation)
 		if configuration.identifier == nil {
 			urlTask.delegate = delegate
@@ -113,24 +114,27 @@ extension URLSession: NetworkEngine {
 			}
 		}
 
+		@Sendable
+		func performCancellation() {
+			urlTask.cancel()
+			responseTask.cancel()
+			try? uploadProgressContinuation.finish(throwing: CancellationError())
+			try? bodyContinuation.finish(throwing: CancellationError())
+		}
+
+		uploadProgressContinuation.onFinish { reason in
+			guard reason.finishedOrCancelledError != nil else { return }
+			performCancellation()
+		}
+
 		bodyContinuation.onFinish { reason in
-			func performCancellation() {
-				urlTask.cancel()
-				responseTask.cancel()
-			}
-			switch reason {
-			case .cancelled:
-				performCancellation()
-			case .finished(let error):
-				if error != nil {
-					performCancellation()
-				}
-			}
+			guard reason.finishedOrCancelledError != nil else { return }
+			performCancellation()
 		}
 
 		urlTask.resume()
 
-		return (progStream, responseTask, bodyStream)
+		return (responseTask, bodyStream)
 	}
 
 	public func shutdown() {

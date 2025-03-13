@@ -44,7 +44,7 @@ public actor MockingEngine: NetworkEngine {
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
 
-		let (_, headerTask, responseStream) = try await performServerInteraction(for: .general(request))
+		let (headerTask, responseStream) = try await performServerInteraction(for: .general(request), uploadProgCont: nil)
 
 		let header = try await headerTask.value
 		return (header, responseStream)
@@ -53,21 +53,16 @@ public actor MockingEngine: NetworkEngine {
 	public func uploadNetworkData(
 		request: inout UploadEngineRequest,
 		with payload: UploadFile,
+		uploadProgressContinuation: UploadProgressStream.Continuation,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (
-		uploadProgress: UploadProgressStream,
-		responseTask: ETask<EngineResponseHeader, NetworkError>,
-		responseBody: ResponseBodyStream
-	) {
-		try await performServerInteraction(for: .upload(request, payload: payload))
+	) async throws(NetworkError) -> (responseTask: ETask<EngineResponseHeader, NetworkError>, responseBody: ResponseBodyStream) {
+		try await performServerInteraction(for: .upload(request, payload: payload), uploadProgCont: uploadProgressContinuation)
 	}
 
-	private func performServerInteraction(for request: NetworkRequest) async throws(NetworkError) -> (
-		uploadProgress: UploadProgressStream,
+	private func performServerInteraction(for request: NetworkRequest, uploadProgCont: UploadProgressStream.Continuation?) async throws(NetworkError) -> (
 		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream
 	) {
-		let (uploadProgStream, uploadProgCont) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 		let (responseStream, responseContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
 		let headerTrackDelegate = HeaderTrackingDelegate()
@@ -88,7 +83,7 @@ public actor MockingEngine: NetworkEngine {
 				headerDelegate: headerTrackDelegate)
 		}
 
-		uploadProgStream.onFinish { reason in
+		uploadProgCont?.onFinish { reason in
 			guard let error = reason.finishedOrCancelledError else { return }
 			headerTrackDelegate.setValue(.failure(error))
 			responseStream.cancel(throwing: error)
@@ -98,17 +93,17 @@ public actor MockingEngine: NetworkEngine {
 		responseStream.onFinish {  reason in
 			guard let error = reason.finishedOrCancelledError else { return }
 			headerTrackDelegate.setValue(.failure(error))
-			uploadProgStream.cancel(throwing: error)
+			try? uploadProgCont?.finish(throwing: error)
 			transferTask.cancel()
 		}
 
 		Task {
 			try await Task.sleep(for: .seconds(request.timeoutInterval))
 			responseStream.cancel(throwing: NetworkError.requestTimedOut)
-			uploadProgStream.cancel(throwing: NetworkError.requestTimedOut)
+			try? uploadProgCont?.finish(throwing: NetworkError.requestTimedOut)
 		}
 
-		return (uploadProgStream, responseHeaderTask, responseStream)
+		return (responseHeaderTask, responseStream)
 	}
 
 	private class HeaderTrackingDelegate: @unchecked Sendable {
@@ -147,7 +142,7 @@ public actor MockingEngine: NetworkEngine {
 
 	private func serverTransfer(
 		request: NetworkRequest,
-		uploadProgressContinuation: UploadProgressStream.Continuation,
+		uploadProgressContinuation: UploadProgressStream.Continuation?,
 		responseContinuation: ResponseBodyStream.Continuation,
 		headerDelegate: HeaderTrackingDelegate
 	) async throws(NetworkError) {
@@ -166,7 +161,7 @@ public actor MockingEngine: NetworkEngine {
 
 			func sendStream(_ stream: InputStream) async throws(NetworkError) {
 				try await NetworkError.captureAndConvert { [stream] in
-					defer { try? uploadProgressContinuation.finish() }
+					defer { try? uploadProgressContinuation?.finish() }
 					let bufferSize = 1024 * 1024 * 1 // 1 MB
 					let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 1024 * 1024 * 4)
 					defer { buffer.deallocate() }
@@ -184,7 +179,7 @@ public actor MockingEngine: NetworkEngine {
 						let data = Data(bytes: bufferPointer, count: bytesRead)
 						try sendContinuation.yield(.bodyStreamChunk(Array(data)))
 						totalSent += Int64(bytesRead)
-						try uploadProgressContinuation.yield(totalSent)
+						try uploadProgressContinuation?.yield(totalSent)
 					}
 				}
 			}

@@ -387,11 +387,14 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					delegate?.requestModified(from: .upload(inputReq, payload: payload), to: .upload(uploadRequest, payload: payload))
 				}
 
+				let (sendProgressStream, sendProgressContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+
 				try cancellationToken?.checkIsCancelled()
 				let preEngineRequest = uploadRequest
-				let (sendProgress, responseTask, bodyStream) = try await engine.uploadNetworkData(
+				let (responseTask, bodyStream) = try await engine.uploadNetworkData(
 					request: &uploadRequest,
 					with: payload,
+					uploadProgressContinuation: sendProgressContinuation,
 					requestLogger: requestLogger)
 				cancellationToken?.onCancel = { bodyStream.cancel() }
 				try cancellationToken?.checkIsCancelled()
@@ -406,7 +409,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 				async let progressBlock: Void = { @NHActor [delegate] in
 					var signaledStart = false
-					for try await count in sendProgress {
+					for try await count in sendProgressStream {
 						if signaledStart == false {
 							signaledStart = true
 							delegate?.transferDidStart(for: request)

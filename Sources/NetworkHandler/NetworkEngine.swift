@@ -47,9 +47,9 @@ public protocol NetworkEngine: Sendable, Withable {
 	func uploadNetworkData(
 		request: inout UploadEngineRequest,
 		with payload: UploadFile,
+		uploadProgressContinuation: UploadProgressStream.Continuation,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (
-		uploadProgress: UploadProgressStream,
 		responseTask: ETask<EngineResponseHeader, NetworkError>,
 		responseBody: ResponseBodyStream)
 	
