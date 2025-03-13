@@ -23,11 +23,17 @@ public struct UploadEngineRequest: Hashable, Sendable, Withable {
 	public subscript<T>(dynamicMember member: KeyPath<EngineRequestMetadata, T>) -> T {
 		metadata[keyPath: member]
 	}
-
+	
+	/// - Parameters:
+	///   - expectedResponseCodes: Accepted response status codes from the server.
+	///   - headers: Headers for the request
+	///   - method: HTTP Method to use for the request. Defaults to `.post`
+	///   - url: URL for the request.
+	///   - autogenerateRequestID: When set to `true`(default) a UUID is generated and put in the request ID header.
 	public init(
 		expectedResponseCodes: ResponseCodes = [200],
 		headers: HTTPHeaders = [:],
-		method: HTTPMethod = .get,
+		method: HTTPMethod = .post,
 		url: URL,
 		autogenerateRequestID: Bool = true
 	) {
