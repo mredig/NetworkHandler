@@ -168,6 +168,10 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 		return .otherError(error: error)
 	}
 
+	/// Since networking is fraught with potential errors, `NetworkHandler` tries to normalize them into
+	/// `NetworkError` using `NetworkError.captureAndConvert()`. It is also expected to use
+	/// this method to wrap errors encountered when writing the implementation of a `NetworkEngine`.
+	/// - Parameter block: The code which can throw
 	public static func captureAndConvert<T, E>(_ block: () throws(E) -> T) throws(NetworkError) -> T {
 		do {
 			return try block()
@@ -176,6 +180,10 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 		}
 	}
 
+	/// Since networking is fraught with potential errors, `NetworkHandler` tries to normalize them into
+	/// `NetworkError` using `NetworkError.captureAndConvert()`. It is also expected to use
+	/// this method to wrap errors encountered when writing the implementation of a `NetworkEngine`.
+	/// - Parameter block: The code which can throw
 	public static func captureAndConvert<T: Sendable, E>(
 		_ block: sending @isolated(any) () async throws(E) -> T
 	) async throws(NetworkError) -> T {
