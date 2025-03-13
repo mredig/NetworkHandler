@@ -1,4 +1,4 @@
-import NetworkHandler
+@_exported import NetworkHandler
 import Foundation
 import SwiftPizzaSnips
 import Logging

@@ -5,7 +5,7 @@ import Swift
 import NIOCore
 import NIOHTTP1
 import Logging
-import NetworkHandler
+@_exported import NetworkHandler
 
 extension HTTPClient: @retroactive Withable {}
 extension HTTPClient: NetworkEngine {
