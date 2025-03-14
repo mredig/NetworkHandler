@@ -43,37 +43,25 @@ public actor MockingEngine: NetworkEngine {
 		from request: GeneralEngineRequest,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
-
-		let (headerTask, responseStream) = try await performServerInteraction(for: .general(request), uploadProgCont: nil)
-
-		let header = try await headerTask.value
-		return (header, responseStream)
+		try await performServerInteraction(for: .general(request), uploadProgCont: nil)
 	}
 
 	public func uploadNetworkData(
-		request: inout UploadEngineRequest,
+		request: UploadEngineRequest,
 		with payload: UploadFile,
 		uploadProgressContinuation: UploadProgressStream.Continuation,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (responseTask: ETask<EngineResponseHeader, NetworkError>, responseBody: ResponseBodyStream) {
+	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		try await performServerInteraction(for: .upload(request, payload: payload), uploadProgCont: uploadProgressContinuation)
 	}
 
 	private func performServerInteraction(for request: NetworkRequest, uploadProgCont: UploadProgressStream.Continuation?) async throws(NetworkError) -> (
-		responseTask: ETask<EngineResponseHeader, NetworkError>,
+		responseTask: EngineResponseHeader,
 		responseBody: ResponseBodyStream
 	) {
 		let (responseStream, responseContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
 		let headerTrackDelegate = HeaderTrackingDelegate()
-
-		let responseHeaderTask = ETask { () async throws(NetworkError) -> EngineResponseHeader in
-			try await NetworkError.captureAndConvert {
-				try await withCheckedThrowingContinuation { continuation in
-					headerTrackDelegate.setContinuation(continuation)
-				}
-			}
-		}
 
 		let transferTask = Task {
 			try await serverTransfer(
@@ -98,12 +86,20 @@ public actor MockingEngine: NetworkEngine {
 		}
 
 		Task {
+			// this is a simple, naiive timeout, not activity based. This should be fine for the purposes of running
+			// tests given that there's no latency between the client and remote when it's the same host.
 			try await Task.sleep(for: .seconds(request.timeoutInterval))
 			responseStream.cancel(throwing: NetworkError.requestTimedOut)
 			try? uploadProgCont?.finish(throwing: NetworkError.requestTimedOut)
 		}
 
-		return (responseHeaderTask, responseStream)
+		let response = try await NetworkError.captureAndConvert {
+			try await withCheckedThrowingContinuation { continuation in
+				headerTrackDelegate.setContinuation(continuation)
+			}
+		}
+
+		return (response, responseStream)
 	}
 
 	private class HeaderTrackingDelegate: @unchecked Sendable {

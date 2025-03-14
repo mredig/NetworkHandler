@@ -45,14 +45,12 @@ public protocol NetworkEngine: Sendable, Withable {
 	///   - payload: payload to upload - could be `Data`, a file `URL`, or an `InputStream`
 	///   - requestLogger: logger to use
 	func uploadNetworkData(
-		request: inout UploadEngineRequest,
+		request: UploadEngineRequest,
 		with payload: UploadFile,
 		uploadProgressContinuation: UploadProgressStream.Continuation,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (
-		responseTask: ETask<EngineResponseHeader, NetworkError>,
-		responseBody: ResponseBodyStream)
-	
+	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream)
+
 	/// Since networking is fraught with potential errors, `NetworkHandler` tries to normalize them into
 	/// `NetworkError` using `NetworkError.captureAndConvert()`.  When `NetworkError.captureAndConvert`
 	/// encounters an error it doesn't understand, it queries this method to see if it counts as a cancellation

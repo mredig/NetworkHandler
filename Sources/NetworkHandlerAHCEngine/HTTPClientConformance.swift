@@ -59,11 +59,11 @@ extension HTTPClient: NetworkEngine {
 	}
 
 	public func uploadNetworkData(
-		request: inout UploadEngineRequest,
+		request: UploadEngineRequest,
 		with payload: UploadFile,
 		uploadProgressContinuation upProgContinuation: UploadProgressStream.Continuation,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (responseTask: ETask<EngineResponseHeader, NetworkError>, responseBody: ResponseBodyStream) {
+	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		var httpClientRequest = try NetworkError.captureAndConvert { try request.httpClientFutureRequest }
 
 		@Sendable func streamWriter(
@@ -119,20 +119,19 @@ extension HTTPClient: NetworkEngine {
 			timeoutDebouncer: timeoutDebouncer)
 
 		let requestURL = request.url
-		let responseTask = ETask { () async throws(NetworkError) in
-			let head = try await NetworkError.captureAndConvert {
-				try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HTTPResponseHead, Error>) in
-					delegate.setUploadContinuation(continuation)
-				}
-			}
-			timeoutDebouncer.checkIn()
-
-			return EngineResponseHeader(from: HTTPClientResponse(from: head), with: requestURL)
-		}
 
 		_ = execute(request: httpClientRequest, delegate: delegate)
 
-		return (responseTask, bodyStream)
+		let ahcHead = try await NetworkError.captureAndConvert {
+			try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<HTTPResponseHead, Error>) in
+				delegate.setUploadContinuation(continuation)
+			}
+		}
+		timeoutDebouncer.checkIn()
+
+		let response = EngineResponseHeader(from: HTTPClientResponse(from: ahcHead), with: requestURL)
+
+		return (response, bodyStream)
 	}
 	
 	public func shutdown() {

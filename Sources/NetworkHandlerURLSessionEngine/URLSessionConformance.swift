@@ -66,11 +66,11 @@ extension URLSession: NetworkEngine {
 	}
 
 	public func uploadNetworkData(
-		request: inout UploadEngineRequest,
+		request: UploadEngineRequest,
 		with payload: UploadFile,
 		uploadProgressContinuation: UploadProgressStream.Continuation,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (responseTask: ETask<EngineResponseHeader, NetworkError>, responseBody: ResponseBodyStream) {
+	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		guard
 			let delegate = delegate as? UploadDellowFelegate
 		else {
@@ -103,26 +103,16 @@ extension URLSession: NetworkEngine {
 			urlTask.delegate = delegate
 		}
 
-		let responseTask = ETask { () async throws(NetworkError) in
-			try await NetworkError.captureAndConvert {
-				while urlTask.response == nil {
-					try await Task.sleep(for: .milliseconds(100))
-				}
-				guard let response = urlTask.response else { fatalError() }
-
-				return EngineResponseHeader(from: response)
-			}
-		}
-
 		@Sendable
 		func performCancellation() {
 			urlTask.cancel()
-			responseTask.cancel()
 			try? uploadProgressContinuation.finish(throwing: CancellationError())
 			try? bodyContinuation.finish(throwing: CancellationError())
 		}
 
+		let isUploadFinished = Sendify(false)
 		uploadProgressContinuation.onFinish { reason in
+			isUploadFinished.value = true
 			guard reason.finishedOrCancelledError != nil else { return }
 			performCancellation()
 		}
@@ -134,7 +124,19 @@ extension URLSession: NetworkEngine {
 
 		urlTask.resume()
 
-		return (responseTask, bodyStream)
+		let response = try await NetworkError.captureAndConvert {
+			while urlTask.response == nil {
+				if let error = urlTask.error {
+					throw error
+				}
+				let delayValue = isUploadFinished.value ? 20 : 100
+				try await Task.sleep(for: .milliseconds(delayValue))
+			}
+			guard let response = urlTask.response else { fatalError() }
+			return EngineResponseHeader(from: response)
+		}
+
+		return (response, bodyStream)
 	}
 
 	public func shutdown() {

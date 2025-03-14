@@ -389,24 +389,6 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 				let (sendProgressStream, sendProgressContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
-				try cancellationToken?.checkIsCancelled()
-				let preEngineRequest = uploadRequest
-				let (responseTask, bodyStream) = try await engine.uploadNetworkData(
-					request: &uploadRequest,
-					with: payload,
-					uploadProgressContinuation: sendProgressContinuation,
-					requestLogger: requestLogger)
-				cancellationToken?.onCancel = { bodyStream.cancel() }
-				try cancellationToken?.checkIsCancelled()
-				bodyStream.onFinish { reason in
-					Task { // placed in another task to avoid lock-deadlock
-						cancellationToken?.onCancel = {}
-					}
-				}
-				if preEngineRequest != uploadRequest {
-					delegate?.requestModified(from: .upload(preEngineRequest, payload: payload), to: .upload(uploadRequest, payload: payload))
-				}
-
 				async let progressBlock: Void = { @NHActor [delegate] in
 					var signaledStart = false
 					for try await count in sendProgressStream {
@@ -418,10 +400,27 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 						delegate?.sentData(for: request, totalByteCountSent: Int(count), totalExpectedToSend: uploadRequest.expectedContentLength)
 					}
 				}()
-				async let responseHeader = responseTask.value
+
+				let uploadRequest = uploadRequest
+				cancellationToken?.onCancel = { sendProgressStream.cancel() }
+				try cancellationToken?.checkIsCancelled()
+
+				let (response, bodyStream) = try await engine.uploadNetworkData(
+					request: uploadRequest,
+					with: payload,
+					uploadProgressContinuation: sendProgressContinuation,
+					requestLogger: requestLogger)
+
+				cancellationToken?.onCancel = { bodyStream.cancel() }
+				try cancellationToken?.checkIsCancelled()
+				bodyStream.onFinish { reason in
+					Task { // placed in another task to avoid lock-deadlock
+						cancellationToken?.onCancel = {}
+					}
+				}
 
 				try await progressBlock
-				httpResponse = try await responseHeader
+				httpResponse = response
 				delegate?.responseHeaderRetrieved(for: request, header: httpResponse)
 				bodyResponseStream = bodyStream
 			case .general(let downloadRequest):
