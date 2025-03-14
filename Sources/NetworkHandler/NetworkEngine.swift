@@ -14,24 +14,29 @@ public typealias UploadProgressStream = AsyncCancellableThrowingStream<Int64, Er
 /// you can also get simple token based cancellation and activity based timeouts.
 public protocol NetworkEngine: Sendable, Withable {
 
-	/// This is the method that NetworkHandler will likely call the majority of the time. It will be used both for
-	/// small uploads and any sized downloads. Fairly straightforward to implement.
+	/// Conforming to NetworkEngine primarily revolves around this method. The primary requirements are as follows:
 	///
 	/// 1. Convert `request` to the native engine request type
-	/// 2. Send the request to the server.
+	/// 2. Send the request to the server. If this is an upload, make sure to communicate
+	/// upload progress with `uploadProgressContinuation`
 	/// 3. Upon receiving the server response, convert it to `EngineResponseHeader`
 	/// 4. Create a `ResponseBodyStream` and initiate forwarding the stream of data from the engine that will outlive
 	/// the scope of this method until the incoming data is completed or the transfer is cancelled.
 	/// 5. Return the tuple
-	///
+	/// 
 	/// During these steps, if you encounter any errors or need to forward any from the engine,
 	/// wrap them in `NetworkError.captureAndConvert()`
+	///
+	/// Ensure you have robost cancellation support through your implementation. If activity based timeout isn't native
+	/// to your engine, refer to the `AsyncHTTPClient` engine conformance for how to include that with your
+	/// own engine with a simple debouncer on activity.
 	///
 	/// Througout this process, log any relevant messages in `requestLogger`
 	/// - Parameters:
 	///   - request: The request
+	///   - uploadProgressContinuation: Stream Continuation to foward upload progress updates to NetworkHandler.
+	///   Required to use when performing an upload request. Nice to have when performing a general request.
 	///   - requestLogger: logger to use
-
 	func performNetworkTransfer(
 		request: NetworkRequest,
 		uploadProgressContinuation: UploadProgressStream.Continuation?,
