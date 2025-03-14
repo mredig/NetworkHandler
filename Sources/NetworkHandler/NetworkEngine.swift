@@ -2,8 +2,13 @@ import Foundation
 import SwiftPizzaSnips
 import Logging
 
+/// Convenience type for forwarding the content of a response body.
 public typealias ResponseBodyStream = AsyncCancellableThrowingStream<[UInt8], Error>
+
+/// Convenience type for communicating upload progress. The yielded value should be the total number of
+/// bytes sent in this request.
 public typealias UploadProgressStream = AsyncCancellableThrowingStream<Int64, Error>
+
 /// The magic that makes everything work!
 ///
 /// Default implementations are provided for `URLSession` and `AsyncHTTPClient`.

@@ -283,6 +283,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
 	///   at all. **Default**: `.dontUseCache`
 	///   - requestLogger: Logger to use for this request
+	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
+	///   allowing you to cancel the request before it completes.
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
