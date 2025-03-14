@@ -9,7 +9,20 @@ import Logging
 
 extension HTTPClient: @retroactive Withable {}
 extension HTTPClient: NetworkEngine {
-	public func fetchNetworkData(
+	public func performNetworkTransfer(
+		request: NetworkRequest,
+		uploadProgressContinuation: UploadProgressStream.Continuation?,
+		requestLogger: Logger?
+	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
+		switch request {
+		case .general(let generalRequest):
+			try await fetchNetworkData(from: generalRequest, requestLogger: requestLogger)
+		case .upload(let uploadRequest, payload: let payload):
+			try await uploadNetworkData(request: uploadRequest, with: payload, uploadProgressContinuation: uploadProgressContinuation, requestLogger: requestLogger)
+		}
+	}
+
+	private func fetchNetworkData(
 		from request: GeneralEngineRequest,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
@@ -58,10 +71,10 @@ extension HTTPClient: NetworkEngine {
 		return (engineResponse, bodyStream)
 	}
 
-	public func uploadNetworkData(
+	private func uploadNetworkData(
 		request: UploadEngineRequest,
 		with payload: UploadFile,
-		uploadProgressContinuation upProgContinuation: UploadProgressStream.Continuation,
+		uploadProgressContinuation upProgContinuation: UploadProgressStream.Continuation?,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		var httpClientRequest = try NetworkError.captureAndConvert { try request.httpClientFutureRequest }
@@ -110,7 +123,7 @@ extension HTTPClient: NetworkEngine {
 
 		let timeoutDebouncer = TimeoutDebouncer(timeoutDuration: request.timeoutInterval) {
 			bodyStream.cancel(throwing: NetworkError.requestTimedOut)
-			try? upProgContinuation.finish(throwing: NetworkError.requestTimedOut)
+			try? upProgContinuation?.finish(throwing: NetworkError.requestTimedOut)
 		}
 
 		let delegate = HTTPDellowFelegate(

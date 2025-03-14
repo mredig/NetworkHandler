@@ -20,55 +20,9 @@ extension URLSession: NetworkEngine {
 		return URLSession(configuration: configuration, delegate: delegate, delegateQueue: queue)
 	}
 
-	public func fetchNetworkData(
-		from request: GeneralEngineRequest,
-		requestLogger: Logger?
-	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream) {
-		let urlRequest = request.urlRequest
-		let (dlBytes, response) = try await NetworkError.captureAndConvert { try await bytes(for: urlRequest) }
-
-		let engResponse = EngineResponseHeader(from: response as! HTTPURLResponse)
-		let (stream, continuation) = ResponseBodyStream.makeStream(errorOnCancellation: CancellationError())
-
-		let byteGobbler = Task {
-			do {
-				var buffer: [UInt8] = []
-				buffer.reserveCapacity(1024)
-				for try await byte in dlBytes {
-					buffer.append(byte)
-
-					guard buffer.count == 1024 else { continue }
-					try continuation.yield(buffer)
-					buffer.removeAll(keepingCapacity: true)
-				}
-				if buffer.isOccupied {
-					try continuation.yield(buffer)
-				}
-				try continuation.finish()
-			} catch {
-				try continuation.finish(throwing: error)
-			}
-		}
-
-		continuation.onFinish { reason in
-			let proceed: Bool
-			switch reason {
-			case .cancelled: proceed = true
-			case .finished(let error):
-				proceed = error != nil
-			}
-			guard proceed else { return }
-			dlBytes.task.cancel()
-			byteGobbler.cancel()
-		}
-
-		return (engResponse, stream)
-	}
-
-	public func uploadNetworkData(
-		request: UploadEngineRequest,
-		with payload: UploadFile,
-		uploadProgressContinuation: UploadProgressStream.Continuation,
+	public func performNetworkTransfer(
+		request: NetworkRequest,
+		uploadProgressContinuation: UploadProgressStream.Continuation?,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		guard
@@ -77,23 +31,9 @@ extension URLSession: NetworkEngine {
 			throw .unspecifiedError(reason: "URLSession delegate must be an instance of `UploadDellowFelegate`. Create your URLSession with `URLSession.asEngine()` to have this handled for you.")
 		}
 
-		let payloadStream: InputStream
-		switch payload {
-		case .data(let data):
-			payloadStream = InputStream(data: data)
-		case .localFile(let localFile):
-			guard
-				let stream = InputStream(url: localFile)
-			else { throw .unspecifiedError(reason: "Creating a stream from the referenced local file failed. \(localFile)") }
-			payloadStream = stream
-		case .inputStream(let stream):
-			payloadStream = stream
-		}
-		let urlRequest = request.urlRequest
-
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
-		let urlTask = uploadTask(withStreamedRequest: urlRequest)
 
+		let (urlTask, payloadStream) = try getSessionTask(from: request)
 		delegate.addTask(
 			urlTask,
 			withStream: payloadStream,
@@ -106,12 +46,12 @@ extension URLSession: NetworkEngine {
 		@Sendable
 		func performCancellation() {
 			urlTask.cancel()
-			try? uploadProgressContinuation.finish(throwing: CancellationError())
+			try? uploadProgressContinuation?.finish(throwing: CancellationError())
 			try? bodyContinuation.finish(throwing: CancellationError())
 		}
 
 		let isUploadFinished = Sendify(false)
-		uploadProgressContinuation.onFinish { reason in
+		uploadProgressContinuation?.onFinish { reason in
 			isUploadFinished.value = true
 			guard reason.finishedOrCancelledError != nil else { return }
 			performCancellation()
@@ -137,6 +77,31 @@ extension URLSession: NetworkEngine {
 		}
 
 		return (response, bodyStream)
+	}
+
+	private func getSessionTask(from request: NetworkRequest) throws(NetworkError) -> (task: URLSessionTask, inputStream: InputStream?) {
+		switch request {
+		case .upload(let uploadEngineRequest, let payload):
+			let payloadStream: InputStream?
+			switch payload {
+			case .data(let data):
+				payloadStream = InputStream(data: data)
+			case .localFile(let localFile):
+				guard
+					let stream = InputStream(url: localFile)
+				else { throw .unspecifiedError(reason: "Creating a stream from the referenced local file failed. \(localFile)") }
+				payloadStream = stream
+			case .inputStream(let stream):
+				payloadStream = stream
+			}
+			let urlRequest = uploadEngineRequest.urlRequest
+
+			let task = uploadTask(withStreamedRequest: urlRequest)
+			return (task, payloadStream)
+		case .general(let generalEngineRequest):
+			let task = dataTask(with: generalEngineRequest.urlRequest)
+			return (task, nil)
+		}
 	}
 
 	public func shutdown() {

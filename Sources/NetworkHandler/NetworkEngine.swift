@@ -31,23 +31,10 @@ public protocol NetworkEngine: Sendable, Withable {
 	/// - Parameters:
 	///   - request: The request
 	///   - requestLogger: logger to use
-	func fetchNetworkData(
-		from request: GeneralEngineRequest,
-		requestLogger: Logger?
-	) async throws(NetworkError) -> (EngineResponseHeader, ResponseBodyStream)
 
-	/// This method is only called when there's more significant data to be sent to the server. I think I'm going to
-	/// refactor it, so I will write docs for it then, but if I forget, feel free to publicly shame me (or if you
-	/// think you got it, open a PR. AND publicly shame me).
-	///
-	/// - Parameters:
-	///   - request: The request
-	///   - payload: payload to upload - could be `Data`, a file `URL`, or an `InputStream`
-	///   - requestLogger: logger to use
-	func uploadNetworkData(
-		request: UploadEngineRequest,
-		with payload: UploadFile,
-		uploadProgressContinuation: UploadProgressStream.Continuation,
+	func performNetworkTransfer(
+		request: NetworkRequest,
+		uploadProgressContinuation: UploadProgressStream.Continuation?,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream)
 

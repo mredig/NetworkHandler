@@ -46,13 +46,12 @@ public actor MockingEngine: NetworkEngine {
 		try await performServerInteraction(for: .general(request), uploadProgCont: nil)
 	}
 
-	public func uploadNetworkData(
-		request: UploadEngineRequest,
-		with payload: UploadFile,
-		uploadProgressContinuation: UploadProgressStream.Continuation,
+	public func performNetworkTransfer(
+		request: NetworkRequest,
+		uploadProgressContinuation: UploadProgressStream.Continuation?,
 		requestLogger: Logger?
 	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
-		try await performServerInteraction(for: .upload(request, payload: payload), uploadProgCont: uploadProgressContinuation)
+		try await performServerInteraction(for: request, uploadProgCont: uploadProgressContinuation)
 	}
 
 	private func performServerInteraction(for request: NetworkRequest, uploadProgCont: UploadProgressStream.Continuation?) async throws(NetworkError) -> (

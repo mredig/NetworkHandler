@@ -10,18 +10,18 @@ extension URLSession {
 		/// Tracks the state of a single task. Stored in a dictionary in the delegate.
 		private struct State {
 			/// Relays the total number of bytes sent for a given task in a stream.
-			let progressContinuation: UploadProgressStream.Continuation
+			let progressContinuation: UploadProgressStream.Continuation?
 			/// Relays the data body chunk blobs received from the response.
 			let bodyContinuation: ResponseBodyStream.Continuation
 
 			/// The actual network task
-			let task: URLSessionUploadTask
+			let task: URLSessionTask
 
 			/// Tracks the most recently progress continuation usage to keep from flooding the progress stream.
 			var lastUpdate = Date.distantPast
 
 			/// Source of the upload.
-			let stream: InputStream
+			let stream: InputStream?
 
 			/// Reference back to the delegate
 			unowned let parent: UploadDellowFelegate
@@ -36,10 +36,10 @@ extension URLSession {
 			var dataSendCompletion: Completion = .inProgress
 
 			init(
-				progressContinuation: UploadProgressStream.Continuation,
+				progressContinuation: UploadProgressStream.Continuation?,
 				bodyContinuation: ResponseBodyStream.Continuation,
-				task: URLSessionUploadTask,
-				stream: InputStream,
+				task: URLSessionTask,
+				stream: InputStream?,
 				parent: UploadDellowFelegate
 			) {
 				self.progressContinuation = progressContinuation
@@ -58,9 +58,9 @@ extension URLSession {
 
 		/// Adds a task for tracking with the delegate.
 		func addTask(
-			_ task: URLSessionUploadTask,
-			withStream stream: InputStream,
-			progressContinuation: UploadProgressStream.Continuation,
+			_ task: URLSessionTask,
+			withStream stream: InputStream?,
+			progressContinuation: UploadProgressStream.Continuation?,
 			bodyContinuation: ResponseBodyStream.Continuation
 		) {
 			let state = State(progressContinuation: progressContinuation, bodyContinuation: bodyContinuation, task: task, stream: stream, parent: self)
@@ -137,13 +137,13 @@ extension URLSession {
 					states[task]?.lastUpdate = now
 				}
 			}
-			_ = try? state.progressContinuation.yield(totalBytesSent)
+			_ = try? state.progressContinuation?.yield(totalBytesSent)
 
 			guard
 				totalBytesExpectedToSend != NSURLSessionTransferSizeUnknown,
 				totalBytesSent == totalBytesExpectedToSend
 			else { return }
-			try? state.progressContinuation.finish()
+			try? state.progressContinuation?.finish()
 		}
 
 		func urlSession(
@@ -159,7 +159,7 @@ extension URLSession {
 			states[task] = nil
 			lock.unlock()
 
-			try? state.progressContinuation.finish(throwing: error)
+			try? state.progressContinuation?.finish(throwing: error)
 			try? state.bodyContinuation.finish(throwing: error)
 		}
 	}

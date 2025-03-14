@@ -405,9 +405,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 				cancellationToken?.onCancel = { sendProgressStream.cancel() }
 				try cancellationToken?.checkIsCancelled()
 
-				let (response, bodyStream) = try await engine.uploadNetworkData(
-					request: uploadRequest,
-					with: payload,
+				let (response, bodyStream) = try await engine.performNetworkTransfer(
+					request: .upload(uploadRequest, payload: payload),
 					uploadProgressContinuation: sendProgressContinuation,
 					requestLogger: requestLogger)
 
@@ -423,9 +422,12 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 				httpResponse = response
 				delegate?.responseHeaderRetrieved(for: request, header: httpResponse)
 				bodyResponseStream = bodyStream
-			case .general(let downloadRequest):
+			case .general(let generalRequest):
 				try cancellationToken?.checkIsCancelled()
-				let (header, bodyStream) = try await engine.fetchNetworkData(from: downloadRequest, requestLogger: requestLogger)
+				let (header, bodyStream) = try await engine.performNetworkTransfer(
+					request: .general(generalRequest),
+					uploadProgressContinuation: nil,
+					requestLogger: requestLogger)
 				cancellationToken?.onCancel = { bodyStream.cancel() }
 				try cancellationToken?.checkIsCancelled()
 				bodyStream.onFinish { reason in
