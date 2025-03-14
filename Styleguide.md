@@ -16,7 +16,14 @@ Names should be as descriptive as possible, within reason.
 
 ## Indentation
 
-Tabs.
+Tabs. You read that right. Tabs are modular. Do you prefer 2 space sized indentation? Feel free to view documents 
+that way. Do you have old person eyes like me? Use 4 space sized tabs.
+
+Frequently navigate via keyboard? Press an arrow key once to get through a tab, not 2-4 or more times.
+
+Commenting out a block? Don't ruin the cleanliness of the columns by offsetting the commented code by 2 columns.
+
+But most importantly, the least selfish reason of mine... If a contributor relies on assistive devices, they typically (always?) require a single keystroke per whitespace character. Using spaces really inhibits their code navigation, even if your IDE of choice handles spaces like tabs transparently. Let's be as welcoming as possible to anyone who wants to bring something to the table. 
 
 ## Whitespace
 
