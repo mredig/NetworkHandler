@@ -1,8 +1,14 @@
 # NetworkHandler
 
+✅ Reduce boilerplate.
+✅ Consistent interface.
+✅ Cross platform support.
+❌ Headache. 
+
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmredig%2FNetworkHandler%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/mredig/NetworkHandler)
 
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fmredig%2FNetworkHandler%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/mredig/NetworkHandler)
+
 NetworkHandler was originally created to reduce boilerplate when using `URLSession`. However, it's since grown into a unified, consistent abstraction built on top any engine conforming to `NetworkEngine`
 
 By default, `NetworkEngine` implementations are provided for both `URLSession` if you have full access to `Foundation` (aka Apple platforms) and `AsyncHTTPClient` when you don't (or do, I'm not your mom). 
