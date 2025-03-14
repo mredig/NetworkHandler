@@ -1,6 +1,6 @@
 import SwiftPizzaSnips
 
-final public class Sendify<T>: @unchecked Sendable {
+final package class Sendify<T>: @unchecked Sendable {
 	public var value: T {
 		get { lock.withLock { _value } }
 		set { lock.withLock { _value = newValue } }
@@ -18,12 +18,12 @@ final public class Sendify<T>: @unchecked Sendable {
 }
 
 extension Sendify: Equatable where T: Equatable {
-	public static func == (lhs: Sendify<T>, rhs: Sendify<T>) -> Bool {
+	package static func == (lhs: Sendify<T>, rhs: Sendify<T>) -> Bool {
 		lhs.value == rhs.value
 	}
 }
 extension Sendify: Hashable where T: Hashable {
-	public func hash(into hasher: inout Hasher) {
+	package func hash(into hasher: inout Hasher) {
 		hasher.combine(value)
 	}
 }
