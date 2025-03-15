@@ -18,7 +18,11 @@ extension HTTPClient: NetworkEngine {
 		case .general(let generalRequest):
 			try await fetchNetworkData(from: generalRequest, requestLogger: requestLogger)
 		case .upload(let uploadRequest, payload: let payload):
-			try await uploadNetworkData(request: uploadRequest, with: payload, uploadProgressContinuation: uploadProgressContinuation, requestLogger: requestLogger)
+			try await uploadNetworkData(
+				request: uploadRequest,
+				with: payload,
+				uploadProgressContinuation: uploadProgressContinuation,
+				requestLogger: requestLogger)
 		}
 	}
 
@@ -114,9 +118,10 @@ extension HTTPClient: NetworkEngine {
 		case .data(let data):
 			httpClientRequest.body = .data(data)
 		case .inputStream(let stream):
-			httpClientRequest.body = .stream(contentLength: request.expectedContentLength.flatMap(Int64.init), { [stream] writer in
-				streamWriter(inputStream: stream, writer: writer)
-			})
+			httpClientRequest.body = .stream(
+				contentLength: request.expectedContentLength.flatMap(Int64.init), { [stream] writer in
+					streamWriter(inputStream: stream, writer: writer)
+				})
 		}
 
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)

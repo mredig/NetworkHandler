@@ -101,7 +101,8 @@ public struct AWSV4Signature: Hashable, Sendable, Withable {
 	/// - Parameters:
 	///   - url: The URL for the request (compared against the signature's `url`).
 	///   - method: The HTTP method for the request (compared against `requestMethod`).
-	///   - headersBlock: A closure that receives the computed headers (`HTTPHeaders`) and outputs the final processed value.
+	///   - headersBlock: A closure that receives the computed headers (`HTTPHeaders`)
+	///   and outputs the final processed value.
 	///
 	/// - Returns: The output of the `headersBlock` closure, expected to represent the finalized request header set.
 	///

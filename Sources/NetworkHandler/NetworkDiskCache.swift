@@ -137,7 +137,9 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 			refreshSize()
 			logger.info("Reset disk cache", metadata: ["Name": "\(cacheName)"])
 		} catch {
-			logger.error("Error resetting disk cache by clearing folder. Trying individual files.", metadata: ["Error": "\(error)"])
+			logger.error(
+				"Error resetting disk cache by clearing folder. Trying individual files.",
+				metadata: ["Error": "\(error)"])
 			do {
 				let contents = try fileManager.contentsOfDirectory(at: cacheLocation, includingPropertiesForKeys: [], options: [])
 

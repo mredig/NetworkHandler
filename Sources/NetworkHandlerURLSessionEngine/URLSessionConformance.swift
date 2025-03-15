@@ -7,12 +7,14 @@ extension URLSession: NetworkEngine {
 	/// To properly support progress and other features fully, a specific, custom `URLSessionDelegate` is needed.
 	/// This method eliminates the need for the user of this code to manage that themselves.
 	///
-	/// Additionally, during testing and troubleshooting, I had to constrain the URLSession delegate to a single operation queue
-	/// for some reason. I believe I resolved the issue with correct thread safety in the delegate, but I don't want to
-	/// remove the syncronous queue configuration until I know we are good to go.
+	/// Additionally, during testing and troubleshooting, I had to constrain the URLSession delegate to a
+	/// single operation queue for some reason. I believe I resolved the issue with correct thread safety in the
+	/// delegate, but I don't want to remove the syncronous queue configuration until I know we are good to go.
 	/// - Parameter configuration: URLSessionConfiguration - defaults to `.networkHandlerDefault`
 	/// - Returns: a new `URLSession`
-	public static func asEngine(withConfiguration configuration: URLSessionConfiguration = .networkHandlerDefault) -> URLSession {
+	public static func asEngine(
+		withConfiguration configuration: URLSessionConfiguration = .networkHandlerDefault
+	) -> URLSession {
 		let delegate = UploadDellowFelegate()
 		let queue = OperationQueue()
 		queue.maxConcurrentOperationCount = 1
@@ -28,7 +30,10 @@ extension URLSession: NetworkEngine {
 		guard
 			let delegate = delegate as? UploadDellowFelegate
 		else {
-			throw .unspecifiedError(reason: "URLSession delegate must be an instance of `UploadDellowFelegate`. Create your URLSession with `URLSession.asEngine()` to have this handled for you.")
+			throw .unspecifiedError(reason: """
+				URLSession delegate must be an instance of `UploadDellowFelegate`. Create your URLSession with \
+				`URLSession.asEngine()` to have this handled for you.
+				""")
 		}
 
 		let (bodyStream, bodyContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
@@ -79,7 +84,9 @@ extension URLSession: NetworkEngine {
 		return (response, bodyStream)
 	}
 
-	private func getSessionTask(from request: NetworkRequest) throws(NetworkError) -> (task: URLSessionTask, inputStream: InputStream?) {
+	private func getSessionTask(
+		from request: NetworkRequest
+	) throws(NetworkError) -> (task: URLSessionTask, inputStream: InputStream?) {
 		switch request {
 		case .upload(let uploadEngineRequest, let payload):
 			let payloadStream: InputStream?

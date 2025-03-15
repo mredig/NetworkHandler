@@ -20,6 +20,7 @@ public protocol RetryableStream: InputStream {
 /// By conforming to this protocol, stream implementations can clearly communicate their total byte count, allowing
 /// for proper configuration of `Content-Length` headers and precise progress tracking during transfers.
 public protocol KnownLengthStream: InputStream {
-	/// An optional `Int` representing the total size of the stream's data in bytes. Returns `nil` for indeterminate lengths.
+	/// An optional `Int` representing the total size of the stream's data in bytes. Returns `nil`
+	/// for indeterminate lengths.
 	var totalStreamBytes: Int? { get }
 }

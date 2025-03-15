@@ -15,7 +15,14 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 	/// let successCodes: ResponseCodes = [200, 201, 202]
 	/// let any2xxCode = ResponseCodes(range: 200..<300)
 	/// ```
-	public struct ResponseCodes: Hashable, Sendable, Withable, RawRepresentable, ExpressibleByIntegerLiteral, ExpressibleByArrayLiteral {
+	public struct ResponseCodes:
+		Hashable,
+		Sendable,
+		Withable,
+		RawRepresentable,
+		ExpressibleByIntegerLiteral,
+		ExpressibleByArrayLiteral {
+		
 		public var rawValue: Set<Int>
 
 		public init(rawValue: Set<Int>) {

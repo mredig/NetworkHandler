@@ -56,7 +56,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - memory: A Boolean value indicating whether to clear the in-memory cache. Defaults to `true`.
 	///   - disk: A Boolean value indicating whether to clear the disk cache. Defaults to `true`.
 	///
-	/// Use this method to completely wipe the cache, ensuring that no stale or outdated data remains. Logs these operations for visibility.
+	/// Use this method to completely wipe the cache, ensuring that no stale or outdated data remains.
+	/// Logs these operations for visibility.
 	public func resetCache(memory: Bool = true, disk: Bool = true) {
 		cache.reset(memory: memory, disk: disk)
 	}
@@ -128,8 +129,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	/// - Parameters:
 	///   - request: NetworkRequest
 	///   - delegate: Provides transfer lifecycle information
-	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
-	///   at all. **Default**: `.dontUseCache`
+	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key
+	///   overrride or not at all. **Default**: `.dontUseCache`
 	///   - decoder: The decoder used to perform the decoding
 	///   - requestLogger: Logger to use for this request
 	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
@@ -189,11 +190,12 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	/// Downloads remote data to a local file URL.
 	/// - Parameters:
 	///   - request: GeneralEngineRequest
-	///   - outFileURL: The file URL to save the final data into (also used as the temporary file if none is explicitly specified)
+	///   - outFileURL: The file URL to save the final data into (also used as the temporary file if none
+	///   is explicitly specified)
 	///   - tempoaryFileURL: The file URL to save file into as it's accumulated before the transfer is completed.
 	///   - delegate: Provides transfer lifecycle information
-	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
-	///   at all. **Default**: `.dontUseCache`
+	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key
+	///   overrride or not at all. **Default**: `.dontUseCache`
 	///   - requestLogger: Logger to use for this request
 	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
 	///   allowing you to cancel the request before it completes.
@@ -280,8 +282,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	/// - Parameters:
 	///   - request: GeneralEngineRequest
 	///   - delegate: Provides transfer lifecycle information
-	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
-	///   at all. **Default**: `.dontUseCache`
+	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key
+	///   overrride or not at all. **Default**: `.dontUseCache`
 	///   - requestLogger: Logger to use for this request
 	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
 	///   allowing you to cancel the request before it completes.
@@ -309,8 +311,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	/// - Parameters:
 	///   - request: NetworkRequest
 	///   - delegate: Provides transfer lifecycle information
-	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key overrride or not
-	///   at all. **Default**: `.dontUseCache`
+	///   - cacheOption:  NetworkHandler.CacheKeyOption indicating whether to use cache with or without a key
+	///   overrride or not at all. **Default**: `.dontUseCache`
 	///   - requestLogger: Logger to use for this request
 	///   - cancellationToken: Optional: Gives you the opportunity to create and hold a reference to a token
 	///   allowing you to cancel the request before it completes.
@@ -389,7 +391,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					delegate?.requestModified(from: .upload(inputReq, payload: payload), to: .upload(uploadRequest, payload: payload))
 				}
 
-				let (sendProgressStream, sendProgressContinuation) = UploadProgressStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+				let (sendProgressStream, sendProgressContinuation) = UploadProgressStream
+					.makeStream(errorOnCancellation: NetworkError.requestCancelled)
 
 				async let progressBlock: Void = { @NHActor [delegate] in
 					var signaledStart = false
@@ -399,7 +402,10 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 							delegate?.transferDidStart(for: request)
 						}
 						try Task.checkCancellation()
-						delegate?.sentData(for: request, totalByteCountSent: Int(count), totalExpectedToSend: uploadRequest.expectedContentLength)
+						delegate?.sentData(
+							for: request,
+							totalByteCountSent: Int(count),
+							totalExpectedToSend: uploadRequest.expectedContentLength)
 					}
 				}()
 
@@ -447,7 +453,10 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 							for try await chunk in bodyStream {
 								try continuation.yield(chunk)
 								accumulatedBytes += chunk.count
-								delegate?.responseBodyReceived(for: request, byteCount: accumulatedBytes, totalExpectedToReceive: header.expectedContentLength.map(Int.init))
+								delegate?.responseBodyReceived(
+									for: request,
+									byteCount: accumulatedBytes,
+									totalExpectedToReceive: header.expectedContentLength.map(Int.init))
 								delegate?.responseBodyReceived(for: request, bytes: Data(chunk))
 							}
 							try continuation.finish()
@@ -554,7 +563,10 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		throw NetworkError.unspecifiedError(reason: "Escaped while loop")
 	}
 
-	private func decodeData<DecodableType: Decodable>(data: Data, using decoder: NHDecoder) throws(NetworkError) -> DecodableType {
+	private func decodeData<DecodableType: Decodable>(
+		data: Data,
+		using decoder: NHDecoder
+	) throws(NetworkError) -> DecodableType {
 		guard DecodableType.self != Data.self else {
 			return data as! DecodableType // swiftlint:disable:this force_cast
 		}

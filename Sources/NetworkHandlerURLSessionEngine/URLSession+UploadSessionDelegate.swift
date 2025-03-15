@@ -52,8 +52,9 @@ extension URLSession {
 
 		/// Tracks all the tasks with their current state. Accessed only with `lock`. For more info, see `lock`
 		private var states: [URLSessionTask: State] = [:]
-		/// Lock for keeping thread safety. However, it's probably not necessary. The delegate is set to be used on a single queue, so it's probably uneeded overhead...
-		/// That said, I don't fully know the mechanism for the delegate thread, so until I can trust it fully, I'm going to keep using this.
+		/// Lock for keeping thread safety. However, it's probably not necessary. The delegate is set to be used on a
+		/// single queue, so it's probably uneeded overhead... That said, I don't fully know the mechanism for the
+		/// delegate thread, so until I can trust it fully, I'm going to keep using this.
 		private let lock = MutexLock()
 
 		/// Adds a task for tracking with the delegate.
@@ -63,7 +64,12 @@ extension URLSession {
 			progressContinuation: UploadProgressStream.Continuation?,
 			bodyContinuation: ResponseBodyStream.Continuation
 		) {
-			let state = State(progressContinuation: progressContinuation, bodyContinuation: bodyContinuation, task: task, stream: stream, parent: self)
+			let state = State(
+				progressContinuation: progressContinuation,
+				bodyContinuation: bodyContinuation,
+				task: task,
+				stream: stream,
+				parent: self)
 			lock.withLock {
 				states[task] = state
 			}

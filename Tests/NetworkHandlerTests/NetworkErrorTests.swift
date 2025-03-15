@@ -35,7 +35,10 @@ class NetworkErrorTests: XCTestCase {
 
 		XCTAssertEqual(error1Str, error.debugDescription)
 
-		error = .httpUnexpectedStatusCode(code: 401, originalRequest: .general(Self.simpleURL.generalRequest).with { $0.requestID = nil }, data: testData)
+		error = .httpUnexpectedStatusCode(
+			code: 401,
+			originalRequest: .general(Self.simpleURL.generalRequest).with { $0.requestID = nil },
+			data: testData)
 		let error2Str = "NetworkError: Bad Response Code (401) for request: (GET): http://he@ho.hum with data: \(testString)"
 		XCTAssertEqual(error2Str, error.debugDescription)
 

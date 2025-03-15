@@ -29,21 +29,21 @@ public struct GeneralEngineRequest: Hashable, Sendable, Withable {
 	nonisolated(unsafe)
 	private static var _defaultDecoder: NHDecoder = JSONDecoder()
 	private static let coderLock = MutexLock()
-	/**
-	Default encoder used to encode with the `encodeData` function.
 
-	Default value is `JSONEncoder()` along with all of its defaults. Being that this is a static property, it will affect *all* instances.
-	*/
+	/// Default encoder used to encode with the `encodeData` function.
+	///
+	/// Default value is `JSONEncoder()` along with all of its defaults. Being that this
+	/// is a static property, it will affect *all* instances.
 	public static var defaultEncoder: NHEncoder {
 		get { coderLock.withLock { _defaultEncoder } }
 		set { coderLock.withLock { _defaultEncoder = newValue } }
 	}
 
-	/**
-	Default decoder used to decode data received from this request.
 
-	Default value is `JSONDecoder()` along with all of its defaults. Being that this is a static property, it will affect *all* instances.
-	*/
+	/// Default decoder used to decode data received from this request.
+	///
+	/// Default value is `JSONDecoder()` along with all of its defaults. Being that this
+	/// is a static property, it will affect *all* instances.
 	public static var defaultDecoder: NHDecoder {
 		get { coderLock.withLock { _defaultDecoder } }
 		set { coderLock.withLock { _defaultDecoder = newValue } }
@@ -82,7 +82,10 @@ public struct GeneralEngineRequest: Hashable, Sendable, Withable {
 	/// - Returns: The serialized data now stored in the request's `payload`.
 	/// - Throws: Errors from the encoder if the object cannot be serialized.
 	@discardableResult
-	public mutating func encodeData<EncodableType: Encodable>(_ encodableType: EncodableType, withEncoder encoder: NHEncoder? = nil) throws -> Data {
+	public mutating func encodeData<EncodableType: Encodable>(
+		_ encodableType: EncodableType,
+		withEncoder encoder: NHEncoder? = nil
+	) throws -> Data {
 		let encoder = encoder ?? GeneralEngineRequest.defaultEncoder
 
 		let data = try encoder.encode(encodableType)

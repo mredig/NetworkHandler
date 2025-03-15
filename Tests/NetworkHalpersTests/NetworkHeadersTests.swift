@@ -57,13 +57,13 @@ struct NetworkHeadersTests {
 		let simpleSample = [
 			"Content-Type": "application/json",
 			"Authorization": "Bearer foobar",
-			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15",
+			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15", // swiftlint:disable:this line_length
 		]
 
 		let dupedSample = [
 			"Content-Type": "application/json",
 			"Authorization": "Bearer foobar",
-			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15",
+			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15", // swiftlint:disable:this line_length
 			"content-type": "application/json",
 		]
 
@@ -88,7 +88,7 @@ struct NetworkHeadersTests {
 		let simpleSample: [HTTPHeaders.Header.Key: HTTPHeaders.Header.Value] = [
 			"Content-Type": "application/json",
 			"Authorization": "Bearer foobar",
-			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15",
+			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15", // swiftlint:disable:this line_length
 		]
 
 		let userAgentValue = simpleSample["User-Agent"]!
@@ -105,7 +105,7 @@ struct NetworkHeadersTests {
 		let simpleHeaders: HTTPHeaders = [
 			HTTPHeaders.Header(key: "Content-Type", value: "application/json"),
 			HTTPHeaders.Header(key: "Authorization", value: "Bearer foobar"),
-			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"), // swiftlint:disable:this line_length
 		]
 
 		let userAgentValue = simpleHeaders["User-Agent"]!
@@ -121,7 +121,7 @@ struct NetworkHeadersTests {
 		let simpleHeaders: HTTPHeaders = [
 			HTTPHeaders.Header.Key(rawValue: "Content-Type"): HTTPHeaders.Header.Value(rawValue: "application/json"),
 			HTTPHeaders.Header.Key(rawValue: "Authorization"): HTTPHeaders.Header.Value(rawValue: "Bearer foobar"),
-			HTTPHeaders.Header.Key(rawValue: "User-Agent"): HTTPHeaders.Header.Value(rawValue: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header.Key(rawValue: "User-Agent"): HTTPHeaders.Header.Value(rawValue: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"), // swiftlint:disable:this line_length
 		]
 
 		let userAgentValue = simpleHeaders["User-Agent"]!
@@ -137,7 +137,7 @@ struct NetworkHeadersTests {
 		var simpleHeaders: HTTPHeaders = [
 			HTTPHeaders.Header(key: "Content-Type", value: "application/json"),
 			HTTPHeaders.Header(key: "Authorization", value: "Bearer foobar"),
-			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"), // swiftlint:disable:this line_length
 		]
 
 		#expect(simpleHeaders.keys().count == 3)
@@ -157,7 +157,7 @@ struct NetworkHeadersTests {
 		var simpleHeaders: HTTPHeaders = [
 			HTTPHeaders.Header(key: "Content-Type", value: "application/json"),
 			HTTPHeaders.Header(key: "Authorization", value: "Bearer foobar"),
-			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"), // swiftlint:disable:this line_length
 		]
 
 		#expect(simpleHeaders.keys().count == 3)
@@ -181,7 +181,7 @@ struct NetworkHeadersTests {
 		var simpleHeaders: HTTPHeaders = [
 			HTTPHeaders.Header(key: "Content-Type", value: "application/json"),
 			HTTPHeaders.Header(key: "Authorization", value: "Bearer foobar"),
-			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"),
+			HTTPHeaders.Header(key: "User-Agent", value: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"), // swiftlint:disable:this line_length
 		]
 
 		#expect(simpleHeaders[0] == HTTPHeaders.Header(key: .contentType, value: .json))

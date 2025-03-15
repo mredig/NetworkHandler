@@ -3,15 +3,21 @@ import SwiftPizzaSnips
 /// Represents a collection of HTTP headers, allowing for both key-value access and
 /// duplicate header keys. Provides conformance to various protocols for flexibility,
 /// including `Codable`, `MutableCollection`, and `ExpressibleByArrayLiteral`.
-public struct HTTPHeaders: Sendable, Codable, MutableCollection, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
+public struct HTTPHeaders:
+	Sendable,
+	Codable,
+	MutableCollection,
+	ExpressibleByArrayLiteral,
+	ExpressibleByDictionaryLiteral {
+
 	public var startIndex: [Header].Index { headers.startIndex }
 	public var endIndex: [Header].Index { headers.endIndex }
 
 	public typealias Index = [Header].Index
-	
+
 	/// The array of headers stored in this collection.
 	public var headers: [Header]
-	
+
 	/// Creates an instance of `HTTPHeaders` with the provided array of headers.
 	/// - Parameter headers: An array of `Header` instances to initialize the collection.
 	public init(_ headers: [Header]) {
@@ -38,7 +44,8 @@ public struct HTTPHeaders: Sendable, Codable, MutableCollection, ExpressibleByAr
 	}
 	
 	/// Creates an instance of `HTTPHeaders` using a dictionary literal of strongly-typed key-value pairs.
-	/// - Parameter elements: A variadic list of tuples where each key is a `Header.Key` and each value is a `Header.Value`.
+	/// - Parameter elements: A variadic list of tuples where each key is a `Header.Key` and each
+	/// value is a `Header.Value`.
 	public init(dictionaryLiteral elements: (Header.Key, Header.Value)...) {
 		self.init(elements.map { Header(key: $0, value: $1) })
 	}

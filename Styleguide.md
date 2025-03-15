@@ -54,8 +54,9 @@ What about function definitions that exceed the line length, you say? We need a 
 * the closing paren with the return value (or omitted return value) and opening brace of the implementation gets its own line
 	* If the return value is a tuple that pushes the line limit, that can be broken up similarly
 * Try not to leave dangling closing parens on their own line.
+* generally lean into the styles that Xcode provides via `ctrl-i` and `ctrl-m` - to get these results, there's little to no modification
 
-Here's an example, stright from this project:
+Here's an example, stright from this project (pro tip - this is usually what Xcode gives you when you place your cursor amongst the arguments and hit `ctrl-m`):
 ```swift
 func performNetworkTransfer(
 	request: NetworkRequest,
@@ -90,6 +91,20 @@ delegate.addTask(
 	withStream: payloadStream,
 	progressContinuation: uploadProgressContinuation,
 	bodyContinuation: bodyContinuation)
+```
+
+Tie breaker:
+
+If you have a definition that could get line splits in either the arguments or the return tuple, the arguments get split first:
+
+```swift
+	private func getSessionTask(from request: NetworkRequest) throws(NetworkError) -> (task: URLSessionTask, inputStream: InputStream?) { ... }
+
+	// becomes 
+
+	private func getSessionTask(
+		from request: NetworkRequest
+	) throws(NetworkError) -> (task: URLSessionTask, inputStream: InputStream?) { ... }
 ```
 
 ## Trailing Closures

@@ -70,7 +70,8 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let netDurationStr = formatter.string(from: rawDuration as NSNumber) ?? "nan"
 		let cacheDurationStr = formatter.string(from: cacheDuration as NSNumber) ?? "nan"
 		let cacheRatioStr = formatter.string(from: cacheRatio as NSNumber) ?? "nan"
-		logger.info("netDuration: \(netDurationStr)\ncacheDuration: \(cacheDurationStr)\ncache took \(cacheRatioStr)x as long")
+		logger
+			.info("netDuration: \(netDurationStr)\ncacheDuration: \(cacheDurationStr)\ncache took \(cacheRatioStr)x as long")
 		#expect(
 			cacheDuration < (rawDuration * 0.5),
 			"The cache lookup wasn't even twice as fast as the original lookup. It's possible the cache isn't working",
@@ -241,7 +242,11 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let nh = getNetworkHandler(with: engine)
 		defer { nh.resetCache() }
 
-		let payloadData = Data(##"{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":"https://s3.wasabisys.com/network-handler-tests/images/lighthouse.jpg","subtitle":"BarSub","title":"FooTitle"}"##.utf8)
+		let payloadData = Data("""
+			{"id":"59747267-D47D-47CD-9E54-F79FA3C1F99B","imageURL":\
+			"https://s3.wasabisys.com/network-handler-tests/images/lighthouse.jpg"\
+			,"subtitle":"BarSub","title":"FooTitle"}
+			""".utf8)
 		let url = demoModelURL
 		let request = url.generalRequest.with {
 			$0.expectedResponseCodes = 201
@@ -705,13 +710,16 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		await #expect(
 			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0),
 			performing: {
-				_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(actualTestFile), onError: { req, failCount, error in
-					#expect(error.isCancellation() == false)
-					print(error)
-					atomicFailCount.value = failCount
-					guard failCount < expectedFailCount else { return .throw }
-					return .retry
-				})
+				_ = try await nh.uploadMahDatas(
+					for: signedRequest,
+					payload: .localFile(actualTestFile),
+					onError: { req, failCount, error in
+						#expect(error.isCancellation() == false)
+						print(error)
+						atomicFailCount.value = failCount
+						guard failCount < expectedFailCount else { return .throw }
+						return .retry
+					})
 			},
 			throws: {
 				guard let error = $0 as? NetworkError else { return false }
@@ -724,7 +732,9 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 				}
 
 			})
-		#expect(atomicFailCount.value == expectedFailCount, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			atomicFailCount.value == expectedFailCount,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
 	/// performs a `PUT` request to `randomDataURL` (only really useful to test with `MockingEngine`)
@@ -805,7 +815,9 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			})
 		}
 
-		#expect(atomicFailCount.value == expectedAttemptCount, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			atomicFailCount.value == expectedAttemptCount,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
 	/// performs a `GET` request to `randomDataURL`. Provided must be corrupted in some way.
@@ -836,10 +848,18 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			for: request,
 			delegate: delegate).responseHeader
 
-		#expect(header.expectedContentLength != nil, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
-		#expect(header.expectedContentLength.map(Int.init) == expectedTotalAtomic.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
-		#expect(accumulator.value.isOccupied, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
-		#expect(accumulator.value.sorted() == accumulator.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			header.expectedContentLength != nil,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			header.expectedContentLength.map(Int.init) == expectedTotalAtomic.value,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			accumulator.value.isOccupied,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			accumulator.value.sorted() == accumulator.value,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
 	/// performs a `PUT` request to `randomDataURL`. Provided must be corrupted in some way.
@@ -891,10 +911,18 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let _ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(testFileURL), delegate: delegate)
 
-		#expect(updatedRequestAtomic.value.headers[.contentLength] != nil, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
-		#expect(updatedRequestAtomic.value.headers[.contentLength].flatMap { Int($0.rawValue) } == expectedTotalAtomic.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
-		#expect(accumulator.value.isOccupied, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
-		#expect(accumulator.value.sorted() == accumulator.value, sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			updatedRequestAtomic.value.headers[.contentLength] != nil,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			updatedRequestAtomic.value.headers[.contentLength].flatMap { Int($0.rawValue) } == expectedTotalAtomic.value,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			accumulator.value.isOccupied,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
+		#expect(
+			accumulator.value.sorted() == accumulator.value,
+			sourceLocation: SourceLocation(fileID: file, filePath: filePath, line: line, column: 0))
 	}
 
 	/// performs a `GET` request to `echoURL`. Provided must be corrupted in some way.
@@ -958,7 +986,11 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		return nh
 	}
 
-	private func createDummyFile(at url: URL, megabytes: Int, using rng: any RandomNumberGenerator = SystemRandomNumberGenerator()) throws -> (file: URL, done: () throws -> Void) {
+	private func createDummyFile(
+		at url: URL,
+		megabytes: Int,
+		using rng: any RandomNumberGenerator = SystemRandomNumberGenerator()
+	) throws -> (file: URL, done: () throws -> Void) {
 		let outFile = {
 			var current = url
 			while current.checkResourceIsAccessible() {
@@ -1022,23 +1054,63 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 extension NetworkHandlerCommonTests {
 	class Delegate: NetworkHandlerTaskDelegate {
-		let onRequestModified: @Sendable (_ delegate: Delegate, _ original: NetworkRequest, _ modified: NetworkRequest) -> Void
+		let onRequestModified: @Sendable (
+			_ delegate: Delegate,
+			_ original: NetworkRequest,
+			_ modified: NetworkRequest
+		) -> Void
 		let onStart: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
-		let onSendData: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ totalByteCountSent: Int, _ totalExpected: Int?) -> Void
+		let onSendData: @Sendable (
+			_ delegate: Delegate,
+			_ request: NetworkRequest,
+			_ totalByteCountSent: Int,
+			_ totalExpected: Int?
+		) -> Void
 		let onSendingFinish: @Sendable (_ delegate: Delegate, NetworkRequest) -> Void
-		let onResponseHeader: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ header: EngineResponseHeader) -> Void
+		let onResponseHeader: @Sendable (
+			_ delegate: Delegate,
+			_ request: NetworkRequest,
+			_ header: EngineResponseHeader
+		) -> Void
 		let onResponseBodyProgress: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ bytes: Data) -> Void
-		let onResponseBodyProgressCount: @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ byteCount: Int, _ expectedTotal: Int?) -> Void
+		let onResponseBodyProgressCount: @Sendable (
+			_ delegate: Delegate,
+			_ request: NetworkRequest,
+			_ byteCount: Int,
+			_ expectedTotal: Int?
+		) -> Void
 		let onRequestFinished: @Sendable (_ delegate: Delegate, Error?) -> Void
 
 		init(
-			onRequestModified: @escaping @Sendable (_ delegate: Delegate, _ original: NetworkRequest, _ modified: NetworkRequest) -> Void = { _, _, _ in },
+			onRequestModified: @escaping @Sendable (
+				_ delegate: Delegate,
+				_ original: NetworkRequest,
+				_ modified: NetworkRequest
+			) -> Void = { _, _, _ in },
 			onStart: @escaping @Sendable (_ delegate: Delegate, NetworkRequest) -> Void = { _, _ in },
-			onSendData: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: Int, _: Int?) -> Void = { _, _, _, _ in },
+			onSendData: @escaping @Sendable (
+				_ delegate: Delegate,
+				_: NetworkRequest,
+				_: Int,
+				_: Int?
+			) -> Void = { _, _, _, _ in },
 			onSendingFinish: @escaping @Sendable (_ delegate: Delegate, NetworkRequest) -> Void = { _, _ in },
-			onResponseHeader: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: EngineResponseHeader) -> Void = { _, _, _ in },
-			onResponseBodyProgress: @escaping @Sendable (_ delegate: Delegate, _: NetworkRequest, _: Data) -> Void = { _, _, _ in },
-			onResponseBodyProgressCount: @escaping @Sendable (_ delegate: Delegate, _ request: NetworkRequest, _ byteCount: Int, _ expectedTotal: Int?) -> Void = { _, _, _, _ in},
+			onResponseHeader: @escaping @Sendable (
+				_ delegate: Delegate,
+				_: NetworkRequest,
+				_: EngineResponseHeader
+			) -> Void = { _, _, _ in },
+			onResponseBodyProgress: @escaping @Sendable (
+				_ delegate: Delegate,
+				_: NetworkRequest,
+				_: Data
+			) -> Void = { _, _, _ in },
+			onResponseBodyProgressCount: @escaping @Sendable (
+				_ delegate: Delegate,
+				_ request: NetworkRequest,
+				_ byteCount: Int,
+				_ expectedTotal: Int?
+			) -> Void = { _, _, _, _ in},
 			onRequestFinished: @escaping @Sendable (_ delegate: Delegate, Error?) -> Void = { _, _ in }
 		) {
 			self.onRequestModified = onRequestModified

@@ -11,7 +11,13 @@ public actor MockingEngine: NetworkEngine {
 
 	public init() {}
 
-	public func addMock(for url: URL, method: HTTPMethod, responseData: Data?, responseCode: Int, delay: TimeInterval = 0) async {
+	public func addMock(
+		for url: URL,
+		method: HTTPMethod,
+		responseData: Data?,
+		responseCode: Int,
+		delay: TimeInterval = 0
+	) async {
 		await addMock(for: url, method: method) { server, request, _, _ in
 			if delay > 0 {
 				try await Task.sleep(for: .seconds(delay))
@@ -54,11 +60,15 @@ public actor MockingEngine: NetworkEngine {
 		try await performServerInteraction(for: request, uploadProgCont: uploadProgressContinuation)
 	}
 
-	private func performServerInteraction(for request: NetworkRequest, uploadProgCont: UploadProgressStream.Continuation?) async throws(NetworkError) -> (
+	private func performServerInteraction(
+		for request: NetworkRequest,
+		uploadProgCont: UploadProgressStream.Continuation?
+	) async throws(NetworkError) -> (
 		responseHeader: EngineResponseHeader,
 		responseBody: ResponseBodyStream
 	) {
-		let (responseStream, responseContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+		let (responseStream, responseContinuation) = ResponseBodyStream.makeStream(
+			errorOnCancellation: NetworkError.requestCancelled)
 
 		let headerTrackDelegate = HeaderTrackingDelegate()
 
@@ -141,8 +151,10 @@ public actor MockingEngine: NetworkEngine {
 		responseContinuation: ResponseBodyStream.Continuation,
 		headerDelegate: HeaderTrackingDelegate
 	) async throws(NetworkError) {
-		let (sendStream, sendContinuation) = MockingServer.ServerStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
-		let (serverStream, serverContinuation) = MockingServer.ServerStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)
+		let (sendStream, sendContinuation) = MockingServer.ServerStream.makeStream(
+			errorOnCancellation: NetworkError.requestCancelled)
+		let (serverStream, serverContinuation) = MockingServer.ServerStream.makeStream(
+			errorOnCancellation: NetworkError.requestCancelled)
 
 		defer { headerDelegate.setValue(.failure(NetworkError.requestCancelled)) }
 
@@ -274,7 +286,10 @@ extension MockingEngine {
 				case .requestHeader(let netrequest):
 					let key = Key(url: netrequest.url, method: netrequest.method)
 					responseBlock = acceptedIntercepts[key]
-					if responseBlock == nil, let dynamicResponse = acceptedIntercepts.first(where: { $0.key.respondsTo(key) }) {
+					if
+						responseBlock == nil,
+						let dynamicResponse = acceptedIntercepts.first(where: { $0.key.respondsTo(key) })
+					{
 						responseBlock = dynamicResponse.value
 						pathItems = dynamicResponse.key.pathItems(from: netrequest.url)
 					}
@@ -288,7 +303,8 @@ extension MockingEngine {
 			}
 
 			guard let responseBlock, let header else {
-				try responseStreamContinuation.yield(.responseHeader(EngineResponseHeader(status: 404, url: header?.url, headers: [:])))
+				try responseStreamContinuation
+					.yield(.responseHeader(EngineResponseHeader(status: 404, url: header?.url, headers: [:])))
 				try responseStreamContinuation.finish()
 				return
 			}
