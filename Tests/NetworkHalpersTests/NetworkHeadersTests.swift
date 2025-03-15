@@ -2,6 +2,7 @@ import Testing
 import NetworkHalpers
 
 struct NetworkHeadersTests {
+	// swiftlint:disable identifier_name
 	@Test func keys() async throws {
 		let a = HTTPHeaders.Header.Key(rawValue: "Content-Type")
 		let b: HTTPHeaders.Header.Key = "Content-Type"
@@ -45,6 +46,7 @@ struct NetworkHeadersTests {
 		#expect("image/JPEG" == d)
 	}
 
+	// swiftlint:enable identifier_name
 	@Test func multipartValue() async throws {
 		let value = HTTPHeaders.Header.Value.multipart(boundary: "f0o")
 
@@ -148,7 +150,7 @@ struct NetworkHeadersTests {
 		#expect(contentIndicies == [0, 3])
 		contentIndicies.reversed().forEach { simpleHeaders.remove(at: $0) }
 		#expect(simpleHeaders.keys().count == 2)
-		#expect(simpleHeaders.allHeaders(withKey: .contentType).count == 0)
+		#expect(simpleHeaders.allHeaders(withKey: .contentType).isEmpty)
 	}
 
 	@Test func headersSubscripts() async throws {

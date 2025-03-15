@@ -4,7 +4,10 @@ identifier_name:
    - x
    - y
    - T
-
+type_name:
+  allowed_symbols:
+    - "_"
+  max_length: 100
 line_length: 120
 file_length: 800
 type_body_length:
@@ -14,7 +17,7 @@ number_separator:
 trailing_comma:
   mandatory_comma: true
 function_body_length:
-  warning: 100
+  warning: 120
   error: 150
 disabled_rules:
   - nesting
@@ -22,6 +25,7 @@ disabled_rules:
   - conditional_returns_on_newline
   - type_name
   - attributes
+  - comment_spacing
 opt_in_rules: # these settings are inherited from another project - adjust as needed
  - closure_spacing
  - conditional_returns_on_newline
@@ -39,7 +43,7 @@ opt_in_rules: # these settings are inherited from another project - adjust as ne
  - object_literal
  - fatal_error_message
 excluded:
-  - Sources/FCPXML/Starters
+  - .build
 
 custom_rules:
   leading_whitespace:

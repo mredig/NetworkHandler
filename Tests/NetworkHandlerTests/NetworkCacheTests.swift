@@ -32,9 +32,10 @@ class NetworkCacheTests: NetworkCacheTest {
 		XCTAssertEqual("Test Network Handler-Cache", cache.name)
 	}
 
-	/// I've determined that NSCache's version of thread safety is that it doesn't block, so there are times that you might set a value, checking that it exists
-	/// immediately afterwards only to find it's not there... But it will show up eventually. This, natually, messes with tests and causes this test to be unreliable.
-	/// I'm working on finding a workaround to test, but in the meantime, this test failing isn't considered a real fail.
+	/// I've determined that NSCache's version of thread safety is that it doesn't block, so there are times that you
+	/// might set a value, checking that it exists immediately afterwards only to find it's not there... But it will show
+	/// up eventually. This, natually, messes with tests and causes this test to be unreliable. I'm working on
+	/// finding a workaround to test, but in the meantime, this test failing isn't considered a real fail.
 	///
 	/// see idea in NetworkCache class
 	func testCacheAddRemove() {

@@ -7,8 +7,8 @@ class MultipartInputStreamTests: XCTestCase {
 	func testStreamConcatenationLargeChunks() throws {
 		let expectedFinal = "Hello World!<html><body>this is a body</body></html>"
 
-		let part1 = InputStream(data: "Hello ".data(using: .utf8)!)
-		let part2 = InputStream(data: "World!".data(using: .utf8)!)
+		let part1 = InputStream(data: Data("Hello ".utf8))
+		let part2 = InputStream(data: Data("World!".utf8))
 		let part3 = InputStream(url: try createTestFile().0)!
 
 		let concat = try ConcatenatedInputStream(streams: [part1, part2, part3])
@@ -29,8 +29,8 @@ class MultipartInputStreamTests: XCTestCase {
 	func testStreamConcatenationSmallChunks() throws {
 		let expectedFinal = "Hello World!<html><body>this is a body</body></html>"
 
-		let part1 = InputStream(data: "Hello ".data(using: .utf8)!)
-		let part2 = InputStream(data: "World!".data(using: .utf8)!)
+		let part1 = InputStream(data: Data("Hello ".utf8))
+		let part2 = InputStream(data: Data("World!".utf8))
 		let part3 = InputStream(url: try createTestFile().0)!
 
 		let concat = try ConcatenatedInputStream(streams: [part1, part2, part3])
@@ -58,8 +58,8 @@ class MultipartInputStreamTests: XCTestCase {
 	func testStreamConcatenationMediumChunks() throws {
 		let expectedFinal = "Hello World!<html><body>this is a body</body></html>"
 
-		let part1 = InputStream(data: "Hello ".data(using: .utf8)!)
-		let part2 = InputStream(data: "World!".data(using: .utf8)!)
+		let part1 = InputStream(data: Data("Hello ".utf8))
+		let part2 = InputStream(data: Data("World!".utf8))
 		let part3 = InputStream(url: try createTestFile().0)!
 
 		let concat = try ConcatenatedInputStream(streams: [part1, part2, part3])
@@ -116,7 +116,7 @@ class MultipartInputStreamTests: XCTestCase {
 		let multipart = MultipartFormInputTempFile(boundary: boundary)
 
 		let arbText = "Odd input stream"
-		let arbitraryData = arbText.data(using: .utf8)!
+		let arbitraryData = Data(arbText.utf8)
 
 		let testedText = "tested"
 		multipart.addPart(named: "Text", string: testedText)
@@ -247,7 +247,7 @@ class MultipartInputStreamTests: XCTestCase {
 	// MARK: - common utilities
 	private func createTestFile() throws -> (URL, Data) {
 		let testFileURL = FileManager.default.temporaryDirectory.appendingPathComponent("tempfile")
-		let testFileContents = "<html><body>this is a body</body></html>".data(using: .utf8)!
+		let testFileContents = Data("<html><body>this is a body</body></html>".utf8)
 		try testFileContents.write(to: testFileURL)
 		addTeardownBlock {
 			try? FileManager.default.removeItem(at: testFileURL)
