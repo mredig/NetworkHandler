@@ -46,7 +46,7 @@ public protocol NetworkEngine: Sendable, Withable {
 		request: NetworkRequest,
 		uploadProgressContinuation: UploadProgressStream.Continuation?,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream)
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, responseBody: ResponseBodyStream)
 
 	/// Since networking is fraught with potential errors, `NetworkHandler` tries to normalize them into
 	/// `NetworkError` using `NetworkError.captureAndConvert()`.  When `NetworkError.captureAndConvert`

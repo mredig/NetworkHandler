@@ -50,12 +50,12 @@ public actor MockingEngine: NetworkEngine {
 		request: NetworkRequest,
 		uploadProgressContinuation: UploadProgressStream.Continuation?,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		try await performServerInteraction(for: request, uploadProgCont: uploadProgressContinuation)
 	}
 
 	private func performServerInteraction(for request: NetworkRequest, uploadProgCont: UploadProgressStream.Continuation?) async throws(NetworkError) -> (
-		responseTask: EngineResponseHeader,
+		responseHeader: EngineResponseHeader,
 		responseBody: ResponseBodyStream
 	) {
 		let (responseStream, responseContinuation) = ResponseBodyStream.makeStream(errorOnCancellation: NetworkError.requestCancelled)

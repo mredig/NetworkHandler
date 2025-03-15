@@ -13,7 +13,7 @@ extension HTTPClient: NetworkEngine {
 		request: NetworkRequest,
 		uploadProgressContinuation: UploadProgressStream.Continuation?,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		switch request {
 		case .general(let generalRequest):
 			try await fetchNetworkData(from: generalRequest, requestLogger: requestLogger)
@@ -76,7 +76,7 @@ extension HTTPClient: NetworkEngine {
 		with payload: UploadFile,
 		uploadProgressContinuation upProgContinuation: UploadProgressStream.Continuation?,
 		requestLogger: Logger?
-	) async throws(NetworkError) -> (responseTask: EngineResponseHeader, responseBody: ResponseBodyStream) {
+	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		var httpClientRequest = try NetworkError.captureAndConvert { try request.httpClientFutureRequest }
 
 		@Sendable func streamWriter(
