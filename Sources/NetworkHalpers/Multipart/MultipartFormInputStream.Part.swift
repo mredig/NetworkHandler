@@ -45,7 +45,7 @@ extension MultipartFormInputStream {
 		}()
 
 		private let footerStream: InputStream = {
-			let stream = InputStream(data: "\r\n".data(using: .utf8)!)
+			let stream = InputStream(data: Data("\r\n".utf8))
 			return stream
 		}()
 

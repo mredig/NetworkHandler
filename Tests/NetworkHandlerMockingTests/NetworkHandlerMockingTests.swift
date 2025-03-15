@@ -328,16 +328,16 @@ struct NetworkHandlerMockingTests: Sendable {
 
 		try await commonTests.retryOptions(
 			engine: mockingEngine,
-			retryOption: .defaultReturnValue(data: "foo".data(using: .utf8)!, statusCode: 200),
-			anticipatedOutput: .success((expectedHeader, "foo".data(using: .utf8)!)),
+			retryOption: .defaultReturnValue(data: Data("foo".utf8), statusCode: 200),
+			anticipatedOutput: .success((expectedHeader, Data("foo".utf8))),
 			expectedAttemptCount: 1)
 
 		try await commonTests.retryOptions(
 			engine: mockingEngine,
 			retryOption: .defaultReturnValue(
-				data: "foo".data(using: .utf8)!,
+				data: Data("foo".utf8),
 				urlResponse: EngineResponseHeader(status: 200, url: url, headers: [:])),
-			anticipatedOutput: .success((expectedHeader, "foo".data(using: .utf8)!)),
+			anticipatedOutput: .success((expectedHeader, Data("foo".utf8))),
 			expectedAttemptCount: 1)
 
 		let retryRequest = NetworkRequest.general(commonTests.demoModelURL.generalRequest)
