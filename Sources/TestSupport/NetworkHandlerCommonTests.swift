@@ -1130,27 +1130,27 @@ extension NetworkHandlerCommonTests {
 		func transferDidStart(for request: NetworkRequest) {
 			onStart(self, request)
 		}
-		
+
 		func sentData(for request: NetworkRequest, totalByteCountSent: Int, totalExpectedToSend: Int?) {
 			onSendData(self, request, totalByteCountSent, totalExpectedToSend)
 		}
-		
+
 		func sendingDataDidFinish(for request: NetworkRequest) {
 			onSendingFinish(self, request)
 		}
-		
+
 		func responseHeaderRetrieved(for request: NetworkRequest, header: EngineResponseHeader) {
 			onResponseHeader(self, request, header)
 		}
-		
+
 		func responseBodyReceived(for request: NetworkRequest, bytes: Data) {
 			onResponseBodyProgress(self, request, bytes)
 		}
-		
+
 		func responseBodyReceived(for request: NetworkRequest, byteCount: Int, totalExpectedToReceive: Int?) {
 			onResponseBodyProgressCount(self, request, byteCount, totalExpectedToReceive)
 		}
-		
+
 		func requestFinished(withError error: (any Error)?) {
 			onRequestFinished(self, error)
 		}

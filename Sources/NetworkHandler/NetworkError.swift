@@ -191,7 +191,7 @@ public extension Error {
 			case let error = self as NSError,
 			error.domain == NSURLErrorDomain,
 			error.code == NSURLErrorCancelled {
-			
+
 			return true
 		} else if self is CancellationError {
 			return true

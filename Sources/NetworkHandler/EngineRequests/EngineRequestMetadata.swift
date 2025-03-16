@@ -22,7 +22,7 @@ public struct EngineRequestMetadata: Hashable, @unchecked Sendable, Withable {
 		RawRepresentable,
 		ExpressibleByIntegerLiteral,
 		ExpressibleByArrayLiteral {
-		
+
 		public var rawValue: Set<Int>
 
 		public init(rawValue: Set<Int>) {

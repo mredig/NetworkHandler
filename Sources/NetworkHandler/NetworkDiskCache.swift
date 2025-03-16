@@ -248,7 +248,7 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 			var oldestFirst = sorted.makeIterator()
 			while let oldestOnDisk = oldestFirst.next() {
 				guard size > capacity else { return }
-				
+
 				_deleteFile(at: oldestOnDisk)
 			}
 			logger.trace("Done enforcing disk capacity")

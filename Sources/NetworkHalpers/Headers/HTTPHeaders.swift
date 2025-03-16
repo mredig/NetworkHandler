@@ -23,26 +23,26 @@ public struct HTTPHeaders:
 	public init(_ headers: [Header]) {
 		self.headers = headers
 	}
-	
+
 	/// Creates an instance of `HTTPHeaders` from a dictionary of key-value pairs.
 	/// - Parameter headers: A dictionary where keys and values are `String` representations
 	///   of header keys and values.
 	public init(_ headers: [String: String]) {
 		self.init(headers.map { Header(key: "\($0.key)", value: "\($0.value)") })
 	}
-	
+
 	/// Creates an instance of `HTTPHeaders` from a dictionary of strongly-typed header key-value pairs.
 	/// - Parameter headers: A dictionary where keys are `Header.Key` and values are `Header.Value`.
 	public init(_ headers: [Header.Key: Header.Value]) {
 		self.init(headers.map { Header(key: $0.key, value: $0.value) })
 	}
-	
+
 	/// Creates an instance of `HTTPHeaders` using an array literal of `Header` instances.
 	/// - Parameter elements: A variadic list of `Header` instances.
 	public init(arrayLiteral elements: Header...) {
 		self.init(elements)
 	}
-	
+
 	/// Creates an instance of `HTTPHeaders` using a dictionary literal of strongly-typed key-value pairs.
 	/// - Parameter elements: A variadic list of tuples where each key is a `Header.Key` and each
 	/// value is a `Header.Value`.
@@ -150,13 +150,13 @@ public extension HTTPHeaders {
 	func value(for key: Header.Key) -> String? {
 		self[key]?.rawValue
 	}
-	
+
 	/// Sets the `Content-Type` header.
 	/// - Parameter contentType: The value to set for the `Content-Type` header.
 	mutating func setContentType(_ contentType: Header.Value) {
 		setValue(contentType, forKey: .contentType)
 	}
-	
+
 	/// Sets the `Authorization` header.
 	/// - Parameter value: The value to set for the `Authorization` header.
 	mutating func setAuthorization(_ value: Header.Value) {
@@ -170,7 +170,7 @@ public extension HTTPHeaders {
 	mutating func combine(with other: HTTPHeaders) {
 		headers.append(contentsOf: other.headers)
 	}
-	
+
 	/// Combines the headers from another `HTTPHeaders` instance into a new instance.
 	/// - Parameter other: The `HTTPHeaders` instance to combine.
 	/// - Returns: A new `HTTPHeaders` instance with combined headers.

@@ -151,7 +151,7 @@ extension HTTPClient: NetworkEngine {
 
 		return (response, bodyStream)
 	}
-	
+
 	public func shutdown() {
 		shutdown { error in
 			if let error {

@@ -38,7 +38,7 @@ public struct AWSV4Signature: Hashable, Sendable, Withable {
 	/// Custom HTTP headers that you want to include in the signature calculation.
 	/// Make sure to omit these headers from the request yourself as they are added during the `processRequest()` call.
 	public var additionalSignedHeaders: [HTTPHeaders.Header.Key: HTTPHeaders.Header.Value]
-	
+
 	/// Initializes a new instance of `AWSV4Signature` with the provided request attributes.
 	///
 	/// - Parameters:
@@ -72,7 +72,7 @@ public struct AWSV4Signature: Hashable, Sendable, Withable {
 			self.hexContentHash = hexContentHash
 			self.additionalSignedHeaders = additionalSignedHeaders
 		}
-	
+
 	/// Constructs the necessary AWS-specific HTTP headers (`x-amz-*`) to be added to the signed request.
 	///
 	/// Includes:
@@ -88,7 +88,7 @@ public struct AWSV4Signature: Hashable, Sendable, Withable {
 			"Authorization": "\(authorizationString)",
 		]
 	}
-	
+
 	/// Facilitates handling of AWS-signed requests by providing headers to a closure and collecting the result.
 	///
 	/// This method verifies the `url` and `method` of the request match the instance's defined values,
@@ -157,7 +157,7 @@ extension AWSV4Signature {
 		formatter.dateFormat = "yyyyMMdd"
 		return formatter
 	}()
-	
+
 	/// Converts a `Date` to a properly iso formatted date string, suitable for AWSv4 auth.
 	public static func isoDateString(from date: Date) -> String {
 		isoFormatter.string(from: date)
@@ -170,8 +170,8 @@ extension AWSV4Signature {
 
 	private var components: URLComponents {
 		URLComponents(url: url, resolvingAgainstBaseURL: false) ??
-			URLComponents(string: url.absoluteString) ?? // will this make a difference?
-			URLComponents() // don't crash and instead just make invalid data... maybe?
+		URLComponents(string: url.absoluteString) ?? // will this make a difference?
+		URLComponents() // don't crash and instead just make invalid data... maybe?
 	}
 
 	static private let allowedCharacters: CharacterSet = {
@@ -232,13 +232,13 @@ extension AWSV4Signature {
 	var canonicalRequest: String {
 		let headerStuff = self.headerStuff
 		return """
-		\(requestMethod.rawValue)
-		\(urlPath)
-		\(queryItemString)
-		\(headerStuff.canonicalHeaders)
-		\(headerStuff.signedHeaders)
-		\(hexContentHash.rawValue)
-		"""
+			\(requestMethod.rawValue)
+			\(urlPath)
+			\(queryItemString)
+			\(headerStuff.canonicalHeaders)
+			\(headerStuff.signedHeaders)
+			\(hexContentHash.rawValue)
+			"""
 	}
 
 	var scope: String {
@@ -276,7 +276,7 @@ extension AWSV4Signature {
 		let signature = HMAC<SHA256>.authenticationCode(for: Data(stringToSign.utf8), using: signatureSecret).hex()
 		return signature
 	}
-	
+
 	/// The completed AWS Authorization header string, as constructed during the signing process.
 	///
 	/// This string includes:
@@ -311,7 +311,7 @@ extension AWSV4Signature {
 		public init(stringLiteral value: String) {
 			self.init(rawValue: value)
 		}
-		
+
 		/// Convenience for the `us-east-2` AWS region
 		public static let usEast2: AWSRegion = "us-east-2"
 		/// Convenience for the `us-east-1` AWS region
@@ -361,7 +361,7 @@ extension AWSV4Signature {
 		/// Convenience for the `sa-east-1` AWS region
 		public static let saEast1: AWSRegion = "sa-east-1"
 	}
-	
+
 	/// Represents an AWS Service name (e.g., `s3`, `dynamodb`), required for constructing the request scope.
 	///
 	/// This is a type-safe wrapper around a raw string. A static convenience value is provided for `s3`.
@@ -375,11 +375,11 @@ extension AWSV4Signature {
 		public init(stringLiteral value: String) {
 			self.init(rawValue: value)
 		}
-		
+
 		/// Convenience for the `s3` AWS service
 		public static let s3: AWSService = "s3"
 	}
-	
+
 	/// Represents the SHA-256 hash of the HTTP body in hexadecimal format.
 	/// Used as part of the canonical request for AWS Signature Version 4.
 	///
@@ -407,7 +407,7 @@ extension AWSV4Signature {
 		public static func fromShaHashDigest(_ hash: SHA256Digest) -> AWSContentHash {
 			AWSContentHash(rawValue: "\(hash.hex())")
 		}
-		
+
 		/// Convenience for when a payload is empty.
 		public static let emptyPayload: AWSContentHash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 		/// Convenience for when a payload is unsigned.

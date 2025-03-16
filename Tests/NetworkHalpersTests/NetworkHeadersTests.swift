@@ -163,7 +163,7 @@ struct NetworkHeadersTests {
 		#expect(simpleHeaders.keys().count == 3)
 		#expect(simpleHeaders.allHeaders(withKey: .contentType).count == 1)
 		#expect(simpleHeaders[.contentType] == "application/json")
-		
+
 		simpleHeaders[.contentType] = "application/json2"
 		#expect(simpleHeaders[.contentType] == "application/json2")
 

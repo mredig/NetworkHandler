@@ -18,7 +18,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	 optional, but automatic when making requests using the `usingCache` flag.
 	 */
 	let cache: NetworkCache
-	
+
 	/// Used to label this instance of `NetworkHandler` for things like logging or debugging. Also useful
 	/// if you desire anthropomorphizing `NetworkHandler` instances as they are created ephemerally in
 	/// memory only to be ruthlessly destroyed once their usefulness has expired. I call this instance "Jimi".
@@ -186,7 +186,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			cancellationToken: cancellationToken,
 			onError: onError)
 	}
-	
+
 	/// Downloads remote data to a local file URL.
 	/// - Parameters:
 	///   - request: GeneralEngineRequest
@@ -356,7 +356,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 		return (header, data)
 	}
-	
+
 	/// Streams data from a server. Powers the rest of NetworkHandler.
 	/// - Parameters:
 	///   - request: NetworkRequest

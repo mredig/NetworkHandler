@@ -19,7 +19,7 @@ public struct HTTPMethod:
 	public init(stringLiteral value: String) {
 		self.rawValue = value
 	}
-	
+
 	/// Convenience for the `POST` HTTP method
 	static public let post: HTTPMethod = "POST"
 	/// Convenience for the `PUT` HTTP method

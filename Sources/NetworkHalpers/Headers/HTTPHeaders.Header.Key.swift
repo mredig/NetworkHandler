@@ -22,7 +22,7 @@ extension HTTPHeaders.Header {
 		public init(rawValue: String) {
 			self.canonical = rawValue
 		}
-		
+
 		/// Convenience for the `Accept` HTTP Header name
 		public static let accept: Key = "Accept"
 		/// Convenience for the `Accept-Charset` HTTP Header name

@@ -23,7 +23,7 @@ public struct UploadEngineRequest: Hashable, Sendable, Withable {
 	public subscript<T>(dynamicMember member: KeyPath<EngineRequestMetadata, T>) -> T {
 		metadata[keyPath: member]
 	}
-	
+
 	/// - Parameters:
 	///   - expectedResponseCodes: Accepted response status codes from the server.
 	///   - headers: Headers for the request
@@ -44,6 +44,6 @@ public struct UploadEngineRequest: Hashable, Sendable, Withable {
 			url: url,
 			autogenerateRequestID: autogenerateRequestID)
 	}
-	
+
 	public typealias ResponseCodes = EngineRequestMetadata.ResponseCodes
 }
