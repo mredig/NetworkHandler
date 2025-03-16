@@ -11,6 +11,7 @@ import AppKit
 import UIKit
 #endif
 
+// swiftlint:disable:next type_body_length
 public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 	#if canImport(AppKit)
 	public typealias TestImage = NSImage
@@ -221,7 +222,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		_ = try await nh.transferMahDatas(
 			for: .general(request),
 			requestLogger: logger,
-			onError: { _,_,_  in .throw })
+			onError: { _, _, _  in .throw })
 	}
 
 	/// performs a `POST` request to `demoModelURL`
@@ -272,7 +273,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 				_ = try await nh.transferMahDatas(
 					for: .general(signedRequest),
 					requestLogger: logger,
-					onError: { _,_,_  in .throw })
+					onError: { _, _, _  in .throw })
 			},
 			throws: { error in
 				guard
@@ -303,7 +304,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let sizeOfUploadMB: UInt8 = 5
 		let fileSize = Int(sizeOfUploadMB) * 1024 * 1024
 
-		var rng: any RandomNumberGenerator = SeedableRNG(seed: 349687)
+		var rng: any RandomNumberGenerator = SeedableRNG(seed: 349_687)
 		let randomData = Data.random(count: fileSize, using: &rng)
 
 		let dataHash = SHA256.hash(data: randomData)
@@ -320,7 +321,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let signedRequest = try awsHeaderInfo.processRequest(request)
 
 		let atomicRequest = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .data(randomData)))
-		let delegate = await Delegate(onRequestModified: { del, orig, new in
+		let delegate = await Delegate(onRequestModified: { _, _, new in
 			atomicRequest.value = new
 		})
 
@@ -378,7 +379,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let signedRequest = try awsHeaderInfo.processRequest(upRequest)
 
 		let atomicRequest = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .localFile(actualTestFile)))
-		let delegate = await Delegate(onRequestModified: { del, orig, new in
+		let delegate = await Delegate(onRequestModified: { _, _, new in
 			atomicRequest.value = new
 		})
 		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(actualTestFile), delegate: delegate)
@@ -441,7 +442,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let signedRequest = try awsHeaderInfo.processRequest(upRequest)
 
 		let atomicRequest = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .localFile(multipartFile)))
-		let delegate = await Delegate(onRequestModified: { del, orig, new in
+		let delegate = await Delegate(onRequestModified: { _, _, new in
 			atomicRequest.value = new
 		})
 		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(multipartFile), delegate: delegate)
@@ -501,7 +502,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let signedRequest = try awsHeaderInfo.processRequest(upRequest)
 
 		let atomicRequest = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .inputStream(multipart)))
-		let delegate = await Delegate(onRequestModified: { del, orig, new in
+		let delegate = await Delegate(onRequestModified: { _, _, new in
 			atomicRequest.value = new
 		})
 		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .inputStream(multipart), delegate: delegate)
@@ -539,7 +540,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			throws: {
 				guard
 					let networkError = $0 as? NetworkError,
-					case .dataCodingError(specifically: _, sourceData: _) = networkError
+					case .dataCodingError = networkError
 				else { return false }
 				return true
 			})
@@ -561,10 +562,10 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let cancelToken = NetworkCancellationToken()
 		let forCancel = Task {
 			let accumulated = AtomicValue(value: 0)
-			let delegate = await Delegate(onResponseBodyProgress: { [accumulated] delegate, request, bodyData in
+			let delegate = await Delegate(onResponseBodyProgress: { [accumulated] _, _, bodyData in
 				accumulated.value += bodyData.count
 
-				guard accumulated.value > 40960 else { return }
+				guard accumulated.value > 40_960 else { return }
 				cancelToken.cancel()
 			})
 
@@ -595,7 +596,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			var accumulated = Data()
 			for try await chunk in stream {
 				accumulated.append(contentsOf: chunk)
-				guard accumulated.count > 40960 else { continue }
+				guard accumulated.count > 40_960 else { continue }
 				stream.cancel()
 			}
 		}
@@ -627,7 +628,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 			$0.method = .put
 		}
 
-		var rng: RandomNumberGenerator = SeedableRNG(seed: 9345867)
+		var rng: RandomNumberGenerator = SeedableRNG(seed: 9_345_867)
 		let randomData = Data.random(count: 1024 * 1024 * 10, using: &rng)
 
 		let hash = SHA256.hash(data: randomData)
@@ -644,7 +645,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let token = NetworkCancellationToken()
 
 		let task = Task {
-			let delegate = await Delegate(onSendData: { delegate, request, bytesSent, totalExpected in
+			let delegate = await Delegate(onSendData: { _, _, bytesSent, _ in
 				guard bytesSent > (1024 * 1024 * 2) else { return }
 				token.cancel()
 			})
@@ -713,7 +714,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 				_ = try await nh.uploadMahDatas(
 					for: signedRequest,
 					payload: .localFile(actualTestFile),
-					onError: { req, failCount, error in
+					onError: { _, failCount, error in
 						#expect(error.isCancellation() == false)
 						print(error)
 						atomicFailCount.value = failCount
@@ -784,7 +785,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		case .success(let success):
 			let (header, data) = try await nh.uploadMahDatas(
 				for: signedRequest,
-				payload: .data(data)) { req, attempt, error in
+				payload: .data(data)) { _, attempt, _ in
 					atomicFailCount.value = attempt
 					if attempt == 1 {
 						return retryOption
@@ -804,7 +805,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 				_ = try await nh.uploadMahDatas(
 					for: signedRequest,
 					payload: .data(data),
-					onError: { req, attempt, error in
+					onError: { _, attempt, _ in
 						atomicFailCount.value = attempt
 						if attempt == 1 {
 							return retryOption
@@ -836,7 +837,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 
 		let accumulator = AtomicValue(value: [Int]())
 		let expectedTotalAtomic = AtomicValue(value: 0)
-		let delegate = await Delegate(onResponseBodyProgressCount: { del, request, count, expectedTotal in
+		let delegate = await Delegate(onResponseBodyProgressCount: { _, _, count, expectedTotal in
 			accumulator.value.append(count)
 			if let expectedTotal {
 				expectedTotalAtomic.value = expectedTotal
@@ -898,10 +899,10 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 		let expectedTotalAtomic = AtomicValue(value: -1)
 		let updatedRequestAtomic = AtomicValue(value: NetworkRequest.upload(signedRequest, payload: .localFile(testFileURL)))
 		let delegate = await Delegate(
-			onRequestModified: { delegate, originalReq, modReq in
+			onRequestModified: { _, _, modReq in
 				updatedRequestAtomic.value = modReq
 			},
-			onSendData: { del, request, count, expectedTotal in
+			onSendData: { _, _, count, expectedTotal in
 				accumulator.value.append(count)
 				if let expectedTotal {
 					expectedTotalAtomic.value = expectedTotal
@@ -909,7 +910,7 @@ public struct NetworkHandlerCommonTests<Engine: NetworkEngine>: Sendable {
 				print("\(count) of \(expectedTotalAtomic.value)")
 			})
 
-		let _ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(testFileURL), delegate: delegate)
+		_ = try await nh.uploadMahDatas(for: signedRequest, payload: .localFile(testFileURL), delegate: delegate)
 
 		#expect(
 			updatedRequestAtomic.value.headers[.contentLength] != nil,
@@ -1155,4 +1156,4 @@ extension NetworkHandlerCommonTests {
 			onRequestFinished(self, error)
 		}
 	}
-}
+} // swiftlint:disable:this file_length

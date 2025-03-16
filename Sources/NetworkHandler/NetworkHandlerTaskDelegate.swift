@@ -1,7 +1,7 @@
 import Foundation
 
 @NHActor
-public protocol NetworkHandlerTaskDelegate: Sendable {
+public protocol NetworkHandlerTaskDelegate: AnyObject, Sendable {
 	/// Called when the engine modifies the request in some way. This can happen, for example, on
 	/// an upload when the `ContentLength` header gets set.
 	func requestModified(from oldVersion: NetworkRequest, to newVersion: NetworkRequest)

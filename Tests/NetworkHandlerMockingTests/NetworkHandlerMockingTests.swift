@@ -107,7 +107,7 @@ struct NetworkHandlerMockingTests: Sendable {
 				mockingEngine: mockingEngine)
 		}
 
-		await mockingEngine.addMock(for: url, method: .get) { server, request, _, requestBody in
+		await mockingEngine.addMock(for: url, method: .get) { server, request, _, _ in
 			try await s3MockGetSimulator(server: server, request: request, mockingEngine: mockingEngine)
 		}
 
@@ -225,7 +225,7 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.randomDataURL
-		await mockingEngine.addMock(for: url, method: .put) { _, request, _, requestBody in
+		await mockingEngine.addMock(for: url, method: .put) { _, request, _, _ in
 			try await Task.sleep(for: .seconds(5))
 			return (nil, EngineResponseHeader(status: 201, url: request.url, headers: [:]))
 		}
@@ -266,7 +266,7 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let encoder = JSONEncoder()
-		let responseBlock: MockingEngine.SmartResponseMockBlock = { server, request, pathItems, requestBody in
+		let responseBlock: MockingEngine.SmartResponseMockBlock = { _, request, _, _ in
 			let echo = NetworkHandlerCommonTests<MockingEngine>.BeeEchoModel(path: request.url.path(percentEncoded: false))
 			let echoData = try encoder.encode(echo)
 			return (
@@ -309,7 +309,7 @@ struct NetworkHandlerMockingTests: Sendable {
 		let mockingEngine = generateEngine()
 
 		let url = commonTests.randomDataURL
-		await mockingEngine.addMock(for: url, method: .put) { server, request, pathItems, requestBody in
+		await mockingEngine.addMock(for: url, method: .put) { server, request, _, requestBody in
 			if
 				let previouslyUploaded = server.mockStorage[request.url.path(percentEncoded: false)],
 				previouslyUploaded == requestBody

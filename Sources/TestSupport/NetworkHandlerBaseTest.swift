@@ -12,12 +12,6 @@ public typealias TestImage = UIImage
 #endif
 
 open class NetworkHandlerBaseTest<Engine: NetworkEngine>: XCTestCase {
-	open override func tearDown() async throws {
-		try await super.tearDown()
-
-//		await NetworkHandlerMocker.resetMocks()
-	}
-
 	public func generateNetworkHandlerInstance(engine: Engine) -> NetworkHandler<Engine> {
 		let networkHandler = NetworkHandler(name: "Test Network Handler", engine: engine)
 		addTeardownBlock {

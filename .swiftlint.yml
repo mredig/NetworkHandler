@@ -19,29 +19,32 @@ trailing_comma:
 function_body_length:
   warning: 120
   error: 150
+opening_brace:
+  ignore_multiline_statement_conditions: true
 disabled_rules:
   - nesting
-  - redundant_nil_coalescing
-  - conditional_returns_on_newline
-  - type_name
-  - attributes
+  - closing_brace
+  # - redundant_nil_coalescing
+  # - conditional_returns_on_newline
+  # - type_name
+  # - attributes
   - comment_spacing
 opt_in_rules: # these settings are inherited from another project - adjust as needed
- - closure_spacing
- - conditional_returns_on_newline
- - empty_count
- - explicit_init
- - overridden_super_call
- - redundant_nil_coalescing
- - nimble_operator
- - closure_end_indentation
- - first_where
- - attributes
- - operator_usage_whitespace
- - prohibited_super_call
  - number_separator
- - object_literal
- - fatal_error_message
+ # - closure_spacing
+ # - conditional_returns_on_newline
+ # - empty_count
+ # - explicit_init
+ # - overridden_super_call
+ # - redundant_nil_coalescing
+ # - nimble_operator
+ # - closure_end_indentation
+ # - first_where
+ # - attributes
+ # - operator_usage_whitespace
+ # - prohibited_super_call
+ # - object_literal
+ # - fatal_error_message
 excluded:
   - .build
 

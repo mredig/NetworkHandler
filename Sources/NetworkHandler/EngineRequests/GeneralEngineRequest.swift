@@ -39,7 +39,6 @@ public struct GeneralEngineRequest: Hashable, Sendable, Withable {
 		set { coderLock.withLock { _defaultEncoder = newValue } }
 	}
 
-
 	/// Default decoder used to decode data received from this request.
 	///
 	/// Default value is `JSONDecoder()` along with all of its defaults. Being that this

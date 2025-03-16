@@ -146,7 +146,7 @@ extension NetworkError: CustomDebugStringConvertible, LocalizedError {
 
 	public static func convert<E: Error>(_ error: E) -> NetworkError {
 		guard (error is NetworkError) == false else {
-			return error as! NetworkError
+			return error as! NetworkError // swiftlint:disable:this force_cast
 		}
 		guard error.isCancellation() == false else {
 			return .requestCancelled

@@ -50,8 +50,8 @@ public struct HTTPHeaders:
 		self.init(elements.map { Header(key: $0, value: $1) })
 	}
 
-	public func index(after i: [Header].Index) -> [Header].Index {
-		headers.index(after: i)
+	public func index(after thisIndex: [Header].Index) -> [Header].Index {
+		headers.index(after: thisIndex)
 	}
 
 	public subscript(position: [Header].Index) -> Header {

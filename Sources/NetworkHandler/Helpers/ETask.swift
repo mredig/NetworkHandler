@@ -23,7 +23,7 @@ public struct ETask<Success: Sendable, Failure: Error>: Sendable, Hashable {
 				let success = try resultA.get()
 				return .success(success)
 			} catch {
-				return .failure(error as! Failure)
+				return .failure(error as! Failure) // swiftlint:disable:this force_cast
 			}
 		}
 	}

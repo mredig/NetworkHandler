@@ -37,7 +37,7 @@ public class NetworkCancellationToken: @unchecked Sendable {
 
 	/// Convenience that throws `CancellationError` in the event that `isCancelled` is true.
 	public func checkIsCancelled() throws(CancellationError) {
-		try lock.withLock { () throws(CancellationError) -> Void in
+		try lock.withLock { () throws(CancellationError) in
 			guard _isCancelled == false else { throw CancellationError() }
 		}
 	}

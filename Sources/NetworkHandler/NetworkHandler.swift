@@ -13,10 +13,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	// MARK: - Properties
 	public let logger: Logger
 
-	/**
-	 An instance of Network Cache to speed up subsequent requests. Usage is
-	 optional, but automatic when making requests using the `usingCache` flag.
-	 */
+	/// An instance of Network Cache to speed up subsequent requests. Usage is
+	/// optional, but automatic when making requests using the `usingCache` flag.
 	let cache: NetworkCache
 
 	/// Used to label this instance of `NetworkHandler` for things like logging or debugging. Also useful
@@ -232,7 +230,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 		let (header, _) = try await retryHandler(
 			originalRequest: .general(request),
-			transferTask: { transferRequest, attempt in
+			transferTask: { transferRequest, _ in
 				let (streamHeader, stream) = try await streamMahDatas(
 					for: transferRequest,
 					delegate: delegate,
@@ -335,7 +333,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 		let (header, data) = try await retryHandler(
 			originalRequest: request,
-			transferTask: { transferRequest, attempt in
+			transferTask: { transferRequest, _ in
 				let (streamHeader, stream) = try await streamMahDatas(
 					for: transferRequest,
 					delegate: delegate,
@@ -366,7 +364,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   allowing you to cancel the request before it completes.
 	/// - Returns: The response header from the server and a data stream that provides data as it is received.
 	@NHActor
-	@discardableResult public func streamMahDatas(
+	@discardableResult public func streamMahDatas( // swiftlint:disable:this cyclomatic_complexity
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		requestLogger: Logger? = nil,
@@ -420,7 +418,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 				cancellationToken?.onCancel = { bodyStream.cancel() }
 				try cancellationToken?.checkIsCancelled()
-				bodyStream.onFinish { reason in
+				bodyStream.onFinish { _ in
 					Task { // placed in another task to avoid lock-deadlock
 						cancellationToken?.onCancel = {}
 					}
@@ -438,7 +436,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 					requestLogger: requestLogger)
 				cancellationToken?.onCancel = { bodyStream.cancel() }
 				try cancellationToken?.checkIsCancelled()
-				bodyStream.onFinish { reason in
+				bodyStream.onFinish { _ in
 					Task { // placed in another task to avoid lock-deadlock
 						cancellationToken?.onCancel = {}
 					}
@@ -499,7 +497,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 
 	/// Internal retry loop. Evaluates conditions and output from `errorHandler` to determine what to try next.
 	@NHActor
-	private func retryHandler(
+	private func retryHandler( // swiftlint:disable:this cyclomatic_complexity
 		originalRequest: NetworkRequest,
 		transferTask: @NHActor (_ request: NetworkRequest, _ attempt: Int) async throws -> (EngineResponseHeader, Data?),
 		errorHandler: RetryOptionBlock

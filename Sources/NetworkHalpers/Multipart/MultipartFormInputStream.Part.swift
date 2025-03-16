@@ -124,9 +124,9 @@ extension MultipartFormInputStream {
 			super.init()
 		}
 
-		override func close() {
-			super.close()
-		}
+		// intentionally keeping close overriden for context next to `open`
+		// swiftlint:disable:next unneeded_override
+		override func close() { super.close() }
 
 		override func open() {
 			do {

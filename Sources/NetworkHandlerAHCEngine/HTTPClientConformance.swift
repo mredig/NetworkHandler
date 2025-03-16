@@ -87,7 +87,7 @@ extension HTTPClient: NetworkEngine {
 			inputStream: InputStream,
 			writer: HTTPClient.Body.StreamWriter
 		) -> EventLoopFuture<Void> {
-			let bufferSize = 40960
+			let bufferSize = 40_960
 			let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: bufferSize)
 			guard let bufferPointer = buffer.baseAddress else { fatalError("Cannot retrieve base address") }
 			defer { buffer.deallocate() }

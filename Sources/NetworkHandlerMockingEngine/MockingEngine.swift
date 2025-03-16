@@ -18,7 +18,7 @@ public actor MockingEngine: NetworkEngine {
 		responseCode: Int,
 		delay: TimeInterval = 0
 	) async {
-		await addMock(for: url, method: method) { server, request, _, _ in
+		await addMock(for: url, method: method) { _, request, _, _ in
 			if delay > 0 {
 				try await Task.sleep(for: .seconds(delay))
 			}
@@ -30,7 +30,7 @@ public actor MockingEngine: NetworkEngine {
 			} else {
 				headers = [:]
 			}
-			return (responseData,  EngineResponseHeader(status: responseCode, url: request.url, headers: headers))
+			return (responseData, EngineResponseHeader(status: responseCode, url: request.url, headers: headers))
 		}
 	}
 
@@ -145,7 +145,7 @@ public actor MockingEngine: NetworkEngine {
 		}
 	}
 
-	private func serverTransfer(
+	private func serverTransfer( // swiftlint:disable:this cyclomatic_complexity
 		request: NetworkRequest,
 		uploadProgressContinuation: UploadProgressStream.Continuation?,
 		responseContinuation: ResponseBodyStream.Continuation,
@@ -374,6 +374,7 @@ extension MockingEngine {
 				guard requestComponents.count >= selfComponents.count else {
 					return false
 				}
+				// swiftlint:disable:next identifier_name
 				for (a, b) in zip(selfComponents, requestComponents) {
 					guard a != b else { continue }
 					if a.first == ":" {

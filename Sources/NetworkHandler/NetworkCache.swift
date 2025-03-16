@@ -10,7 +10,6 @@ once it's populated, clear from the cache-cache. in the meantime, the cache-cach
 */
 // swiftlint:enable line_length
 
-
 /// Essentially just a wrapper for NSCache, but adds redundancy in a disk cache. Specifically purposed for
 /// use with NetworkHandler
 class NetworkCache {
