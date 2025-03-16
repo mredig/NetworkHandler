@@ -1111,7 +1111,7 @@ extension NetworkHandlerCommonTests {
 				_ request: NetworkRequest,
 				_ byteCount: Int,
 				_ expectedTotal: Int?
-			) -> Void = { _, _, _, _ in},
+			) -> Void = { _, _, _, _ in },
 			onRequestFinished: @escaping @Sendable (_ delegate: Delegate, Error?) -> Void = { _, _ in }
 		) {
 			self.onRequestModified = onRequestModified

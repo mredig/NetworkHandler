@@ -18,7 +18,8 @@ public class DemoModelController: @unchecked Sendable {
 
 	public init() {}
 
-	@discardableResult public func create(
+	@discardableResult
+	public func create(
 		modelWithTitle title: String,
 		andSubtitle subtitle: String,
 		imageURL: URL,
@@ -37,7 +38,8 @@ public class DemoModelController: @unchecked Sendable {
 			return model
 		}
 
-	@discardableResult public func update(
+	@discardableResult
+	public func update(
 		model: DemoModel,
 		withTitle title: String,
 		subtitle: String,

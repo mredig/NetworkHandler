@@ -83,7 +83,8 @@ extension HTTPClient: NetworkEngine {
 	) async throws(NetworkError) -> (responseHeader: EngineResponseHeader, responseBody: ResponseBodyStream) {
 		var httpClientRequest = try NetworkError.captureAndConvert { try request.httpClientFutureRequest }
 
-		@Sendable func streamWriter(
+		@Sendable
+		func streamWriter(
 			inputStream: InputStream,
 			writer: HTTPClient.Body.StreamWriter
 		) -> EventLoopFuture<Void> {

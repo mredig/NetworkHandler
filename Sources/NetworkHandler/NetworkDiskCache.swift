@@ -56,7 +56,8 @@ class NetworkDiskCache: CustomDebugStringConvertible, @unchecked Sendable {
 
 	// MARK: - CRUD
 	func setData(_ getData: @autoclosure @escaping @Sendable () -> Data?, key: String, sync: Bool = false) {
-		@Sendable func doIt() {
+		@Sendable
+		func doIt() {
 			Self.withLock {
 				_setData(getData(), key: key)
 			}

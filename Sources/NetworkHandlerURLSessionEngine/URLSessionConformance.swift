@@ -77,7 +77,7 @@ extension URLSession: NetworkEngine {
 				let delayValue = isUploadFinished.value ? 20 : 100
 				try await Task.sleep(for: .milliseconds(delayValue))
 			}
-			guard let response = urlTask.response else { fatalError() }
+			guard let response = urlTask.response else { fatalError("I just saw it right there!") }
 			return EngineResponseHeader(from: response)
 		}
 

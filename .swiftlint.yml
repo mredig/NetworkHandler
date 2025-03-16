@@ -21,30 +21,24 @@ function_body_length:
   error: 150
 opening_brace:
   ignore_multiline_statement_conditions: true
+attributes:
+  always_on_same_line: ["@IBAction", "@NSManaged", "@Test"]
+  always_on_line_above: ["@NHActor"]
+
 disabled_rules:
   - nesting
   - closing_brace
-  # - redundant_nil_coalescing
-  # - conditional_returns_on_newline
-  # - type_name
-  # - attributes
-  - comment_spacing
-opt_in_rules: # these settings are inherited from another project - adjust as needed
- - number_separator
- # - closure_spacing
- # - conditional_returns_on_newline
- # - empty_count
- # - explicit_init
- # - overridden_super_call
- # - redundant_nil_coalescing
- # - nimble_operator
- # - closure_end_indentation
- # - first_where
- # - attributes
- # - operator_usage_whitespace
- # - prohibited_super_call
- # - object_literal
- # - fatal_error_message
+opt_in_rules:
+  - number_separator
+  - closure_spacing
+  - overridden_super_call
+  - attributes
+  - fatal_error_message
+  - empty_count
+  - redundant_nil_coalescing
+  - first_where
+  - operator_usage_whitespace
+  - prohibited_super_call
 excluded:
   - .build
 

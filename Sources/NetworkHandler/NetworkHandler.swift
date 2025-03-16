@@ -136,7 +136,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the decoded body of the response.
 	@NHActor
-	@discardableResult public func downloadMahCodableDatas<DecodableType: Decodable>(
+	@discardableResult
+	public func downloadMahCodableDatas<DecodableType: Decodable>(
 		for request: GeneralEngineRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
@@ -168,7 +169,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
-	@discardableResult public func uploadMahDatas(
+	@discardableResult
+	public func uploadMahDatas(
 		for request: UploadEngineRequest,
 		payload: UploadFile,
 		delegate: NetworkHandlerTaskDelegate? = nil,
@@ -200,7 +202,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server.
 	@NHActor
-	@discardableResult public func downloadMahFile(
+	@discardableResult
+	public func downloadMahFile(
 		for request: GeneralEngineRequest,
 		savingToLocalFileURL outFileURL: URL,
 		withTemporaryFile tempoaryFileURL: URL? = nil,
@@ -288,7 +291,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
-	@discardableResult public func downloadMahDatas(
+	@discardableResult
+	public func downloadMahDatas(
 		for request: GeneralEngineRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
@@ -317,7 +321,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   - onError: Error and retry handling
 	/// - Returns: The response header from the server and the body of the response.
 	@NHActor
-	@discardableResult public func transferMahDatas(
+	@discardableResult
+	public func transferMahDatas(
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		usingCache cacheOption: NetworkHandler.CacheKeyOption = .dontUseCache,
@@ -364,7 +369,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 	///   allowing you to cancel the request before it completes.
 	/// - Returns: The response header from the server and a data stream that provides data as it is received.
 	@NHActor
-	@discardableResult public func streamMahDatas( // swiftlint:disable:this cyclomatic_complexity
+	@discardableResult
+	public func streamMahDatas( // swiftlint:disable:this cyclomatic_complexity
 		for request: NetworkRequest,
 		delegate: NetworkHandlerTaskDelegate? = nil,
 		requestLogger: Logger? = nil,

@@ -135,7 +135,8 @@ class NetworkCache {
 	///
 	/// This method removes the object from both the in-memory cache and the disk cache. It also logs the
 	/// key removal for auditability. The return value allows you to retrieve the removed object if necessary.
-	@discardableResult public func remove(objectFor key: String) -> NetworkCacheItem? {
+	@discardableResult
+	public func remove(objectFor key: String) -> NetworkCacheItem? {
 		let cachedItem = cache.object(forKey: key as NSString)
 		cache.removeObject(forKey: key as NSString)
 		logger.debug("Deleted cached data", metadata: ["Key": "\(key)"])
