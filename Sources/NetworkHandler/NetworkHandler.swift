@@ -588,7 +588,8 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 		Equatable,
 		ExpressibleByBooleanLiteral,
 		ExpressibleByStringLiteral,
-		ExpressibleByStringInterpolation {
+		ExpressibleByStringInterpolation,
+		Sendable {
 
 		case dontUseCache
 		case useURL
