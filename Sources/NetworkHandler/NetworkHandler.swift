@@ -580,7 +580,7 @@ public class NetworkHandler<Engine: NetworkEngine>: @unchecked Sendable, Withabl
 			return decodedValue
 		} catch {
 			let codingError = NetworkError.dataCodingError(specifically: error, sourceData: data)
-			logger.error("Error: Couldn't decode \(DecodableType.self) from provided data", metadata: ["Error": codingError])
+			logger.error("Error: Couldn't decode \(DecodableType.self) from provided data", metadata: ["Error": "\(codingError)"])
 			throw codingError
 		}
 	}
