@@ -71,6 +71,7 @@ public extension EngineRequestMetadata {
 		set { derivedURLRequest.assumesHTTP3Capable = newValue }
 	}
 
+	@available(iOS 16.1, tvOS 16.1, watchOS 9.1, *)
 	var requiresDNSSECValidation: Bool {
 		get { derivedURLRequest.requiresDNSSECValidation }
 		set { derivedURLRequest.requiresDNSSECValidation = newValue }

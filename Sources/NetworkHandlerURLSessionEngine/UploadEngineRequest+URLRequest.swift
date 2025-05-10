@@ -26,7 +26,9 @@ extension UploadEngineRequest {
 			new.allowsPersistentDNS = storedRequest.allowsPersistentDNS
 		}
 		new.assumesHTTP3Capable = storedRequest.assumesHTTP3Capable
-		new.requiresDNSSECValidation = storedRequest.requiresDNSSECValidation
+		if #available(iOS 16.1, tvOS 16.1, watchOS 9.1, *) {
+			new.requiresDNSSECValidation = storedRequest.requiresDNSSECValidation
+		}
 
 		return new
 	}
