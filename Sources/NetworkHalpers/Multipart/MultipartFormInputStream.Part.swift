@@ -7,24 +7,8 @@ extension MultipartFormInputStream {
 	static let genericBinaryMimeType = "application/octet-stream"
 	static func getMimeType(forFileExtension pathExt: String) -> String {
 		#if canImport(UniformTypeIdentifiers)
-		if #available(OSX 11.0, iOS 14.0, tvOS 14.0, watchOS 14.0, *) {
-			let type = UTType(filenameExtension: pathExt)
-			return type?.preferredMIMEType ?? genericBinaryMimeType
-		} else {
-			guard
-				let universalTypeIdentifier = UTTypeCreatePreferredIdentifierForTag(
-					kUTTagClassFilenameExtension,
-					pathExt as CFString,
-					nil)?
-					.takeRetainedValue(),
-				let mimeType = UTTypeCopyPreferredTagWithClass(
-					universalTypeIdentifier,
-					kUTTagClassMIMEType)?
-					.takeRetainedValue()
-			else { return genericBinaryMimeType }
-
-			return mimeType as String
-		}
+		let type = UTType(filenameExtension: pathExt)
+		return type?.preferredMIMEType ?? genericBinaryMimeType
 		#else
 		genericBinaryMimeType
 		#endif
